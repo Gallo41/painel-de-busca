@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 28/10/2026 às 19:08
-- **Status**: Em andamento (20%)
+- **Status**: Em andamento (30%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -11,7 +11,7 @@
 Construir um Painel Web Local completo (FastAPI + SQLite + Dashboard SPA) para prospecção de clientes freelance (Sites, Reformas e Sistemas Complexos), integrando a skill `google-maps-scraper` (`Mahanaicoach/google-maps-scraper-kit`), as 8 ferramentas de diagnóstico da imagem (Google Maps, Casa dos Dados, Registro.br RDAP, DownForEveryoneOrJustMe, BuiltWith, Wappalyzer, WhatCMS e Web Archive), gerador automático de scripts de abordagem (WhatsApp 1-clique, E-mail, Instagram DM) e API/fila pré-pronta para automação futura de disparo.
 
 ## Próximo passo
-- Implementar o Catálogo de Nichos pré-selecionados e a integração com a skill `google-maps-scraper` (`app/services/niches_catalog.py`, `app/services/maps_scraper.py`) para atingir o marco de **30%**.
+- Implementar o Módulo "Achar o Negócio" (`app/services/business_discovery.py`) com verificação oficial de domínio `.com.br` livre (Registro.br RDAP), Health Check (DownForEveryoneOrJustMe) e filtros Casa dos Dados / CNPJ para atingir o marco de **40%**.
 
 ---
 
@@ -19,7 +19,7 @@ Construir um Painel Web Local completo (FastAPI + SQLite + Dashboard SPA) para p
 
 - [x] **10%** - Onboarding Padrão Delbor (`.agents/rules/`, `.githooks/post-commit`, `scripts/git-auto-sync.*`, `.gitignore`), criação do repositório GitHub (`Gallo41/painel-de-busca`), Especificação Arquitetural (`docs/superpowers/specs/`) e Plano de Implementação (`docs/superpowers/plans/`)
 - [x] **20%** - Camada de Banco de Dados SQLite e Modelos (`app/database.py`, `app/models.py`) para `niches`, `search_jobs`, `leads` e `outreach_queue` + testes (`tests/test_database.py`)
-- [ ] **30%** - Catálogo de Nichos pré-selecionados + Integração com a skill `google-maps-scraper` (`docker-compose.yml`, `scripts/scrape.py`, `app/services/maps_scraper.py`) + testes (`tests/test_maps_scraper.py`)
+- [x] **30%** - Catálogo de Nichos pré-selecionados + Integração com a skill `google-maps-scraper` (`docker-compose.yml`, `scripts/scrape.py`, `app/services/maps_scraper.py`) + testes (`tests/test_maps_scraper.py`)
 - [ ] **40%** - Módulo "Achar o Negócio" (`app/services/business_discovery.py`): verificador oficial de domínio `.com.br` livre via API RDAP do **Registro.br**, Health Check HTTP/SSL (**DownForEveryoneOrJustMe**) e buscador/importador **Casa dos Dados / CNPJ** + testes (`tests/test_business_discovery.py`)
 - [ ] **50%** - Módulo "Raio-X do Site Atual" (`app/services/site_xray.py`): detector de tecnologias e CMS (**BuiltWith / Wappalyzer / WhatCMS**), detector de oportunidade para **Sistemas Mais Complexos** e consulta de idade/abandono via **Web Archive (Wayback Machine)** + testes (`tests/test_site_xray.py`)
 - [ ] **60%** - Motor de Pontuação de Oportunidade (`app/services/lead_scorer.py` - Score 0–100) e Classificador de Dor Principal (`SEM_SITE`, `DOMINIO_LIVRE`, `SITE_FORA_DO_AR`, `SITE_AMADOR_ANTIGO`, `OPORTUNIDADE_SISTEMA`) + testes (`tests/test_lead_scorer.py`)
@@ -35,6 +35,7 @@ Construir um Painel Web Local completo (FastAPI + SQLite + Dashboard SPA) para p
 | :---: | :---: | :--- | :--- |
 | **10%** | 28/10/2026 19:11 | Onboarding Delbor completo, repositório GitHub `Gallo41/painel-de-busca` criado, skill `google-maps-scraper` instalada globalmente, Spec e Plano de Implementação criados. | `.agents/rules/*`, `.githooks/post-commit`, `scripts/git-auto-sync.*`, `docs/superpowers/*`, `Sprint atual.md` |
 | **20%** | 28/10/2026 19:15 | Camada de banco de dados SQLite (`niches`, `search_jobs`, `leads`, `outreach_queue`) e modelos Pydantic implementados e validados com 100% dos testes passando (4/4). | `app/database.py`, `app/models.py`, `tests/test_database.py` |
+| **30%** | 28/10/2026 19:18 | Catálogo de 12 nichos de alta conversão + integração nativa com a skill `google-maps-scraper` (`docker-compose.yml`, `scripts/scrape.py`, `app/services/maps_scraper.py`) validados com testes (5/5). | `docker-compose.yml`, `scripts/scrape.py`, `app/services/niches_catalog.py`, `app/services/maps_scraper.py`, `tests/test_maps_scraper.py` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
