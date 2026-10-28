@@ -1,0 +1,36 @@
+# Credenciais e configurações sensíveis
+.env
+Configura.ini
+
+# Bancos de dados locais e Firebird
+*.gdb
+*.fdb
+*.sqlite
+*.db
+data/*.db
+data/*.sqlite
+
+# Binários compilados
+Win32/
+*.exe
+*.dll
+*.dcu
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+
+# Caches do Graphify e temporários de teste
+graphify-out/cache/
+graphify-out/.graphify_*.json
+graphify-out/.graphify_uncached.txt
+tests/tmp/
+
+# Resultados brutos de scraping (dados pessoais)
+results-*.csv
+results-*.json
+data/exports/

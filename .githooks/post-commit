@@ -1,0 +1,14 @@
+#!/bin/sh
+# =======================================================
+# Git Hook: post-commit
+# Sincroniza automaticamente qualquer commit para o GitHub
+# =======================================================
+
+echo ""
+echo "[Git Hook] Commit detectado! Enviando alteracoes automaticamente para o GitHub..."
+git push origin HEAD --quiet 2>/dev/null || git push origin HEAD
+if [ $? -eq 0 ]; then
+    echo "[Git Hook] Push automatico concluido com sucesso!"
+else
+    echo "[Git Hook] Aviso: Nao foi possivel realizar o push automatico neste momento. Verifique sua conexao."
+fi
