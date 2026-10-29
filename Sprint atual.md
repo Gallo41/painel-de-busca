@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 28/10/2026 às 19:08
-- **Status**: Em andamento (80%)
+- **Status**: Em andamento (90%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -11,7 +11,7 @@
 Construir um Painel Web Local completo (FastAPI + SQLite + Dashboard SPA) para prospecção de clientes freelance (Sites, Reformas e Sistemas Complexos), integrando a skill `google-maps-scraper` (`Mahanaicoach/google-maps-scraper-kit`), as 8 ferramentas de diagnóstico da imagem (Google Maps, Casa dos Dados, Registro.br RDAP, DownForEveryoneOrJustMe, BuiltWith, Wappalyzer, WhatCMS e Web Archive), gerador automático de scripts de abordagem (WhatsApp 1-clique, E-mail, Instagram DM) e API/fila pré-pronta para automação futura de disparo.
 
 ## Próximo passo
-- Implementar o Dashboard Web Local (`app/static/index.html`, `app/static/styles.css`, `app/static/app.js`) com Seletor de Nichos & Cidade antes da busca, Tabela de Leads com Score Raio-X, Modal das 8 Ferramentas e Central de Contato 1-Clique para atingir o marco de **90%**.
+- Gerar e validar o Grafo de Conhecimento Graphify (`graphify-out/`), rodar a suíte completa de testes (`pytest`) e realizar o sincronismo final de **100%**.
 
 ---
 
@@ -25,7 +25,7 @@ Construir um Painel Web Local completo (FastAPI + SQLite + Dashboard SPA) para p
 - [x] **60%** - Motor de Pontuação de Oportunidade (`app/services/lead_scorer.py` - Score 0–100) e Classificador de Dor Principal (`SEM_SITE`, `DOMINIO_LIVRE`, `SITE_FORA_DO_AR`, `SITE_AMADOR_ANTIGO`, `OPORTUNIDADE_SISTEMA`) + testes (`tests/test_lead_scorer.py`)
 - [x] **70%** - Central de Contato & Gerador Automático de Scripts de Abordagem (`app/services/outreach_generator.py`): geração de mensagens personalizadas para WhatsApp (link 1-clique `wa.me`), E-mail e Instagram DM + divisão de carteira (`Eu` / `Amigo`) + testes (`tests/test_outreach_generator.py`)
 - [x] **80%** - API REST Completa + Infraestrutura Pré-Pronta para Automação Futura (`app/main.py`, `app/routers/`): fila `outreach_queue`, webhooks e endpoints para bots futuros de WhatsApp/n8n + testes (`tests/test_api.py`)
-- [ ] **90%** - Dashboard Web Local (`app/static/`): Seletor de Nichos & Cidade antes de gerar relatórios, Tabela de Leads com Score Raio-X, Modal das 8 Ferramentas e Central de Contato 1-Clique + testes de UI (`tests/test_dashboard_ui.py`)
+- [x] **90%** - Dashboard Web Local (`app/static/`): Seletor de Nichos & Cidade antes de gerar relatórios, Tabela de Leads com Score Raio-X, Modal das 8 Ferramentas e Central de Contato 1-Clique + testes de UI (`tests/test_dashboard_ui.py`)
 - [ ] **100%** - Geração e atualização completa do Grafo de Conhecimento Graphify (`graphify-out/`), script de inicialização rápida (`iniciar_painel.bat`), documentação (`README.md`) e validação 100% da suíte de testes
 
 ---
@@ -41,6 +41,7 @@ Construir um Painel Web Local completo (FastAPI + SQLite + Dashboard SPA) para p
 | **60%** | 29/10/2026 19:18 | Motor de Lead Scoring (0-100) e Classificador de Dor Principal (`SEM_SITE`, `DOMINIO_LIVRE`, `SITE_FORA_DO_AR`, `SITE_AMADOR_ANTIGO`, `OPORTUNIDADE_SISTEMA`) implementados e validados (3/3 testes). | `app/services/lead_scorer.py`, `tests/test_lead_scorer.py` |
 | **70%** | 29/10/2026 19:20 | Central de Contato e Gerador Automático de Scripts (WhatsApp 1-clique `wa.me`, E-mail, Instagram DM e payload de automação futura) validados com testes (3/3). | `app/services/outreach_generator.py`, `tests/test_outreach_generator.py` |
 | **80%** | 29/10/2026 19:24 | API REST FastAPI completa (`app/main.py`, `leads_router.py`, `outreach_router.py`) com fila e webhooks para automação futura de contato validada com testes (3/3). | `app/main.py`, `app/routers/leads_router.py`, `app/routers/outreach_router.py`, `tests/test_api.py` |
+| **90%** | 29/10/2026 19:29 | Dashboard Web Local (`index.html`, `styles.css`, `app.js`) com Seletor de Nichos, as 8 Ferramentas de Raio-X, Central de Contato 1-Clique e Fila de Outreach validado (1/1 teste UI). | `app/static/index.html`, `app/static/styles.css`, `app/static/app.js`, `tests/test_dashboard_ui.py` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
