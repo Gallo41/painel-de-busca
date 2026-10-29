@@ -6,9 +6,13 @@ Configura.ini
 *.gdb
 *.fdb
 *.sqlite
+*.sqlite-*
 *.db
+*.db-*
 data/*.db
+data/*.db-*
 data/*.sqlite
+data/*.sqlite-*
 
 # Binários compilados
 Win32/
