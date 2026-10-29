@@ -26,26 +26,114 @@ def normalize_whatsapp_br(phone: str) -> str:
     return ""
 
 
-def check_scraper_engine_health(timeout: float = 0.8) -> Dict[str, Any]:
-    """Verifica rapidamente se o motor Docker gosom/google-maps-scraper está ativo em 127.0.0.1:8080."""
+def check_scraper_engine_health(timeout: float = 1.2) -> Dict[str, Any]:
+    """Verifica rapidamente se o motor Docker gosom/google-maps-scraper está ativo em 127.0.0.1:8080 e lista jobs ativos."""
     import urllib.request
     base = kit_scraper.BASE.replace("localhost", "127.0.0.1")
     try:
         req = urllib.request.Request(f"{base}/api/v1/jobs", method="GET")
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             status = resp.status
+            raw = resp.read().decode("utf-8", errors="ignore")
+            try:
+                jobs_data = json.loads(raw) if raw.strip() else []
+            except Exception:
+                jobs_data = []
+        jobs_list = jobs_data if isinstance(jobs_data, list) else []
         return {
             "online": status == 200,
             "base_url": kit_scraper.BASE,
-            "message": "Motor Google Maps Scraper (Docker) online e pronto.",
+            "engine_image": "gosom/google-maps-scraper:v1.18.1",
+            "active_jobs_count": len(jobs_list),
+            "jobs": jobs_list[:10],
+            "message": f"Motor Google Maps Scraper (Docker) ONLINE em {kit_scraper.BASE} ({len(jobs_list)} jobs no motor).",
         }
     except Exception as exc:
         return {
             "online": False,
             "base_url": kit_scraper.BASE,
-            "message": f"Motor Docker offline em {kit_scraper.BASE}. Use 'docker compose up -d' ou o modo Demonstração/Importação CSV.",
+            "engine_image": "gosom/google-maps-scraper:v1.18.1",
+            "active_jobs_count": 0,
+            "jobs": [],
+            "message": f"Motor Docker offline em {kit_scraper.BASE}. Use o botão 'Iniciar Container Docker' no painel.",
             "error": str(exc),
         }
+
+
+def list_engine_jobs(timeout: float = 2.0) -> Dict[str, Any]:
+    """Retorna a lista de jobs diretamente de dentro do container gosom/google-maps-scraper."""
+    health = check_scraper_engine_health(timeout=timeout)
+    return {
+        "online": health["online"],
+        "base_url": health["base_url"],
+        "jobs": health.get("jobs", []),
+        "count": health.get("active_jobs_count", 0),
+        "message": health.get("message", ""),
+    }
+
+
+def delete_engine_job(engine_job_id: str, timeout: float = 2.0) -> Dict[str, Any]:
+    """Remove um job do container Docker gosom/google-maps-scraper sem precisar sair do painel."""
+    import urllib.request
+    base = kit_scraper.BASE.replace("localhost", "127.0.0.1")
+    try:
+        req = urllib.request.Request(f"{base}/api/v1/jobs/{engine_job_id}", method="DELETE")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return {"deleted": resp.status in (200, 204), "job_id": engine_job_id}
+    except Exception as exc:
+        return {"deleted": False, "job_id": engine_job_id, "error": str(exc)}
+
+
+FALLBACK_CITY_COORDS: Dict[str, tuple] = {
+    "campinas": (-22.9099, -47.0626, (-23.05, -22.75, -47.22, -46.90)),
+    "sao paulo": (-23.5505, -46.6333, (-23.80, -23.35, -46.82, -46.36)),
+    "são paulo": (-23.5505, -46.6333, (-23.80, -23.35, -46.82, -46.36)),
+    "curitiba": (-25.4284, -49.2733, (-25.60, -25.30, -49.40, -49.15)),
+    "belo horizonte": (-19.9167, -43.9345, (-20.05, -19.78, -44.06, -43.85)),
+    "rio de janeiro": (-22.9068, -43.1729, (-23.08, -22.75, -43.70, -43.10)),
+    "porto alegre": (-30.0346, -51.2177, (-30.20, -29.95, -51.30, -51.08)),
+    "goiania": (-16.6869, -49.2648, (-16.82, -16.55, -49.40, -49.12)),
+    "goiânia": (-16.6869, -49.2648, (-16.82, -16.55, -49.40, -49.12)),
+    "ribeirao preto": (-21.1704, -47.8103, (-21.28, -21.08, -47.92, -47.70)),
+    "ribeirão preto": (-21.1704, -47.8103, (-21.28, -21.08, -47.92, -47.70)),
+    "sorocaba": (-23.5015, -47.4526, (-23.60, -23.40, -47.55, -47.35)),
+}
+
+
+def geocode_city_embedded(city: str, state: str = "SP", grid_size: int = 1) -> Dict[str, Any]:
+    """Executa geocodificação Nominatim embutida + cálculo de malha (grid) para varredura do Google Maps."""
+    place_query = f"{city.strip()}, {state.strip()}, Brasil"
+    lat, lon, bbox = None, None, None
+    source = "nominatim_live"
+    try:
+        geo = kit_scraper.geocode(place_query, with_bbox=True)
+        if geo:
+            lat, lon, bbox = geo
+    except Exception:
+        pass
+
+    if lat is None or lon is None:
+        key = city.strip().lower()
+        fallback = FALLBACK_CITY_COORDS.get(key, (-22.9099, -47.0626, (-23.05, -22.75, -47.22, -46.90)))
+        lat, lon, bbox = fallback
+        source = "embedded_coords_cache"
+
+    cells = []
+    if bbox and grid_size and grid_size > 1:
+        cells = kit_scraper.grid_cells(bbox, min(int(grid_size), 5))
+
+    return {
+        "city": city.strip(),
+        "state": state.strip().upper(),
+        "query": place_query,
+        "lat": round(float(lat), 6),
+        "lon": round(float(lon), 6),
+        "bbox": list(bbox) if bbox else None,
+        "grid_size": max(1, min(int(grid_size or 1), 5)),
+        "cells_count": len(cells) if cells else 1,
+        "cells": cells[:9],
+        "source": source,
+    }
 
 
 def start_scraper_engine_docker() -> Dict[str, Any]:
