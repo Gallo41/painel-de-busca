@@ -1,0 +1,182 @@
+{
+  ".githooks/post-commit": {
+    "mtime": 1793225397.0992775,
+    "seen": 1793313149.3531141,
+    "ast_hash": "a77fe1f2909108da8858549f85bd5b7e",
+    "semantic_hash": "a77fe1f2909108da8858549f85bd5b7e"
+  },
+  "app/__init__.py": {
+    "mtime": 1793225680.4645832,
+    "seen": 1793313149.353124,
+    "ast_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf",
+    "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
+  },
+  "app/database.py": {
+    "mtime": 1793225710.4266613,
+    "seen": 1793313149.3531277,
+    "ast_hash": "34ac54d5ec7760d09c1d7fc1cfefdd42",
+    "semantic_hash": "34ac54d5ec7760d09c1d7fc1cfefdd42"
+  },
+  "app/main.py": {
+    "mtime": 1793312615.2434874,
+    "seen": 1793313149.35313,
+    "ast_hash": "ac552a3aaba0b5667a43584e9e46fa52",
+    "semantic_hash": "ac552a3aaba0b5667a43584e9e46fa52"
+  },
+  "app/models.py": {
+    "mtime": 1793225682.5673528,
+    "seen": 1793313149.353132,
+    "ast_hash": "25f862084a9f6d062dbfa32b76577f00",
+    "semantic_hash": "25f862084a9f6d062dbfa32b76577f00"
+  },
+  "app/routers/__init__.py": {
+    "mtime": 1793312608.7969384,
+    "seen": 1793313149.353134,
+    "ast_hash": "e7d92cac48bde5c71675b3b2351b79ca",
+    "semantic_hash": "e7d92cac48bde5c71675b3b2351b79ca"
+  },
+  "app/routers/leads_router.py": {
+    "mtime": 1793312611.077803,
+    "seen": 1793313149.353136,
+    "ast_hash": "312439a74036ba810cc4bf1d68922ca6",
+    "semantic_hash": "312439a74036ba810cc4bf1d68922ca6"
+  },
+  "app/routers/outreach_router.py": {
+    "mtime": 1793312613.5838223,
+    "seen": 1793313149.353138,
+    "ast_hash": "527183fe2e389816907e8db659646c25",
+    "semantic_hash": "527183fe2e389816907e8db659646c25"
+  },
+  "app/services/__init__.py": {
+    "mtime": 1793225854.8329809,
+    "seen": 1793313149.3531396,
+    "ast_hash": "a9f67e110061db3e82ca9978d6ffe8b7",
+    "semantic_hash": "a9f67e110061db3e82ca9978d6ffe8b7"
+  },
+  "app/services/business_discovery.py": {
+    "mtime": 1793226010.0315838,
+    "seen": 1793313149.3531415,
+    "ast_hash": "2989fde70521fabd5be58fc9a688b95b",
+    "semantic_hash": "2989fde70521fabd5be58fc9a688b95b"
+  },
+  "app/services/lead_scorer.py": {
+    "mtime": 1793312286.687164,
+    "seen": 1793313149.3531432,
+    "ast_hash": "b17afa4019c28d7a6645c04fc4400ca5",
+    "semantic_hash": "b17afa4019c28d7a6645c04fc4400ca5"
+  },
+  "app/services/maps_scraper.py": {
+    "mtime": 1793312648.896472,
+    "seen": 1793313149.3531456,
+    "ast_hash": "9f8d41bdf9cda946b62fdd5fb7f68663",
+    "semantic_hash": "9f8d41bdf9cda946b62fdd5fb7f68663"
+  },
+  "app/services/niches_catalog.py": {
+    "mtime": 1793225856.0294738,
+    "seen": 1793313149.3531477,
+    "ast_hash": "8ad8a21ed16c9cd700825720b1e7fafc",
+    "semantic_hash": "8ad8a21ed16c9cd700825720b1e7fafc"
+  },
+  "app/services/outreach_generator.py": {
+    "mtime": 1793312429.28998,
+    "seen": 1793313149.35315,
+    "ast_hash": "038c261da7480f7def8a3536ae1b42b1",
+    "semantic_hash": "038c261da7480f7def8a3536ae1b42b1"
+  },
+  "app/services/site_xray.py": {
+    "mtime": 1793226141.874917,
+    "seen": 1793313149.3531518,
+    "ast_hash": "692bacbb3f66349a1ed92f344f964202",
+    "semantic_hash": "692bacbb3f66349a1ed92f344f964202"
+  },
+  "app/static/app.js": {
+    "mtime": 1793312941.8248138,
+    "seen": 1793313149.3531537,
+    "ast_hash": "7fc699f68d813a740f71e43c386e4321",
+    "semantic_hash": "7fc699f68d813a740f71e43c386e4321"
+  },
+  "scripts/git-auto-sync.ps1": {
+    "mtime": 1793225399.0218902,
+    "seen": 1793313149.3531554,
+    "ast_hash": "4d8e32f4dd083930779777b207b30e86",
+    "semantic_hash": "4d8e32f4dd083930779777b207b30e86"
+  },
+  "scripts/scrape.py": {
+    "mtime": 1793224560.1129813,
+    "seen": 1793313149.3531573,
+    "ast_hash": "0f80ec30491b534955c4e1c0a5f70e34",
+    "semantic_hash": "0f80ec30491b534955c4e1c0a5f70e34"
+  },
+  "tests/test_api.py": {
+    "mtime": 1793312520.1530466,
+    "seen": 1793313149.3531592,
+    "ast_hash": "2b9ffc5e495be114252378ef38bee01a",
+    "semantic_hash": "2b9ffc5e495be114252378ef38bee01a"
+  },
+  "tests/test_business_discovery.py": {
+    "mtime": 1793225938.7077177,
+    "seen": 1793313149.3531606,
+    "ast_hash": "728831ed94249b97223459bb632fa7f2",
+    "semantic_hash": "728831ed94249b97223459bb632fa7f2"
+  },
+  "tests/test_dashboard_ui.py": {
+    "mtime": 1793312767.2815177,
+    "seen": 1793313149.3531628,
+    "ast_hash": "9a8f197ce5ca871e0c6a9c05a1f35906",
+    "semantic_hash": "9a8f197ce5ca871e0c6a9c05a1f35906"
+  },
+  "tests/test_database.py": {
+    "mtime": 1793225572.1687605,
+    "seen": 1793313149.3531642,
+    "ast_hash": "85303277245cb4743a54dfce3988aad1",
+    "semantic_hash": "85303277245cb4743a54dfce3988aad1"
+  },
+  "tests/test_lead_scorer.py": {
+    "mtime": 1793226220.8088813,
+    "seen": 1793313149.3531666,
+    "ast_hash": "96a6614a009a73993018bd7b32dd1a3a",
+    "semantic_hash": "96a6614a009a73993018bd7b32dd1a3a"
+  },
+  "tests/test_maps_scraper.py": {
+    "mtime": 1793225779.190405,
+    "seen": 1793313149.3531685,
+    "ast_hash": "59a6a0749bb675325b667a27ae0f83d5",
+    "semantic_hash": "59a6a0749bb675325b667a27ae0f83d5"
+  },
+  "tests/test_outreach_generator.py": {
+    "mtime": 1793312381.6940777,
+    "seen": 1793313149.3531702,
+    "ast_hash": "e49a1e7b4451ba0e18bf154ffea62513",
+    "semantic_hash": "e49a1e7b4451ba0e18bf154ffea62513"
+  },
+  "tests/test_site_xray.py": {
+    "mtime": 1793226078.5408947,
+    "seen": 1793313149.353172,
+    "ast_hash": "a97838324ed4dbb9f71ebf1c3d985829",
+    "semantic_hash": "a97838324ed4dbb9f71ebf1c3d985829"
+  },
+  "README.md": {
+    "mtime": 1793312988.748736,
+    "seen": 1793313149.353174,
+    "ast_hash": "f6430a003ab70c901c8a4c67670596d6",
+    "semantic_hash": "f6430a003ab70c901c8a4c67670596d6"
+  },
+  "Sprint atual.md": {
+    "mtime": 1793313025.2870786,
+    "seen": 1793313149.3531759,
+    "ast_hash": "8e1b16d61a48911b0674ef19a81f4659",
+    "semantic_hash": "8e1b16d61a48911b0674ef19a81f4659"
+  },
+  "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
+    "mtime": 1793225460.2799022,
+    "seen": 1793313149.3531775,
+    "ast_hash": "78d3a8c469497363bbdb2fefceb4053f",
+    "semantic_hash": "78d3a8c469497363bbdb2fefceb4053f"
+  },
+  "docs/superpowers/specs/2026-10-28-painel-de-busca-design.md": {
+    "mtime": 1793225459.3191564,
+    "seen": 1793313149.3531797,
+    "ast_hash": "9d38d38e679fda07c6c602712014d9c2",
+    "semantic_hash": "9d38d38e679fda07c6c602712014d9c2"
+  }
+}
