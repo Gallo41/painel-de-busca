@@ -26,10 +26,14 @@ def normalize_whatsapp_br(phone: str) -> str:
     return ""
 
 
-def check_scraper_engine_health() -> Dict[str, Any]:
-    """Verifica se o motor Docker gosom/google-maps-scraper está ativo em localhost:8080."""
+def check_scraper_engine_health(timeout: float = 0.8) -> Dict[str, Any]:
+    """Verifica rapidamente se o motor Docker gosom/google-maps-scraper está ativo em 127.0.0.1:8080."""
+    import urllib.request
+    base = kit_scraper.BASE.replace("localhost", "127.0.0.1")
     try:
-        status, _ = kit_scraper.req("GET", "/api/v1/jobs")
+        req = urllib.request.Request(f"{base}/api/v1/jobs", method="GET")
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            status = resp.status
         return {
             "online": status == 200,
             "base_url": kit_scraper.BASE,
