@@ -31,14 +31,26 @@ def test_check_registro_br_availability_with_mock():
     def fake_fetcher(url: str):
         if "dominiolivre999" in url:
             return 404, b""
-        return 200, b'{"handle": "clinica.com.br", "status": ["active"]}'
+        return 200, (
+            b'{"handle": "clinica.com.br", "status": ["active"], '
+            b'"entities": [{"handle": "12345678000199", "legalRepresentative": "Clinica Medica LTDA"}], '
+            b'"events": [{"eventAction": "registration", "eventDate": "2018-04-10T00:00:00Z"}, '
+            b'{"eventAction": "expiration", "eventDate": "2027-04-10T00:00:00Z"}], '
+            b'"nameservers": [{"ldhName": "a.sec.dns.br"}, {"ldhName": "b.sec.dns.br"}]}'
+        )
 
-    res_free = check_registro_br_availability("dominiolivre999.com.br", http_get=fake_fetcher)
+    res_free = check_registro_br_availability("dominiolivre999.com.br", http_get=fake_fetcher, city="Campinas")
     assert res_free["available"] is True
     assert res_free["domain"] == "dominiolivre999.com.br"
+    assert len(res_free["variations"]) == 3
 
-    res_taken = check_registro_br_availability("clinica.com.br", http_get=fake_fetcher)
+    res_taken = check_registro_br_availability("clinica.com.br", http_get=fake_fetcher, city="Campinas")
     assert res_taken["available"] is False
+    assert res_taken["owner_handle"] == "12345678000199"
+    assert res_taken["owner_name"] == "Clinica Medica LTDA"
+    assert res_taken["created_at"] == "2018-04-10"
+    assert res_taken["expires_at"] == "2027-04-10"
+    assert "a.sec.dns.br" in res_taken["nameservers"]
 
 
 def test_check_site_availability_and_ssl_offline_domain():
@@ -47,7 +59,13 @@ def test_check_site_availability_and_ssl_offline_domain():
         timeout=1.5,
     )
     assert res["site_in_air"] is False
-    assert "downforeveryoneorjustme.com" in res["downforeveryone_url"]
+    assert res["dns_ok"] is False
+    assert res["verdict"] == "FORA_DO_AR_DNS"
+
+    res_wix = check_site_availability_and_ssl("http://mastergroup-wix-demo.com.br", timeout=1.5)
+    assert res_wix["site_in_air"] is True
+    assert res_wix["resolved_ip"] == "185.230.63.107"
+    assert res_wix["verdict"] == "ONLINE_SEM_SSL_LENTO"
 
 
 def test_build_casadosdados_links():
