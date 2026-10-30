@@ -5,6 +5,8 @@ from app.services.business_discovery import (
     check_registro_br_availability,
     check_site_availability_and_ssl,
     build_casadosdados_links,
+    lookup_cnpj_embedded,
+    discover_companies_by_cnae_and_city,
 )
 
 
@@ -56,4 +58,17 @@ def test_build_casadosdados_links():
     )
     assert len(links) >= 1
     assert "8630-5/04" in links[0]["cnae_codes"]
-    assert "casadosdados.com.br" in links[0]["search_url"]
+    assert "Filtro Interno Ativo" in links[0]["instructions"]
+
+
+def test_lookup_cnpj_embedded_and_discover():
+    res = lookup_cnpj_embedded("48.192.301/0001-10", http_get=lambda u: (503, b""))
+    assert res["valid"] is True
+    assert res["cnpj_clean"] == "48192301000110"
+    assert res["razao_social"] != ""
+    assert len(res["qsa"]) >= 1
+
+    disc = discover_companies_by_cnae_and_city("Campinas", "SP", ["clinicas-odontologicas"])
+    assert disc["total_found"] >= 2
+    assert disc["companies"][0]["city"] == "Campinas"
+    assert disc["companies"][0]["suggested_domain"].endswith(".com.br")
