@@ -24,6 +24,17 @@ def test_dashboard_html_and_assets_served(client):
     assert "builtwith.com" in html.lower()
     assert "web.archive.org" in html.lower()
     assert "Central de Contato" in html
+    # Garantir que as 8 ferramentas não são links clicáveis externos (href="https://...")
+    assert 'href="https://www.google.com/maps"' not in html
+    assert 'href="https://builtwith.com"' not in html
+    assert 'href="https://www.wappalyzer.com"' not in html
+    assert 'href="https://whatcms.org"' not in html
+    assert 'href="https://web.archive.org"' not in html
+    assert "embedded-maps-box" in html
+    assert "embedded-builtwith-box" in html
+    assert "embedded-wappalyzer-box" in html
+    assert "embedded-whatcms-box" in html
+    assert "embedded-wayback-box" in html
 
     r_css = client.get("/static/styles.css")
     assert r_css.status_code == 200

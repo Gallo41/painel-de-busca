@@ -63,10 +63,62 @@ body {
 
 .tool-card-title {
   color: var(--brand-blue);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1rem;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-badge-embedded {
+  background: #e0e7ff;
+  color: #1e40af;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.embedded-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #faf9f5;
+  border: 1px solid var(--border-warm);
+  border-radius: 8px;
+  font-size: 0.81rem;
+  color: var(--text-ink);
+}
+
+.embedded-pill {
   display: inline-block;
+  background: #ffffff;
+  border: 1px solid var(--border-warm);
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  margin: 2px 4px 2px 0;
+}
+
+.embedded-pill.ok {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
+}
+
+.embedded-pill.warn {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.embedded-pill.err {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
 }
 
 .tool-card-desc {

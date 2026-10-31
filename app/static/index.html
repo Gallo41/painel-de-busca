@@ -113,61 +113,170 @@
       <div id="job-feedback" style="margin-top:10px; font-size:0.86rem; color:var(--text-muted);"></div>
     </section>
 
-    <!-- As 8 Ferramentas da Imagem: Achar o Negócio | Raio-X do Site Atual -->
-    <section style="display:grid; grid-template-columns:repeat(auto-fit, minmax(420px, 1fr)); gap:24px; margin-bottom:30px;">
-      <!-- Coluna 1: Achar o negócio -->
+    <!-- As 8 Ferramentas da Imagem: 100% Embutidas no Sistema (Zero Links Externos) -->
+    <section style="display:grid; grid-template-columns:repeat(auto-fit, minmax(460px, 1fr)); gap:24px; margin-bottom:30px;">
+      <!-- Coluna 1: Achar o negócio (Módulos 1 a 4 Embutidos) -->
       <div>
-        <div class="section-bar">achar o negócio</div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div class="tool-card">
-            <a href="https://www.google.com/maps" target="_blank" class="tool-card-title">google.com/maps</a>
-            <div class="tool-card-desc">filtra o nicho e vê quem tá sem site (integrado via skill <code>google-maps-scraper</code>)</div>
-          </div>
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-              <a href="https://casadosdados.com.br/solucao/cnpj/pesquisa-avancada" target="_blank" class="tool-card-title">casadosdados.com.br</a>
-              <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="loadCasaDosDadosFilters()">Gerar Filtros CNAE da Seleção</button>
-            </div>
-            <div class="tool-card-desc">empresa recém aberta por cidade e atividade (CNAE dos nichos selecionados)</div>
-            <div id="casadosdados-box" style="margin-top:8px; font-size:0.8rem; display:none;"></div>
-          </div>
+        <div class="section-bar">achar o negócio <span class="tool-badge-embedded">4 Módulos Embutidos</span></div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Ferramenta 1: google.com/maps (Motor Docker Embutido) -->
           <div class="tool-card">
             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-              <a href="https://registro.br" target="_blank" class="tool-card-title">registro.br</a>
+              <span class="tool-card-title">
+                google.com/maps
+                <span class="tool-badge-embedded">Docker 8080 Ativo</span>
+              </span>
               <div style="display:flex; gap:6px;">
-                <input id="quick-domain-input" type="text" placeholder="ex: clinicasorriso.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.8rem;" />
-                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="checkQuickDomain()">Consultar RDAP</button>
+                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="runEmbeddedMapsEngineCheck()">
+                  Inspecionar Motor &amp; Malha
+                </button>
+                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="startDockerEngineEmbedded()">
+                  Subir/Reiniciar Docker
+                </button>
               </div>
             </div>
-            <div class="tool-card-desc">vê se o domínio com o nome dele tá livre (consulta oficial via API RDAP)</div>
-            <div id="quick-domain-result" style="margin-top:6px; font-size:0.82rem; font-weight:700;"></div>
+            <div class="tool-card-desc">filtra o nicho e vê quem tá sem site (motor <code>gosom/google-maps-scraper:v1.18.1</code> + Geocoding Nominatim embutido)</div>
+            <div id="embedded-maps-box" class="embedded-box">
+              Carregando telemetria do container Docker <code>gmaps-scraper</code> e coordenadas da cidade...
+            </div>
           </div>
+
+          <!-- Ferramenta 2: casadosdados.com.br (Scanner Embutido de CNPJ & Empresas Recém-Abertas) -->
           <div class="tool-card">
-            <a href="https://downforeveryoneorjustme.com" target="_blank" class="tool-card-title">downforeveryoneorjustme.com</a>
-            <div class="tool-card-desc">confirma se o site dele tá fora do ar ou com erro de SSL/DNS (testado em cada lead)</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="tool-card-title">
+                casadosdados.com.br
+                <span class="tool-badge-embedded">Scanner CNPJ &amp; CNAE Embutido</span>
+              </span>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <input id="embedded-cnpj-input" type="text" placeholder="CNPJ ex: 48.192.301/0001-10" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:175px;" />
+                <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnpjLookup(false)">
+                  Consultar CNPJ
+                </button>
+                <button class="btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnaeDiscovery(true)">
+                  Descobrir Recém-Abertas (+ Importar)
+                </button>
+              </div>
+            </div>
+            <div class="tool-card-desc">empresa recém aberta por cidade e atividade (consulta Receita/BrasilAPI + gerador CNAE embutido no painel)</div>
+            <div id="casadosdados-box" class="embedded-box">
+              Clique em <strong>Descobrir Recém-Abertas (+ Importar)</strong> para listar e importar empresas recém-abertas dos nichos selecionados, ou digite um CNPJ acima.
+            </div>
+          </div>
+
+          <!-- Ferramenta 3: registro.br (Scanner Oficial RDAP Embutido) -->
+          <div class="tool-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="tool-card-title">
+                registro.br
+                <span class="tool-badge-embedded">Scanner RDAP Oficial</span>
+              </span>
+              <div style="display:flex; gap:6px;">
+                <input id="quick-domain-input" type="text" placeholder="ex: clinicasorriso.com.br ou nome" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:205px;" />
+                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="checkQuickDomain()">
+                  Escanear RDAP
+                </button>
+              </div>
+            </div>
+            <div class="tool-card-desc">vê se o domínio com o nome dele tá livre, titular, expiração, DNS e 3 variações <code>.com.br</code></div>
+            <div id="quick-domain-result" class="embedded-box">
+              Digite o nome da empresa ou domínio <code>.com.br</code> acima para ver disponibilidade, titular e 3 variações livres aqui dentro.
+            </div>
+          </div>
+
+          <!-- Ferramenta 4: downforeveryoneorjustme.com (Monitor HTTP / DNS / SSL Embutido) -->
+          <div class="tool-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="tool-card-title">
+                downforeveryoneorjustme.com
+                <span class="tool-badge-embedded">Monitor DNS / SSL / HTTP</span>
+              </span>
+              <div style="display:flex; gap:6px;">
+                <input id="quick-health-input" type="text" placeholder="ex: http://mastergroup-wix-demo.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:215px;" />
+                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="runEmbeddedSiteHealth()">
+                  Testar Site / SSL
+                </button>
+              </div>
+            </div>
+            <div class="tool-card-desc">confirma se o site dele tá fora do ar, resolve IP (DNS), valida certificado SSL/TLS e mede latência em ms</div>
+            <div id="quick-health-result" class="embedded-box">
+              Testado automaticamente em cada lead. Digite qualquer site acima ou clique em <strong>Inspecionar nas 8 Ferramentas</strong> na tabela abaixo.
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Coluna 2: Raio-X do site atual -->
+      <!-- Coluna 2: Raio-X do site atual (Módulos 5 a 8 Embutidos) -->
       <div>
-        <div class="section-bar">raio x do site atual</div>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div class="tool-card">
-            <a href="https://builtwith.com" target="_blank" class="tool-card-title">builtwith.com</a>
-            <div class="tool-card-desc">mostra com o que o site foi feito, servidor, analytics, pixels e widgets</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+          <div class="section-bar" style="margin-bottom:0;">raio x do site atual <span class="tool-badge-embedded">4 Scanners Embutidos</span></div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <input id="quick-xray-url" type="text" placeholder="URL p/ Raio-X (ex: http://mastergroup-wix-demo.com.br)" style="padding:6px 10px; border:1px solid var(--border-warm); border-radius:7px; font-size:0.8rem; width:250px;" />
+            <button class="btn-primary" style="padding:6px 12px; font-size:0.78rem;" onclick="runEmbeddedFullXrayInput()">
+              Rodar Raio-X Aqui
+            </button>
           </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Ferramenta 5: builtwith.com (Scanner de Infraestrutura, Pixels e Widgets Embutido) -->
           <div class="tool-card">
-            <a href="https://www.wappalyzer.com" target="_blank" class="tool-card-title">wappalyzer.com</a>
-            <div class="tool-card-desc">extensão e detector que lê a tecnologia na hora (frameworks, mobile viewport, WhatsApp)</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="tool-card-title">
+                builtwith.com
+                <span class="tool-badge-embedded">Infra, Pixels &amp; Chat</span>
+              </span>
+              <span id="builtwith-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
+            </div>
+            <div class="tool-card-desc">mostra com o que o site foi feito: servidor web, CDN, pixels de tráfego (GA4, Meta, TikTok) e widgets de chat</div>
+            <div id="embedded-builtwith-box" class="embedded-box">
+              Selecione qualquer lead na tabela ou rode um Raio-X acima para inspecionar Servidor, CDN, Pixels de Anúncios e Widgets de WhatsApp.
+            </div>
           </div>
+
+          <!-- Ferramenta 6: wappalyzer.com (Detector Instantâneo de Frameworks, UI e Mobile Viewport) -->
           <div class="tool-card">
-            <a href="https://whatcms.org" target="_blank" class="tool-card-title">whatcms.org</a>
-            <div class="tool-card-desc">descobre se é WordPress, Wix, Linktree ou HTML estático sem sistema integrado</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="tool-card-title">
+                wappalyzer.com
+                <span class="tool-badge-embedded">JS / CSS / Mobile SEO</span>
+              </span>
+              <span id="wappalyzer-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
+            </div>
+            <div class="tool-card-desc">extensão e detector embutido que lê a tecnologia na hora (frameworks JS, bibliotecas CSS, viewport mobile e OpenGraph)</div>
+            <div id="embedded-wappalyzer-box" class="embedded-box">
+              Inspeciona em tempo real React/Next.js, Vue, jQuery, Tailwind, Bootstrap, Elementor UI e tags de responsividade mobile.
+            </div>
           </div>
+
+          <!-- Ferramenta 7: whatcms.org (Detector de CMS, Plugins e Oportunidades de Sistemas) -->
           <div class="tool-card">
-            <a href="https://web.archive.org" target="_blank" class="tool-card-title">web.archive.org</a>
-            <div class="tool-card-desc">vê há quanto tempo ninguém mexe no site via API Wayback Machine</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="tool-card-title">
+                whatcms.org
+                <span class="tool-badge-embedded">CMS &amp; Sistemas Faltantes</span>
+              </span>
+              <span id="whatcms-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
+            </div>
+            <div class="tool-card-desc">descobre se é WordPress, Wix, Linktree ou HTML estático e lista quais Sistemas Complexos faltam para você vender</div>
+            <div id="embedded-whatcms-box" class="embedded-box">
+              Detecta CMS, versão, motor de E-commerce, plugins ativos e gera a lista de sistemas que faltam no cliente (Agendamento, Portal, Catálogo).
+            </div>
+          </div>
+
+          <!-- Ferramenta 8: web.archive.org (Scanner Histórico CDX & Abandono Embutido) -->
+          <div class="tool-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <span class="tool-card-title">
+                web.archive.org
+                <span class="tool-badge-embedded">Histórico CDX &amp; Abandono</span>
+              </span>
+              <span id="wayback-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
+            </div>
+            <div class="tool-card-desc">vê há quanto tempo ninguém mexe no site via API Wayback Machine + Timeline CDX de capturas</div>
+            <div id="embedded-wayback-box" class="embedded-box">
+              Mostra a data do primeiro registro, última modificação arquivada, total de snapshots e quantos dias o site está sem atualização.
+            </div>
           </div>
         </div>
       </div>
