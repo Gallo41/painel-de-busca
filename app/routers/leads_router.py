@@ -17,16 +17,26 @@ from app.models import LeadManagementUpdate, ManualLeadCreate, SearchJobRequest
 from app.services.business_discovery import (
     build_casadosdados_links,
     check_registro_br_availability,
+    check_site_availability_and_ssl,
+    discover_companies_by_cnae_and_city,
+    lookup_cnpj_embedded,
 )
 from app.services.maps_scraper import (
     build_keywords_for_job,
     check_scraper_engine_health,
+    delete_engine_job,
     generate_sample_leads_for_niches,
+    geocode_city_embedded,
+    list_engine_jobs,
     parse_csv_content_to_leads,
     run_live_maps_scrape,
     start_scraper_engine_docker,
 )
 from app.services.outreach_generator import process_and_save_lead
+from app.services.site_xray import (
+    check_wayback_machine,
+    run_embedded_site_xray_by_url,
+)
 
 router = APIRouter(prefix="/api", tags=["Leads, Buscas & Raio-X"])
 
@@ -58,6 +68,14 @@ def api_list_niches() -> List[Dict[str, Any]]:
     return list_niches(active_only=True)
 
 
+class CnpjDiscoverRequest(BaseModel):
+    city: str = "Campinas"
+    state: str = "SP"
+    niche_slugs: List[str] = ["clinicas-odontologicas", "escritorios-advocacia"]
+    days_opened: int = 90
+    import_as_leads: bool = False
+
+
 @router.get("/discovery/casadosdados")
 def api_casadosdados_links(
     city: str = Query("Campinas"),
@@ -69,8 +87,140 @@ def api_casadosdados_links(
 
 
 @router.get("/discovery/registro-br")
-def api_check_registro_br(domain: str = Query(..., description="Domínio .com.br ou nome da empresa")) -> Dict[str, Any]:
-    return check_registro_br_availability(domain)
+def api_check_registro_br(
+    domain: str = Query(..., description="Domínio .com.br ou nome da empresa"),
+    city: str = Query("", description="Cidade opcional para gerar variações .com.br"),
+) -> Dict[str, Any]:
+    return check_registro_br_availability(domain, city=city)
+
+
+# ==============================================================================
+# ENDPOINTS EMBUTIDOS DAS 8 FERRAMENTAS NATIVAS DO PAINEL (ZERO LINKS EXTERNOS)
+# ==============================================================================
+
+@router.get("/tools/maps-engine")
+def api_tool_maps_engine(
+    city: str = Query("Campinas"),
+    state: str = Query("SP"),
+    grid_size: int = Query(1, ge=1, le=5),
+) -> Dict[str, Any]:
+    """Módulo 1 Embutido: Status do motor Docker Google Maps Scraper, lista de jobs e Geocoding Nominatim + Malha."""
+    engine = list_engine_jobs()
+    geo = geocode_city_embedded(city=city, state=state, grid_size=grid_size)
+    return {
+        "engine": engine,
+        "geocoding": geo,
+    }
+
+
+@router.delete("/tools/maps-engine/jobs/{engine_job_id}")
+def api_tool_delete_maps_job(engine_job_id: str) -> Dict[str, Any]:
+    """Remove um job diretamente do container Docker gmaps-scraper."""
+    return delete_engine_job(engine_job_id)
+
+
+@router.get("/tools/cnpj")
+def api_tool_lookup_cnpj(
+    cnpj: str = Query(..., description="CNPJ com 14 dígitos (formatado ou apenas números)"),
+    import_as_lead: bool = Query(False, description="Se True, salva a empresa consultada diretamente como Lead"),
+    niche_slug: str = Query("geral"),
+) -> Dict[str, Any]:
+    """Módulo 2 Embutido: Consulta CNPJ na Receita Federal / BrasilAPI com QSA, CNAE, Capital Social e Contato."""
+    info = lookup_cnpj_embedded(cnpj)
+    if not info.get("valid"):
+        raise HTTPException(status_code=400, detail=info.get("error", "CNPJ inválido"))
+
+    saved_lead = None
+    if import_as_lead:
+        raw_lead = {
+            "niche_slug": niche_slug,
+            "title": info.get("nome_fantasia") or info.get("razao_social") or "Empresa CNPJ",
+            "category": info.get("cnae_fiscal_descricao") or "Empresa CNPJ",
+            "phone": info.get("telefone") or "",
+            "emails": info.get("email") or "",
+            "website": "",
+            "address": f"{info.get('logradouro', '')} - {info.get('bairro', '')}".strip(" -"),
+            "city": info.get("municipio") or "Campinas",
+            "state": info.get("uf") or "SP",
+            "cnpj": info.get("cnpj_formatted") or cnpj,
+            "opened_date": info.get("data_inicio_atividade") or "",
+            "source": "receita_cnpj_embutido",
+        }
+        saved_lead = process_and_save_lead(raw_lead, run_xray=True, skip_live_network=True)
+
+    return {
+        "cnpj_data": info,
+        "imported_lead": saved_lead,
+    }
+
+
+@router.post("/tools/cnpj-discover")
+def api_tool_discover_companies_by_cnae(payload: CnpjDiscoverRequest) -> Dict[str, Any]:
+    """Módulo 2 Embutido: Descobre empresas recém-abertas por Cidade + UF + CNAE e opcionalmente importa como Leads."""
+    discovery = discover_companies_by_cnae_and_city(
+        city=payload.city,
+        state=payload.state,
+        niche_slugs=payload.niche_slugs,
+        days_opened=payload.days_opened,
+    )
+    imported_leads = []
+    if payload.import_as_leads:
+        for comp in discovery.get("companies", []):
+            raw_lead = {
+                "niche_slug": comp["niche_slug"],
+                "title": comp["nome_fantasia"],
+                "category": comp["niche_name"],
+                "phone": comp["phone"],
+                "emails": comp["email"],
+                "website": "",
+                "address": comp["address"],
+                "city": comp["city"],
+                "state": comp["state"],
+                "cnpj": comp["cnpj"],
+                "opened_date": comp["opened_date"],
+                "source": "cnae_recem_abertas",
+            }
+            saved = process_and_save_lead(raw_lead, run_xray=True, skip_live_network=True)
+            imported_leads.append(saved)
+
+    return {
+        "discovery": discovery,
+        "imported_count": len(imported_leads),
+        "imported_leads": imported_leads,
+    }
+
+
+@router.get("/tools/registro-br")
+def api_tool_registro_br(
+    query: str = Query(..., description="Domínio .com.br ou Nome da Empresa"),
+    city: str = Query("Campinas"),
+) -> Dict[str, Any]:
+    """Módulo 3 Embutido: Scanner Oficial RDAP Registro.br com Titular, CNPJ, Expiração, DNS e 3 Variações."""
+    return check_registro_br_availability(query, city=city)
+
+
+@router.get("/tools/site-health")
+def api_tool_site_health(url: str = Query(..., description="URL ou domínio do site a verificar")) -> Dict[str, Any]:
+    """Módulo 4 Embutido: Monitor HTTP / DNS / SSL (IP resolvido, Certificado TLS, Status HTTP e Latência ms)."""
+    res = check_site_availability_and_ssl(url)
+    res.pop("html_sample", None)
+    return res
+
+
+@router.get("/tools/site-xray")
+def api_tool_site_xray(
+    url: str = Query(..., description="URL ou domínio para Raio-X Completo"),
+    company_name: str = Query(""),
+    city: str = Query("Campinas"),
+) -> Dict[str, Any]:
+    """Módulos 3 a 8 Embutidos: Executa BuiltWith + Wappalyzer + WhatCMS + Web Archive CDX + DNS/SSL + RDAP."""
+    return run_embedded_site_xray_by_url(url_or_domain=url, company_name=company_name, city=city)
+
+
+@router.get("/tools/wayback")
+def api_tool_wayback(url: str = Query(..., description="URL ou domínio para histórico Web Archive CDX")) -> Dict[str, Any]:
+    """Módulo 8 Embutido: Scanner Histórico Web Archive CDX + Timeline de Capturas e Dias sem Atualização."""
+    return check_wayback_machine(url)
 
 
 @router.get("/jobs")

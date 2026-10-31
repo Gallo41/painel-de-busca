@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 29/10/2026 às 19:45
-- **Status**: Em andamento (70%)
+- **Status**: Em andamento (80%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -11,7 +11,7 @@
 Transformar os 8 cards das ferramentas (`google.com/maps`, `casadosdados.com.br`, `registro.br`, `downforeveryoneorjustme.com`, `builtwith.com`, `wappalyzer.com`, `whatcms.org`, `web.archive.org`) em **módulos 100% embutidos e executáveis dentro do próprio sistema** (sem links externos que tiram o usuário da tela) e colocar o container Docker `gmaps-scraper` (`gosom/google-maps-scraper:v1.18.1`) em execução ativa na porta `127.0.0.1:8080`.
 
 ## Próximo passo
-- Criar endpoints REST unificados (`/api/tools/*`) para execução embutida das 8 ferramentas diretamente no Dashboard (`app/routers/leads_router.py`) e suíte `tests/test_embedded_tools.py`.
+- Atualizar o Dashboard (`app/static/index.html`, `app/static/styles.css` e `app/static/app.js`) removendo 100% dos links clicáveis externos das 8 ferramentas e embutindo o Painel Interativo de Execução e Resultados dentro da própria interface.
 
 ---
 
@@ -24,7 +24,7 @@ Transformar os 8 cards das ferramentas (`google.com/maps`, `casadosdados.com.br`
 - [x] **50%** - Embutir **Módulo 4 (Monitor HTTP / DNS / SSL — DownForEveryone)**: resolução de IP (`socket`), inspeção de certificado SSL/TLS (`ssl`), código HTTP, tempo de resposta em `ms` e status real
 - [x] **60%** - Embutir **Módulos 5, 6 e 7 (Scanner Profundo BuiltWith + Wappalyzer + WhatCMS)**: detecção detalhada de CMS/versão, plugins (Elementor, WooCommerce), frameworks JS/CSS, servidor/CDN, pixels de tráfego, widgets de atendimento e diagnóstico de sistemas
 - [x] **70%** - Embutir **Módulo 8 (Scanner Histórico Web Archive CDX + Availability)**: histórico de snapshots (`web.archive.org/cdx/search/cdx`), primeira e última captura, total de alterações e dias sem atualização
-- [ ] **80%** - Criar endpoints REST unificados (`/api/tools/*`) para execução embutida individual ou em lote das 8 ferramentas + testes (`tests/test_embedded_tools.py`)
+- [x] **80%** - Criar endpoints REST unificados (`/api/tools/*`) para execução embutida individual ou em lote das 8 ferramentas + testes (`tests/test_embedded_tools.py`)
 - [ ] **90%** - Atualizar Dashboard (`index.html` e `app.js`): remover links clicáveis externos e embutir o Painel Interativo de Execução e Resultados das 8 Ferramentas dentro da própria interface
 - [ ] **100%** - Validar container Docker `gmaps-scraper` ativo em `localhost:8080`, rodar 100% da suíte `pytest`, atualizar o grafo `graphify-out/` e sincronizar com GitHub
 
@@ -40,6 +40,7 @@ Transformar os 8 cards das ferramentas (`google.com/maps`, `casadosdados.com.br`
 | **50%** | 30/10/2026 14:41 | Módulo 4 (Monitor HTTP / DNS / SSL com resolução de IP, inspeção TLS e veredito) embutido em `app/services/business_discovery.py`. | `app/services/business_discovery.py`, `tests/test_business_discovery.py`, `Sprint atual.md` |
 | **60%** | 31/10/2026 17:38 | Módulos 5, 6 e 7 (Scanners profundos de BuiltWith, Wappalyzer e WhatCMS com oportunidades de sistemas faltantes) embutidos em `app/services/site_xray.py`. | `app/services/site_xray.py`, `tests/test_site_xray.py`, `Sprint atual.md` |
 | **70%** | 31/10/2026 17:38 | Módulo 8 (Scanner Histórico Web Archive CDX + Timeline + Veredito de abandono) e consolidação `embedded_reports` em `app/services/site_xray.py`. | `app/services/site_xray.py`, `tests/test_site_xray.py`, `Sprint atual.md` |
+| **80%** | 31/10/2026 17:40 | Endpoints REST unificados (`/api/tools/*`) implementados em `app/routers/leads_router.py` e validados com `tests/test_embedded_tools.py`. | `app/routers/leads_router.py`, `tests/test_embedded_tools.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
