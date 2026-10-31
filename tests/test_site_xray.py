@@ -28,6 +28,11 @@ def test_detect_cms_wordpress_and_widgets():
     assert res["has_whatsapp_widget"] is True
     assert res["has_analytics_pixel"] is True
     assert res["is_mobile_friendly"] is True
+    assert res["builtwith_report"]["server"] == "Nginx"
+    assert "Botão WhatsApp Direto" in res["builtwith_report"]["chat_widgets"]
+    assert res["whatcms_report"]["cms_name"] == "WordPress"
+    assert "6.4" in res["whatcms_report"]["cms_version"]
+    assert len(res["whatcms_report"]["missing_systems_opportunities"]) >= 1
 
 
 def test_detect_cms_wix():
@@ -81,4 +86,5 @@ def test_run_full_xray_for_lead_without_website():
     assert xray["has_website"] is False
     assert xray["suggested_domain"].endswith(".com.br")
     assert xray["detected_cms"] == "Sem Site"
-    assert "builtwith" in xray["external_tools_links"]
+    assert "embedded_reports" in xray["external_tools_links"]
+    assert "whatcms" in xray["external_tools_links"]["embedded_reports"]
