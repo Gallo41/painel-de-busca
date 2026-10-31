@@ -1,49 +1,40 @@
-# Sprint Atual: Correção UTF-8 no Motor Maps & Novo Frontend Intuitivo de Relatórios Prontos
+# Sprint Atual: Dados 100% Reais do Google Maps (Docker) & Redesign UI/UX com Taste-Skill (Framed Sheet)
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 31/10/2026 às 17:55
-- **Status**: Concluído (100%)
+- **Data de Início**: 31/10/2026 às 18:30
+- **Status**: Em andamento (10%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-1. Corrigir definitivamente o erro `'charmap' codec can't encode character '\u25b6'` no Windows ao executar buscas com o motor Docker ativo (`scripts/scrape.py` e `app/services/maps_scraper.py`).
-2. Redesenhar a experiência do Frontend (`index.html`, `styles.css`, `app.js`) para ser **extremamente intuitiva, limpa e focada em entregar Relatórios Prontos** — sem caixas técnicas confusas: o usuário apenas escolhe a Cidade + Nichos, clica em **"Gerar Relatório Pronto"**, e recebe fichas completas e mastigadas de cada possível cliente (com o diagnóstico das 8 ferramentas traduzido em português simples, o que vender para cada um e o botão de chamar no WhatsApp em 1 clique).
+1. **Dados 100% Reais**: Eliminar os leads simulados (`sim_*`) quando o motor Docker (`gmaps-scraper` na porta 8080) estiver ativo, importando as **117+ empresas reais de Piracicaba-SP** já coletadas pelo container (e aguardando a conclusão real em novas buscas) com diagnóstico real de site/Instagram/Linktree e Registro.br RDAP.
+2. **Redesign UI/UX com `taste-skill` (`framed-sheet`)**: Aplicar rigorosamente a skill `design-taste-frontend` (`references/app-screens.md`, estilo `framed-sheet`, tipografia `IBM Plex Sans` + `IBM Plex Mono`, zero poluição visual, L-frame com sidebar de filtros + folha branca + visão Master-Detail com lista limpa de empresas reais à esquerda e o **Relatório Pronto + WhatsApp 1-clique** no painel lateral direito).
 
 ## Próximo passo
-- Sprint 3 concluída em 100%. Sistema online em `http://127.0.0.1:8090` com relatórios prontos de Piracicaba-SP carregados.
+- Limpar leads simulados do banco SQLite e atualizar `app/services/maps_scraper.py` para ler todos os CSVs reais do container Docker `gmaps-scraper` (Marcos 20% e 30%).
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Planejamento da Sprint 3 e diagnóstico da causa-raiz do erro `'charmap' codec` em `scripts/scrape.py`
-- [x] **20%** - Corrigir encoding UTF-8 no Windows em `scripts/scrape.py`, `app/main.py` e `app/services/maps_scraper.py` (eliminando `UnicodeEncodeError`)
-- [x] **30%** - Otimizar e blindar `POST /api/jobs` e `run_live_maps_scrape` para execução rápida, combinando motor Docker + descoberta CNAE + fallback sem travar a interface
-- [x] **40%** - Criar formatador de **Relatório Pronto por Cliente** no backend (traduzindo o Raio-X das 8 ferramentas em tópicos comerciais claros e diretos)
-- [x] **50%** - Adicionar endpoint e estrutura de **Resumo Executivo do Relatório** (`/api/reports/summary` e retorno enriquecido em `/api/leads`)
-- [x] **60%** - Redesenhar `app/static/index.html` em uma interface limpa de 3 passos focada em **Relatórios Prontos** (sem inputs técnicos espalhados)
-- [x] **70%** - Atualizar `app/static/styles.css` com design de **Ficha de Relatório Executivo** e modo de impressão/PDF limpo (`@media print`)
-- [x] **80%** - Atualizar `app/static/app.js` com visualização em Cards de Relatório Prontos, abas inteligentes por tipo de serviço a vender e 1-clique para WhatsApp/Fila do Robô
-- [x] **90%** - Criar testes automatizados (`tests/test_ready_reports.py`) testando busca para `Piracicaba - SP` e validando zero erros de encoding
-- [x] **100%** - Validar 100% da suíte `pytest`, atualizar grafo `graphify-out/`, testar busca real em `http://127.0.0.1:8090` e sincronizar com GitHub
+- [x] **10%** - Diagnóstico com `systematic-debugging` (localizados 117 leads reais de Piracicaba no container Docker `gmaps-scraper`) e sorteio da direção `framed-sheet` via `taste-skill` (`draw.mjs --app`)
+- [ ] **20%** - Atualizar `app/services/maps_scraper.py` para extrair diretamente os leads reais dos jobs concluídos no Docker `gmaps-scraper` e aguardar conclusão real sem cair em dados falsos
+- [ ] **30%** - Limpar todos os leads simulados (`sim_*` / `cnae_sim_*`) do banco de dados e importar o lote real de empresas de Piracicaba-SP com classificação real
+- [ ] **40%** - Otimizar o pipeline de Raio-X em lote (`app/routers/leads_router.py` e `app/services/outreach_generator.py`) com verificação rápida real de domínios e classificação precisa de sites reais (`instagram.com`, `linktr.ee`, `netlify.app`, etc.)
+- [ ] **50%** - Reescrever `app/static/styles.css` seguindo os tokens exatos do `taste-skill` (`framed-sheet`: `IBM Plex Sans`, `IBM Plex Mono`, L-frame `#f9fbfc`, white sheet radius `16px`, KPI strip dividida por `1px`, zero emojis/gradientes)
+- [ ] **60%** - Reescrever `app/static/index.html` na arquitetura `framed-sheet` (Sidebar de navegação e gerador compacto + Top Bar de busca + Folha Principal com KPI strip e Master-Detail: Tabela de Empresas Reais + Painel de Relatório Pronto)
+- [ ] **70%** - Atualizar `app/static/app.js` para dinâmica Master-Detail fluida (seleção instantânea na tabela atualiza o Relatório Pronto lateral, filtros em 1 clique na sidebar, disparo WhatsApp e fila do robô)
+- [ ] **80%** - Validar com `lint.mjs --app` e `inspect.mjs --app` do `taste-skill` e corrigir apontamentos visuais/estruturais
+- [ ] **90%** - Atualizar e executar suíte completa `pytest` garantindo 100% dos testes passando com a nova estrutura
+- [ ] **100%** - Atualizar grafo `graphify-out/`, validar servidor ao vivo em `http://127.0.0.1:8090` com os dados reais de Piracicaba e sincronizar com GitHub
 
 ---
 
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10%** | 31/10/2026 17:55 | Início da Sprint 3: mapeamento do erro `UnicodeEncodeError` no Windows em `scripts/scrape.py` e definição do novo layout de Relatórios Prontos. | `Sprint atual.md`, `task.md` |
-| **20%** | 31/10/2026 18:03 | Correção definitiva de encoding UTF-8 no Windows em `scripts/scrape.py` e `app/main.py`. | `scripts/scrape.py`, `app/main.py` |
-| **30%** | 31/10/2026 18:03 | Otimização de `run_live_maps_scrape` e `geocode_city_embedded` (incluindo Piracicaba e cidades SP) para resposta rápida sem bloqueio. | `app/services/maps_scraper.py`, `Sprint atual.md` |
-| **40%** | 31/10/2026 18:06 | Implementação de `build_ready_report_for_lead` em `app/services/outreach_generator.py` traduzindo as 8 ferramentas em tópicos comerciais claros. | `app/services/outreach_generator.py` |
-| **50%** | 31/10/2026 18:06 | Implementação de `build_executive_summary_report` e rota `GET /api/reports/summary` em `app/routers/leads_router.py`. | `app/services/outreach_generator.py`, `app/routers/leads_router.py` |
-| **60%** | 31/10/2026 18:10 | Redesenho completo de `app/static/index.html` focado em 3 passos intuitivos e Relatórios Prontos por Cliente. | `app/static/index.html` |
-| **70%** | 31/10/2026 18:11 | Atualização de `app/static/styles.css` com estilos de Fichas de Relatório Prontas, abas 1-clique e modo `@media print`. | `app/static/styles.css` |
-| **80%** | 31/10/2026 18:16 | Atualização de `app/static/app.js` com renderização de Fichas de Relatório Prontas (`renderReadyReportsGrid`), Resumo Executivo e inclusão automática de empresas recém-abertas (CNPJ). | `app/static/app.js` |
-| **90%** | 31/10/2026 18:18 | Criação de `tests/test_ready_reports.py` validando busca de Piracicaba-SP sem erro de encoding e estrutura completa de relatórios prontos. | `tests/test_ready_reports.py` |
-| **100%** | 31/10/2026 18:24 | Suíte `pytest` 100% verde (35 passed), grafo `graphify-out/` atualizado (`395 nodes, 928 edges`), servidor Uvicorn online em `127.0.0.1:8090` com relatórios de Piracicaba-SP carregados e sincronizado com GitHub. | `graphify-out/`, `Sprint atual.md`, `task.md` |
+| **10%** | 31/10/2026 18:33 | Diagnóstico dos 117 leads reais de Piracicaba no Docker `gmaps-scraper` e definição da direção `framed-sheet` com `taste-skill`. | `Sprint atual.md`, `.taste-skill/direction.json` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
