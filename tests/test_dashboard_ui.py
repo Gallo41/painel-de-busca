@@ -35,11 +35,15 @@ def test_dashboard_html_and_assets_served(client):
     assert "embedded-wappalyzer-box" in html
     assert "embedded-whatcms-box" in html
     assert "embedded-wayback-box" in html
+    assert 'data-theme="dark"' in html
+    assert 'id="theme-toggle"' in html
 
     r_css = client.get("/static/styles.css")
     assert r_css.status_code == 200
+    assert 'data-theme="dark"' in r_css.text
 
     r_js = client.get("/static/app.js")
     assert r_js.status_code == 200
     assert "/api/jobs" in r_js.text
     assert "/api/outreach/enqueue" in r_js.text
+    assert "toggleTheme" in r_js.text
