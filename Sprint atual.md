@@ -1,44 +1,44 @@
-# Sprint Atual: Correção de IDs de KPIs & Blindagem contra Null References no Frontend
+# Sprint Atual: Deduplicação Inteligente Multi-Critério & Limpeza de Leads Duplicados
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 31/10/2026 às 19:04
+- **Data de Início**: 31/10/2026 às 19:11
 - **Status**: Concluído (100%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-Eliminar o erro `Cannot set properties of null (setting 'textContent')` que ocorria ao clicar em "Buscar clientes reais" e blindar o front-end contra referências nulas:
-1. **Sincronização de IDs dos KPIs**: Harmonizados os IDs entre `index.html` e `app.js` (`stat-total`, `stat-without-site`, `stat-site-down`, `stat-complex`, `stat-domain-free`).
-2. **Blindagem Defensiva no JavaScript**: Implementada a função segura `setTxt(id, val)` que valida a existência do elemento no DOM antes de qualquer atribuição.
-3. **Teste Automatizado de Consistência**: Cobertura adicionada em `tests/test_dashboard_ui.py` validando os IDs e garantindo que referências antigas não retornem.
+Eliminar definitivamente todas as duplicatas de empresas no Painel de Busca (como "Ello Próteses e Implantes", "Encanttá Odontologia", etc.) e blindar o banco contra novas duplicatas:
+1. **Deduplicação Multi-Critério**: Reconhecer a mesma empresa por `place_id`, por `whatsapp_clean + cidade` ou por `título normalizado + cidade` (mesmo quando uma captura veio sem `place_id` ou com pontuação ligeiramente diferente).
+2. **Mesclagem e Enriquecimento**: Se uma empresa já existe no banco, atualizar e enriquecer os dados (adicionando `place_id`, categoria específica, avaliações) em vez de criar um registro duplicado.
+3. **Limpeza Automática no Banco**: Executar rotina de deduplicação e fusão na inicialização da aplicação, expurgando registros redundantes e consolidando os relatórios.
 
 ## Conclusão da Sprint
-- Causa-raiz diagnosticada com evidência e resolvida com sucesso. O botão "Buscar clientes reais" agora processa e atualiza dinamicamente as métricas e a lista sem qualquer exceção de JavaScript. Todos os 35 testes passando, linter com 0 erros e servidor ativo em `http://127.0.0.1:8090`.
+- Deduplicação inteligente multi-critério implementada e ativa. As 30 duplicatas existentes foram eliminadas, mantendo os registros mais ricos em dados (com place_id, categoria e avaliações). O banco agora possui 167 empresas reais únicas de Piracicaba sem nenhuma duplicata. Todos os 36 testes passando (100%), linter aprovado e sincronizado no GitHub.
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Diagnóstico sistemático com evidência exata do erro (`renderSummary` acessando `kpi-total` em vez de `stat-total`)
-- [x] **20%** - Corrigir IDs dos KPIs em `renderSummary` para espelhar `index.html` (`stat-total`, `stat-without-site`, etc.)
-- [x] **30%** - Blindar `renderSummary` com helper defensivo `setTxt(id, val)` evitando quebras por elementos ausentes
-- [x] **40%** - Blindar `renderRows`, `renderSkeleton` e `renderError` contra elementos nulos
-- [x] **50%** - Auditoria completa via script de todos os seletores `$("<id>")` em `app.js` contra `index.html`
-- [x] **60%** - Testar execução de busca e atualização dinâmica dos dados de Piracicaba sem erro no console
-- [x] **70%** - Validação de qualidade com linter `taste-skill` (`lint.mjs --app`, 0 erros)
-- [x] **80%** - Adicionar teste automatizado em `tests/test_dashboard_ui.py` validando integridade de todos os IDs de KPIs
-- [x] **90%** - Execução da suíte completa de testes `pytest` (35/35 sucesso)
-- [x] **100%** - Atualização de grafo `graphify update .`, validação no servidor `http://127.0.0.1:8090` e sincronização com GitHub
+- [x] **10%** - Diagnóstico sistemático com evidência concreta da duplicação (discrepância entre chaves `pid:` e `tc:` para a mesma empresa)
+- [x] **20%** - Criar função canônica de normalização de títulos (`normalize_business_title`) removendo pontuações e sufixos repetitivos
+- [x] **30%** - Atualizar `upsert_lead()` com busca prévia multi-critério (match por `place_id`, `whatsapp_clean + cidade` e `título normalizado + cidade`)
+- [x] **40%** - Implementar fusão e enriquecimento inteligente de dados ao atualizar empresas existentes
+- [x] **50%** - Criar função de limpeza e consolidação `deduplicate_existing_leads_db()` executada na inicialização do sistema
+- [x] **60%** - Executar consolidação no banco SQLite (`data/painel_busca.db`), eliminando as 30 duplicatas de Piracicaba
+- [x] **70%** - Adicionar testes unitários de deduplicação idempotente em `tests/test_database.py` (36 testes passando)
+- [x] **80%** - Validação de qualidade de código e linter `taste-skill` (0 erros)
+- [x] **90%** - Execução da suíte completa de testes automatizados `pytest`
+- [x] **100%** - Atualização de grafo `graphify update .`, validação da interface limpa em `http://127.0.0.1:8090` e sincronização com GitHub
 
 ---
 
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10%** | 31/10/2026 19:04 | Identificação da causa-raiz do erro no print do usuário: discrepância de IDs entre `renderSummary()` e `index.html`. | `Sprint atual.md` |
-| **20-50%** | 31/10/2026 19:05 | Correção dos IDs (`stat-total`, `stat-without-site`, `stat-site-down`, `stat-complex`, `stat-domain-free`), criação do guard `setTxt` e auditoria de todos os seletores com `check_ids.py`. | `app/static/app.js` |
-| **60-100%** | 31/10/2026 19:06 | Testes atualizados em `test_dashboard_ui.py`, 35 testes passando, `taste-skill lint` 0 erros, grafo `graphify` atualizado e sincronizado com GitHub. | `tests/test_dashboard_ui.py`, `graphify-out/*`, `Sprint atual.md` |
+| **10%** | 31/10/2026 19:11 | Diagnóstico: identificadas 26 empresas duplicadas decorrentes de conflito entre chaves `pid:` (com place_id) e `tc:` (sem place_id). | `Sprint atual.md` |
+| **20-60%** | 31/10/2026 19:14 | Implementadas funções `normalize_business_title()`, `_find_existing_lead_id()`, `upsert_lead()` com fusão inteligente e `deduplicate_existing_leads_db()`. 30 duplicatas expurgadas do banco ativo. | `app/database.py`, `app/main.py`, `data/painel_busca.db` |
+| **70-100%** | 31/10/2026 19:16 | Adicionado teste unitário `test_multicriteria_deduplication_and_enrichment`, 36/36 testes passando, grafo atualizado e sincronizado no GitHub. | `tests/test_database.py`, `graphify-out/*`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

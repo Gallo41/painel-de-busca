@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1793483977.6621187,
-    "seen": 1793484046.8905785,
-    "ast_hash": "2671859351d846e545d26801662395ea",
+    "mtime": 1793484293.134252,
+    "seen": 1793484392.278858,
+    "ast_hash": "9d91c7b2df6d2ebc471d667265fe9988",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1793484004.0900078,
-    "seen": 1793484046.8905885,
-    "ast_hash": "27f963be7dac45612c63acb5f2f2cd0f",
+    "mtime": 1793484326.51851,
+    "seen": 1793484392.2788732,
+    "ast_hash": "36e0ca00caff6b661fb062b3e9941c66",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": "f6430a003ab70c901c8a4c67670596d6"
   },
   "Sprint atual.md": {
-    "mtime": 1793484028.3331282,
-    "seen": 1793484046.8906095,
-    "ast_hash": "4161f48a586fceee6fd5ec56ba5e2a9b",
+    "mtime": 1793484370.9447746,
+    "seen": 1793484392.2789044,
+    "ast_hash": "c33f5a1efb9989ff67c25df78ffb2e63",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {

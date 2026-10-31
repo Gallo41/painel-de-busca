@@ -12,15 +12,15 @@
     "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
   },
   "app/database.py": {
-    "mtime": 1793482764.4797957,
-    "seen": 1793483630.4907079,
-    "ast_hash": "352c4e1eb7c65644cd5bd0d57fdd8668",
+    "mtime": 1793484840.4822202,
+    "seen": 1793485003.885352,
+    "ast_hash": "9b6d01266d61a5c9855297cea98a5ae2",
     "semantic_hash": ""
   },
   "app/main.py": {
-    "mtime": 1793482782.590582,
-    "seen": 1793483630.4907098,
-    "ast_hash": "f1345b15a4000fb4b9c388ca18c0459c",
+    "mtime": 1793484873.1959994,
+    "seen": 1793485003.885354,
+    "ast_hash": "981285e7f3c293259717f73813f4bf21",
     "semantic_hash": ""
   },
   "app/models.py": {
@@ -126,10 +126,10 @@
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1793225572.1687605,
-    "seen": 1793313149.3531642,
-    "ast_hash": "85303277245cb4743a54dfce3988aad1",
-    "semantic_hash": "85303277245cb4743a54dfce3988aad1"
+    "mtime": 1793484927.071338,
+    "seen": 1793485003.8853943,
+    "ast_hash": "48c3c2eb225fa32b44fad6d5cfb5f178",
+    "semantic_hash": ""
   },
   "tests/test_lead_scorer.py": {
     "mtime": 1793226220.8088813,
@@ -162,9 +162,9 @@
     "semantic_hash": "f6430a003ab70c901c8a4c67670596d6"
   },
   "Sprint atual.md": {
-    "mtime": 1793484370.9447746,
-    "seen": 1793484392.2789044,
-    "ast_hash": "c33f5a1efb9989ff67c25df78ffb2e63",
+    "mtime": 1793484977.4526737,
+    "seen": 1793485003.8854177,
+    "ast_hash": "bf1f37f044e74721d25feee14a6a71c6",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {

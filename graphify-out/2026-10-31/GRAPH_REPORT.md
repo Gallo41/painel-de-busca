@@ -1,17 +1,17 @@
 # Graph Report - Painel de Busca  (2026-10-31)
 
 ## Corpus Check
-- 35 files · ~29,184 words
+- 35 files · ~29,242 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: .bat 2, (none) 1, .css 1)
 
 ## Summary
-- 426 nodes · 1020 edges · 19 communities (12 shown, 7 thin omitted)
-- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 40 edges (avg confidence: 0.87)
+- 426 nodes · 1018 edges · 20 communities (13 shown, 7 thin omitted)
+- Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 39 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2c7f4954`
+- Built from commit: `6360789f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -23,6 +23,7 @@
 - SQLite Persistence & Lead Scoring
 - outreach_router.py
 - Outreach Scripts & Queue
+- Regra Mandatória: Commit e Sincronização Automática com GitHub
 - Cluster 9: app/__init__.py
 - Cluster 10: routers/__init__.py
 - Cluster 11: services/__init__.py
@@ -58,15 +59,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (19 total, 7 thin omitted)
+## Communities (20 total, 7 thin omitted)
 
 ### Community 0 - "Site X-Ray & Tech Stack"
 Cohesion: 0.07
 Nodes (30): check_registro_br_availability(), check_site_availability_and_ssl(), _default_http_get(), discover_companies_by_cnae_and_city(), extract_hostname(), format_cnpj(), is_social_or_directory_url(), lookup_cnpj_embedded() (+22 more)
 
 ### Community 1 - "Google Maps Scraper Engine"
-Cohesion: 0.05
-Nodes (39): Diretrizes de Commit Automático, Regra Mandatória: Commit e Sincronização Automática com GitHub, Repositório Oficial, api_export_outreach_ready(), build_keywords_for_job(), _clean_maps_address(), delete_engine_job(), generate_sample_leads_for_niches() (+31 more)
+Cohesion: 0.06
+Nodes (36): api_export_outreach_ready(), build_keywords_for_job(), _clean_maps_address(), delete_engine_job(), generate_sample_leads_for_niches(), geocode_city_embedded(), harvest_completed_docker_jobs_for_city(), infer_niche_slug_from_row() (+28 more)
 
 ### Community 2 - "Business Discovery & RDAP"
 Cohesion: 0.07
@@ -87,6 +88,10 @@ Nodes (10): LeadManagementUpdate, ManualLeadCreate, OutreachClaimRequest, Outrea
 ### Community 6 - "Outreach Scripts & Queue"
 Cohesion: 0.07
 Nodes (11): purge_simulated_leads(), create_app(), score_and_classify_lead(), client(), client(), test_score_lead_for_complex_system_expansion(), test_score_lead_with_offline_website(), test_score_lead_without_website_and_free_domain() (+3 more)
+
+### Community 7 - "Regra Mandatória: Commit e Sincronização Automática com GitHub"
+Cohesion: 0.50
+Nodes (3): Diretrizes de Commit Automático, Regra Mandatória: Commit e Sincronização Automática com GitHub, Repositório Oficial
 
 ### Community 9 - "Cluster 9: app/__init__.py"
 Cohesion: 0.14
@@ -125,8 +130,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Why does `create_app()` connect `Outreach Scripts & Queue` to `Site X-Ray & Tech Stack`?**
   _High betweenness centrality (0.023) - this node is a cross-community bridge._
 - **Should `Google Maps Scraper Engine` be split into smaller, more focused modules?**
-  _Cohesion score 0.05117117117117117 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.055533199195171024 - nodes in this community are weakly interconnected._
 - **Why does `process_and_save_lead()` connect `Site X-Ray & Tech Stack` to `Site X-Ray & Tech Stack`, `Google Maps Scraper Engine`, `SQLite Persistence & Lead Scoring`, `Outreach Scripts & Queue`?**
   _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **Should `Business Discovery & RDAP` be split into smaller, more focused modules?**
-  _Cohesion score 0.0661189358372457 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06533646322378717 - nodes in this community are weakly interconnected._

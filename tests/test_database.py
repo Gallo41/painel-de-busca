@@ -230,3 +230,67 @@ def test_outreach_queue_idempotency_and_claim(db_path):
     sent_items = list_outreach_queue(status="sent", db_path=db_path)
     assert len(sent_items) == 1
     assert sent_items[0]["external_message_id"] == "wamid.12345"
+
+
+def test_multicriteria_deduplication_and_enrichment(db_path):
+    from app.database import (
+        normalize_business_title,
+        upsert_lead,
+        get_lead,
+        deduplicate_existing_leads_db,
+        get_connection,
+    )
+
+    # 1. Normalização de título
+    assert normalize_business_title("Ello Próteses e Implantes") == "ello proteses e implantes"
+    assert normalize_business_title("Encanttá Odontologia | Implante Dentário - Alto") == "encantta odontologia implante dentario alto"
+
+    # 2. Inserção inicial sem place_id
+    id1 = upsert_lead(
+        {
+            "title": "Ello Próteses e Implantes",
+            "city": "Piracicaba",
+            "phone": "(19)99716-6254",
+            "whatsapp_clean": "5519997166254",
+            "place_id": "",
+            "category": "",
+            "review_count": 1250,
+        },
+        db_path=db_path,
+    )
+
+    # 3. Segunda inserção com place_id e telefone formatado com espaço
+    id2 = upsert_lead(
+        {
+            "title": "Ello Próteses e Implantes",
+            "city": "Piracicaba",
+            "phone": "(19) 99716-6254",
+            "whatsapp_clean": "5519997166254",
+            "place_id": "ChIJ386f9FMwxpQRevR19E-D3Ts",
+            "category": "Dentista",
+            "review_count": 1253,
+        },
+        db_path=db_path,
+    )
+    assert id1 == id2
+
+    saved = get_lead(id1, db_path=db_path)
+    assert saved["place_id"] == "ChIJ386f9FMwxpQRevR19E-D3Ts"
+    assert saved["category"] == "Dentista"
+    assert saved["review_count"] == 1253
+
+    # 4. Inserção manual de duplicata forçada para testar deduplicate_existing_leads_db
+    with get_connection(db_path) as conn:
+        conn.execute(
+            """
+            INSERT INTO leads (title, city, state, phone, whatsapp_clean, dedupe_key, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))
+            """,
+            ("Ello Próteses e Implantes", "Piracicaba", "SP", "(19) 99716-6254", "5519997166254", "dup:test:123"),
+        )
+    
+    deleted = deduplicate_existing_leads_db(db_path=db_path)
+    assert deleted >= 1
+    with get_connection(db_path) as conn:
+        count = conn.execute("SELECT COUNT(*) FROM leads WHERE title LIKE '%Ello%'").fetchone()[0]
+        assert count == 1

@@ -1,6 +1,8 @@
 import json
 import os
+import re
 import sqlite3
+import unicodedata
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
@@ -281,6 +283,14 @@ def list_search_jobs(limit: int = 30, db_path: Optional[str] = None) -> List[Dic
     return [_deserialize_job(r) for r in rows if r]
 
 
+def normalize_business_title(title: str) -> str:
+    """Normaliza o nome da empresa para comparação invariante de deduplicação."""
+    text = (title or "").lower().strip()
+    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("utf-8")
+    text = re.sub(r"[\s\-_|/–—:;,.]+", " ", text).strip()
+    return text
+
+
 def _make_dedupe_key(lead: Dict[str, Any]) -> str:
     place_id = (lead.get("place_id") or "").strip()
     if place_id:
@@ -288,15 +298,72 @@ def _make_dedupe_key(lead: Dict[str, Any]) -> str:
     cnpj = (lead.get("cnpj") or "").strip()
     if cnpj:
         return f"cnpj:{cnpj}"
-    title = (lead.get("title") or "").strip().lower()
+    title = normalize_business_title(lead.get("title") or "")
     city = (lead.get("city") or "").strip().lower()
-    phone = (lead.get("phone") or "").strip()
+    phone = (lead.get("whatsapp_clean") or lead.get("phone") or "").strip()
     return f"tc:{title}|{city}|{phone}"
+
+
+def _find_existing_lead_id(
+    conn: sqlite3.Connection,
+    place_id: str,
+    whatsapp_clean: str,
+    title: str,
+    city: str,
+    dedupe_key: str,
+) -> Optional[int]:
+    """Localiza se a empresa já existe no banco através de múltiplos identificadores únicos."""
+    # 1. Pela dedupe_key direta
+    row = conn.execute("SELECT id FROM leads WHERE dedupe_key = ?", (dedupe_key,)).fetchone()
+    if row:
+        return int(row["id"])
+
+    # 2. Pelo place_id se não vazio
+    if place_id:
+        row = conn.execute("SELECT id FROM leads WHERE place_id = ?", (place_id,)).fetchone()
+        if row:
+            return int(row["id"])
+
+    norm_city = (city or "").strip().lower()
+
+    # 3. Pelo WhatsApp limpo + cidade (10+ dígitos)
+    clean_wp = (whatsapp_clean or "").strip()
+    if clean_wp and len(clean_wp) >= 10:
+        row = conn.execute(
+            "SELECT id FROM leads WHERE whatsapp_clean = ? AND LOWER(TRIM(city)) = ? LIMIT 1",
+            (clean_wp, norm_city),
+        ).fetchone()
+        if row:
+            return int(row["id"])
+
+    # 4. Pelo título normalizado + cidade
+    norm_t = normalize_business_title(title)
+    if norm_t and len(norm_t) > 3:
+        candidates = conn.execute(
+            "SELECT id, title FROM leads WHERE LOWER(TRIM(city)) = ?", (norm_city,)
+        ).fetchall()
+        for cand in candidates:
+            if normalize_business_title(cand["title"]) == norm_t:
+                return int(cand["id"])
+
+    return None
 
 
 def upsert_lead(lead: Dict[str, Any], db_path: Optional[str] = None) -> int:
     dedupe_key = _make_dedupe_key(lead)
     now = _now_iso()
+    place_id = (lead.get("place_id") or "").strip()
+    title = (lead.get("title") or "Empresa Sem Nome").strip()
+    city = (lead.get("city") or "").strip()
+    whatsapp_clean = (lead.get("whatsapp_clean") or "").strip()
+    category = (lead.get("category") or "").strip()
+    phone = (lead.get("phone") or "").strip()
+    emails = (lead.get("emails") or "").strip()
+    website = (lead.get("website") or "").strip()
+    address = (lead.get("address") or "").strip()
+    state = (lead.get("state") or "SP").strip()
+    niche_slug = lead.get("niche_slug") or "geral"
+
     try:
         rating = float(lead.get("review_rating") or 0.0)
     except (TypeError, ValueError):
@@ -307,6 +374,64 @@ def upsert_lead(lead: Dict[str, Any], db_path: Optional[str] = None) -> int:
         rcount = 0
 
     with get_connection(db_path) as conn:
+        existing_id = _find_existing_lead_id(
+            conn,
+            place_id=place_id,
+            whatsapp_clean=whatsapp_clean,
+            title=title,
+            city=city,
+            dedupe_key=dedupe_key,
+        )
+        if existing_id is not None:
+            # Já existe! Atualiza e enriquece os dados sem duplicar
+            conn.execute(
+                """
+                UPDATE leads SET
+                    job_id = COALESCE(?, job_id),
+                    place_id = CASE WHEN (leads.place_id IS NULL OR leads.place_id = '') AND ? != '' THEN ? ELSE leads.place_id END,
+                    dedupe_key = CASE WHEN (leads.place_id IS NULL OR leads.place_id = '') AND ? != '' THEN ? ELSE leads.dedupe_key END,
+                    niche_slug = CASE WHEN ? != 'geral' THEN ? ELSE leads.niche_slug END,
+                    category = CASE WHEN ? != '' THEN ? ELSE leads.category END,
+                    phone = CASE WHEN ? != '' THEN ? ELSE leads.phone END,
+                    whatsapp_clean = CASE WHEN ? != '' THEN ? ELSE leads.whatsapp_clean END,
+                    emails = CASE WHEN ? != '' THEN ? ELSE leads.emails END,
+                    website = CASE WHEN ? != '' THEN ? ELSE leads.website END,
+                    address = CASE WHEN ? != '' THEN ? ELSE leads.address END,
+                    review_rating = CASE WHEN ? > 0 THEN ? ELSE leads.review_rating END,
+                    review_count = CASE WHEN ? > 0 THEN ? ELSE leads.review_count END,
+                    instagram = CASE WHEN ? != '' THEN ? ELSE leads.instagram END,
+                    facebook = CASE WHEN ? != '' THEN ? ELSE leads.facebook END,
+                    linkedin = CASE WHEN ? != '' THEN ? ELSE leads.linkedin END,
+                    cnpj = CASE WHEN ? != '' THEN ? ELSE leads.cnpj END,
+                    opened_date = CASE WHEN ? != '' THEN ? ELSE leads.opened_date END,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (
+                    lead.get("job_id"),
+                    place_id, place_id,
+                    place_id, f"pid:{place_id}",
+                    niche_slug, niche_slug,
+                    category, category,
+                    phone, phone,
+                    whatsapp_clean, whatsapp_clean,
+                    emails, emails,
+                    website, website,
+                    address, address,
+                    rating, rating,
+                    rcount, rcount,
+                    (lead.get("instagram") or "").strip(), (lead.get("instagram") or "").strip(),
+                    (lead.get("facebook") or "").strip(), (lead.get("facebook") or "").strip(),
+                    (lead.get("linkedin") or "").strip(), (lead.get("linkedin") or "").strip(),
+                    (lead.get("cnpj") or "").strip(), (lead.get("cnpj") or "").strip(),
+                    (lead.get("opened_date") or "").strip(), (lead.get("opened_date") or "").strip(),
+                    now,
+                    existing_id,
+                ),
+            )
+            return existing_id
+
+        # Novo registro
         conn.execute(
             """
             INSERT INTO leads (
@@ -335,18 +460,18 @@ def upsert_lead(lead: Dict[str, Any], db_path: Optional[str] = None) -> int:
             """,
             (
                 lead.get("job_id"),
-                (lead.get("place_id") or "").strip(),
+                place_id,
                 dedupe_key,
-                lead.get("niche_slug") or "geral",
-                (lead.get("title") or "Empresa Sem Nome").strip(),
-                (lead.get("category") or "").strip(),
-                (lead.get("phone") or "").strip(),
-                (lead.get("whatsapp_clean") or "").strip(),
-                (lead.get("emails") or "").strip(),
-                (lead.get("website") or "").strip(),
-                (lead.get("address") or "").strip(),
-                (lead.get("city") or "").strip(),
-                (lead.get("state") or "SP").strip(),
+                niche_slug,
+                title,
+                category,
+                phone,
+                whatsapp_clean,
+                emails,
+                website,
+                address,
+                city,
+                state,
                 rating,
                 rcount,
                 (lead.get("instagram") or "").strip(),
@@ -547,6 +672,102 @@ def purge_simulated_leads(db_path: Optional[str] = None) -> int:
             "DELETE FROM leads WHERE place_id LIKE 'sim_%' OR source = 'cnae_recem_abertas'"
         )
         return cur.rowcount
+
+
+def deduplicate_existing_leads_db(db_path: Optional[str] = None) -> int:
+    """
+    Varre o banco e consolida empresas duplicadas (mesmo WhatsApp, mesmo place_id,
+    ou mesmo título normalizado na mesma cidade). Preserva o registro mais completo
+    (com place_id e categoria) e exclui registros redundantes.
+    """
+    with get_connection(db_path) as conn:
+        leads = conn.execute("SELECT * FROM leads ORDER BY id ASC").fetchall()
+        if not leads:
+            return 0
+
+        seen_keys: Dict[str, int] = {}
+        to_delete: List[int] = []
+
+        for lead in leads:
+            lid = int(lead["id"])
+            city = (lead["city"] or "").strip().lower()
+            pid = (lead["place_id"] or "").strip()
+            wp = (lead["whatsapp_clean"] or "").strip()
+            title_norm = normalize_business_title(lead["title"])
+
+            match_id: Optional[int] = None
+            if pid and pid in seen_keys:
+                match_id = seen_keys[pid]
+            elif wp and len(wp) >= 10 and f"wp:{wp}|{city}" in seen_keys:
+                match_id = seen_keys[f"wp:{wp}|{city}"]
+            elif title_norm and len(title_norm) > 3 and f"t:{title_norm}|{city}" in seen_keys:
+                match_id = seen_keys[f"t:{title_norm}|{city}"]
+
+            if match_id is not None and match_id != lid:
+                primary = conn.execute("SELECT * FROM leads WHERE id = ?", (match_id,)).fetchone()
+                if primary:
+                    prim_weight = (1 if primary["place_id"] else 0) + (1 if primary["category"] else 0) + (1 if primary["opportunity_score"] > 0 else 0)
+                    lead_weight = (1 if lead["place_id"] else 0) + (1 if lead["category"] else 0) + (1 if lead["opportunity_score"] > 0 else 0)
+
+                    survivor_id = match_id
+                    redundant_id = lid
+
+                    if lead_weight > prim_weight:
+                        survivor_id = lid
+                        redundant_id = match_id
+                        if pid: seen_keys[pid] = lid
+                        if wp and len(wp) >= 10: seen_keys[f"wp:{wp}|{city}"] = lid
+                        if title_norm and len(title_norm) > 3: seen_keys[f"t:{title_norm}|{city}"] = lid
+
+                    s = conn.execute("SELECT * FROM leads WHERE id = ?", (survivor_id,)).fetchone()
+                    r = conn.execute("SELECT * FROM leads WHERE id = ?", (redundant_id,)).fetchone()
+                    if s and r:
+                        conn.execute(
+                            """
+                            UPDATE leads SET
+                                place_id = CASE WHEN (leads.place_id IS NULL OR leads.place_id = '') THEN ? ELSE leads.place_id END,
+                                category = CASE WHEN (leads.category IS NULL OR leads.category = '') THEN ? ELSE leads.category END,
+                                phone = CASE WHEN (leads.phone IS NULL OR leads.phone = '') THEN ? ELSE leads.phone END,
+                                whatsapp_clean = CASE WHEN (leads.whatsapp_clean IS NULL OR leads.whatsapp_clean = '') THEN ? ELSE leads.whatsapp_clean END,
+                                website = CASE WHEN (leads.website IS NULL OR leads.website = '') THEN ? ELSE leads.website END,
+                                review_count = MAX(leads.review_count, ?),
+                                review_rating = CASE WHEN leads.review_rating <= 0 THEN ? ELSE leads.review_rating END,
+                                opportunity_score = MAX(leads.opportunity_score, ?),
+                                dedupe_key = CASE WHEN (leads.place_id IS NULL OR leads.place_id = '') AND ? != '' THEN ? ELSE leads.dedupe_key END
+                            WHERE id = ?
+                            """,
+                            (
+                                r["place_id"] or "",
+                                r["category"] or "",
+                                r["phone"] or "",
+                                r["whatsapp_clean"] or "",
+                                r["website"] or "",
+                                r["review_count"] or 0,
+                                r["review_rating"] or 0.0,
+                                r["opportunity_score"] or 0,
+                                r["place_id"] or "",
+                                f"pid:{r['place_id']}" if r["place_id"] else s["dedupe_key"],
+                                survivor_id,
+                            ),
+                        )
+                    conn.execute("UPDATE outreach_queue SET lead_id = ? WHERE lead_id = ?", (survivor_id, redundant_id))
+                    to_delete.append(redundant_id)
+            else:
+                if pid:
+                    seen_keys[pid] = lid
+                if wp and len(wp) >= 10:
+                    seen_keys[f"wp:{wp}|{city}"] = lid
+                if title_norm and len(title_norm) > 3:
+                    seen_keys[f"t:{title_norm}|{city}"] = lid
+
+        deleted_count = 0
+        if to_delete:
+            unique_to_delete = list(set(to_delete))
+            placeholders = ",".join("?" for _ in unique_to_delete)
+            cur = conn.execute(f"DELETE FROM leads WHERE id IN ({placeholders})", unique_to_delete)
+            deleted_count = cur.rowcount
+
+        return deleted_count
 
 
 def get_dashboard_stats(db_path: Optional[str] = None) -> Dict[str, Any]:
