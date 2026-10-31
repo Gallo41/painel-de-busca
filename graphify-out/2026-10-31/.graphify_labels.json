@@ -1,1 +1,16 @@
-{"0": "Site X-Ray & Tech Stack", "1": "Google Maps Scraper Engine", "2": "Business Discovery & RDAP", "3": "Site X-Ray & Tech Stack", "4": "SQLite Persistence & Lead Scoring", "5": "Outreach Scripts & Queue", "6": "Outreach Scripts & Queue", "7": "Outreach Scripts & Queue", "8": "Cluster 8: Implementation Plan 10-S", "9": "Cluster 9: app/__init__.py", "10": "Cluster 10: routers/__init__.py", "11": "Cluster 11: services/__init__.py", "12": "Cluster 12: post-commit", "13": "Cluster 13: git-auto-sync.ps1"}
+{
+  "0": "Site X-Ray & Tech Stack",
+  "1": "Google Maps Scraper Engine",
+  "2": "Business Discovery & RDAP",
+  "3": "Site X-Ray & Tech Stack",
+  "4": "SQLite Persistence & Lead Scoring",
+  "5": "Outreach Scripts & Queue",
+  "6": "Outreach Scripts & Queue",
+  "7": "Outreach Scripts & Queue",
+  "8": "Cluster 8: Implementation Plan 10-S",
+  "9": "Cluster 9: app/__init__.py",
+  "10": "Cluster 10: routers/__init__.py",
+  "11": "Cluster 11: services/__init__.py",
+  "12": "Cluster 12: post-commit",
+  "13": "Cluster 13: git-auto-sync.ps1"
+}
