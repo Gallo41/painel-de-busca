@@ -253,8 +253,9 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
     update_search_job(job_id, status="running")
 
     engine_health = check_scraper_engine_health()
-    use_live_engine = payload.source_mode == "google_maps" or (
-        payload.source_mode == "auto" and engine_health.get("online", False)
+    use_live_engine = (not payload.skip_live_network) and (
+        payload.source_mode == "google_maps"
+        or (payload.source_mode == "auto" and engine_health.get("online", False))
     )
 
     try:
@@ -269,7 +270,7 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
                 include_socials=payload.include_socials,
                 job_id=job_id,
             )
-            skip_net = False
+            skip_net = payload.skip_live_network or len(raw_leads) > 2
         else:
             raw_leads = generate_sample_leads_for_niches(
                 city=payload.city,
@@ -277,7 +278,7 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
                 niche_slugs=payload.niche_slugs,
                 job_id=job_id,
             )
-            skip_net = payload.source_mode == "demo"
+            skip_net = True
 
         processed_leads = []
         for raw in raw_leads:

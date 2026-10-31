@@ -278,11 +278,11 @@ def run_live_maps_scrape(
     rows: List[Dict[str, Any]] = []
     try:
         if not cells:
-            _, rows = kit_scraper.run_job(body, max_poll_attempts=2, poll_interval=1.0)
+            _, rows = kit_scraper.run_job(body, max_poll_attempts=1, poll_interval=0.5)
         else:
-            for cell in cells[:2]:
+            for cell in cells[:1]:
                 try:
-                    _, cell_rows = kit_scraper.run_job(dict(body, **cell), max_poll_attempts=2, poll_interval=1.0)
+                    _, cell_rows = kit_scraper.run_job(dict(body, **cell), max_poll_attempts=1, poll_interval=0.5)
                     rows = kit_scraper.dedupe(rows + cell_rows)
                 except Exception:
                     continue
@@ -292,13 +292,7 @@ def run_live_maps_scrape(
         # O job continua rodando em background dentro do container Docker gmaps-scraper
         rows = []
 
-    if rows:
-        try:
-            kit_scraper.enrich_emails(rows)
-            if include_socials:
-                kit_scraper.enrich_socials(rows)
-        except Exception:
-            pass
+    rows = rows[:12]
 
     default_niche = niche_slugs[0] if niche_slugs else "geral"
     leads: List[Dict[str, Any]] = []

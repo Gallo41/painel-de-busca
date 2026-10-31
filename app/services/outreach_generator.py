@@ -102,17 +102,42 @@ def build_ready_report_for_lead(
         missing_txt = ", ".join(missing_opps[:2]) if missing_opps else "Modernização de layout mobile e conversão"
         bullet_tech = f"Tecnologia atual: {cms} • O que falta implementar: {missing_txt}."
 
+    opp_score = int(score_data.get("opportunity_score") or lead.get("opportunity_score") or 80)
+    urgency_badge = "🔥 Prioridade Máxima" if opp_score >= 85 else ("⚡ Alta Chance" if opp_score >= 70 else "📌 Oportunidade")
+
     return {
         "headline": headline,
+        "executive_pitch": headline,
+        "urgency_badge": urgency_badge,
         "what_to_sell": what_to_sell,
         "ticket_range": ticket_range,
         "category_tab": category_tab,
-        "bullets": {
-            "maps_and_cnpj": bullet_maps_cnpj,
-            "domain_registro_br": bullet_domain,
-            "site_health_and_history": bullet_health,
-            "tech_and_systems": bullet_tech,
-        },
+        "bullets": [
+            {
+                "icon": "📍",
+                "label": "Presença no Google Maps & CNPJ",
+                "status": "ok",
+                "text": bullet_maps_cnpj,
+            },
+            {
+                "icon": "🌐",
+                "label": "Domínio Oficial (Registro.br)",
+                "status": "opportunity" if dom_free else "neutral",
+                "text": bullet_domain,
+            },
+            {
+                "icon": "🩺",
+                "label": "Saúde do Site & Histórico Web Archive",
+                "status": "urgent" if (not has_site or not in_air) else ("warning" if not has_ssl else "ok"),
+                "text": bullet_health,
+            },
+            {
+                "icon": "⚙️",
+                "label": "Tecnologia & Sistemas Faltantes",
+                "status": "opportunity",
+                "text": bullet_tech,
+            },
+        ],
         "missing_opportunities": missing_opps[:4],
     }
 
@@ -120,6 +145,7 @@ def build_ready_report_for_lead(
 def build_executive_summary_report(leads: List[Dict[str, Any]], city: str = "") -> Dict[str, Any]:
     """Consolida os números do Relatório Executivo Pronto para exibição imediata no topo da página."""
     total = len(leads)
+    city_label = (city or (leads[0].get("city") if leads else "Sua Região")).strip() or "Sua Região"
     need_new_site = sum(1 for l in leads if (not l.get("has_website")) or l.get("is_social_only_url"))
     site_down_or_broken = sum(
         1 for l in leads if l.get("primary_pain") in ("SITE_FORA_DO_AR", "SITE_AMADOR_ANTIGO")
@@ -133,9 +159,22 @@ def build_executive_summary_report(leads: List[Dict[str, Any]], city: str = "") 
     )
 
     estimated_pipeline_min = (need_new_site * 1200) + (site_down_or_broken * 1800) + (need_complex_system * 3500)
+    estimated_pipeline_max = (need_new_site * 2500) + (site_down_or_broken * 3500) + (need_complex_system * 8000)
+    if estimated_pipeline_min == 0 and total > 0:
+        estimated_pipeline_min = total * 1500
+        estimated_pipeline_max = total * 3000
+
+    min_fmt = f"{estimated_pipeline_min:,.0f}".replace(",", ".")
+    max_fmt = f"{estimated_pipeline_max:,.0f}".replace(",", ".")
 
     return {
-        "city": city or (leads[0].get("city") if leads else "Todas as Cidades"),
+        "city": city_label,
+        "headline": f"Relatório Pronto: {total} Clientes Qualificados em {city_label}",
+        "subheadline": (
+            f"Encontramos {need_new_site} empresas sem site próprio, {site_down_or_broken} precisando de reforma urgente "
+            f"e {need_complex_system} com perfil para sistemas sob medida ({free_domains} com domínio .com.br livre)."
+        ),
+        "total_leads": total,
         "total_analyzed": total,
         "need_new_site": need_new_site,
         "site_down_or_broken": site_down_or_broken,
@@ -143,6 +182,7 @@ def build_executive_summary_report(leads: List[Dict[str, Any]], city: str = "") 
         "free_domains_count": free_domains,
         "newly_opened_count": newly_opened,
         "estimated_pipeline_brl": estimated_pipeline_min,
+        "estimated_ticket_potential": f"R$ {min_fmt} a R$ {max_fmt}",
     }
 
 

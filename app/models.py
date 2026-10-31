@@ -12,6 +12,7 @@ class SearchJobRequest(BaseModel):
     include_socials: bool = Field(True, description="Extrair Instagram, Facebook e LinkedIn do site")
     run_xray: bool = Field(True, description="Executar motor completo de Raio-X (Registro.br, Health, CMS, Wayback)")
     source_mode: str = Field("auto", description="'google_maps', 'casadosdados', 'demo' ou 'auto'")
+    skip_live_network: bool = Field(False, description="Modo rápido sem bloqueio de rede externa por lead")
 
 
 class LeadManagementUpdate(BaseModel):
