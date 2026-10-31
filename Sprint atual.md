@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 31/10/2026 às 17:55
-- **Status**: Em andamento (50%)
+- **Status**: Em andamento (60%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -12,7 +12,7 @@
 2. Redesenhar a experiência do Frontend (`index.html`, `styles.css`, `app.js`) para ser **extremamente intuitiva, limpa e focada em entregar Relatórios Prontos** — sem caixas técnicas confusas: o usuário apenas escolhe a Cidade + Nichos, clica em **"Gerar Relatório Pronto"**, e recebe fichas completas e mastigadas de cada possível cliente (com o diagnóstico das 8 ferramentas traduzido em português simples, o que vender para cada um e o botão de chamar no WhatsApp em 1 clique).
 
 ## Próximo passo
-- Redesenhar `app/static/index.html`, `app/static/styles.css` e `app/static/app.js` em uma interface limpa de 3 passos focada 100% em entregar **Relatórios Prontos** (Marcos 60%, 70% e 80%).
+- Atualizar `app/static/styles.css` e `app/static/app.js` com o layout visual de Fichas de Relatório Prontas e modo impressão/PDF (Marcos 70% e 80%).
 
 ---
 
@@ -23,7 +23,7 @@
 - [x] **30%** - Otimizar e blindar `POST /api/jobs` e `run_live_maps_scrape` para execução rápida, combinando motor Docker + descoberta CNAE + fallback sem travar a interface
 - [x] **40%** - Criar formatador de **Relatório Pronto por Cliente** no backend (traduzindo o Raio-X das 8 ferramentas em tópicos comerciais claros e diretos)
 - [x] **50%** - Adicionar endpoint e estrutura de **Resumo Executivo do Relatório** (`/api/reports/summary` e retorno enriquecido em `/api/leads`)
-- [ ] **60%** - Redesenhar `app/static/index.html` em uma interface limpa de 3 passos focada em **Relatórios Prontos** (sem inputs técnicos espalhados)
+- [x] **60%** - Redesenhar `app/static/index.html` em uma interface limpa de 3 passos focada em **Relatórios Prontos** (sem inputs técnicos espalhados)
 - [ ] **70%** - Atualizar `app/static/styles.css` com design de **Ficha de Relatório Executivo** e modo de impressão/PDF limpo (`@media print`)
 - [ ] **80%** - Atualizar `app/static/app.js` com visualização em Cards de Relatório Prontos, abas inteligentes por tipo de serviço a vender e 1-clique para WhatsApp/Fila do Robô
 - [ ] **90%** - Criar testes automatizados (`tests/test_ready_reports.py`) testando busca para `Piracicaba - SP` e validando zero erros de encoding
@@ -39,6 +39,7 @@
 | **30%** | 31/10/2026 18:03 | Otimização de `run_live_maps_scrape` e `geocode_city_embedded` (incluindo Piracicaba e cidades SP) para resposta rápida sem bloqueio. | `app/services/maps_scraper.py`, `Sprint atual.md` |
 | **40%** | 31/10/2026 18:06 | Implementação de `build_ready_report_for_lead` em `app/services/outreach_generator.py` traduzindo as 8 ferramentas em tópicos comerciais claros. | `app/services/outreach_generator.py` |
 | **50%** | 31/10/2026 18:06 | Implementação de `build_executive_summary_report` e rota `GET /api/reports/summary` em `app/routers/leads_router.py`. | `app/services/outreach_generator.py`, `app/routers/leads_router.py` |
+| **60%** | 31/10/2026 18:10 | Redesenho completo de `app/static/index.html` focado em 3 passos intuitivos e Relatórios Prontos por Cliente. | `app/static/index.html` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

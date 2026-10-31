@@ -3,389 +3,408 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel de Busca & Raio-X — Prospecção Freelance</title>
+  <title>Painel de Busca — Relatórios Prontos de Clientes</title>
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
   <div class="container-shell">
-    <!-- Cabeçalho -->
-    <header style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:24px; border-bottom:1px solid var(--border-warm); padding-bottom:18px;">
+    <!-- Cabeçalho Intuitivo focado em Relatórios Prontos -->
+    <header class="top-header">
       <div>
-        <h1 style="margin:0; font-size:2rem; font-weight:800; letter-spacing:-0.03em;">
-          ferramentas pra achar cliente de site &amp; sistemas
+        <div class="eyebrow-badge">PROSPECÇÃO INTELIGENTE PARA FREELANCERS (EU &amp; MEU AMIGO)</div>
+        <h1 class="main-title">
+          Relatórios Prontos de Clientes na Sua Cidade
         </h1>
-        <p style="margin:4px 0 0; color:var(--text-muted); font-size:1.05rem;">
-          o lead tá na tua cidade, só falta selecionar o nicho, rodar o raio-x e entrar em contato
+        <p class="main-subtitle">
+          Escolha os nichos e a cidade: o sistema investiga cada empresa nas 8 ferramentas embutidas e entrega a <strong>ficha pronta do que vender, quanto cobrar e a mensagem pronta para enviar no WhatsApp</strong>.
         </p>
       </div>
-      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div class="header-actions no-print">
         <span id="engine-badge" class="pain-tag" style="background:#e5e7eb; color:#374151; padding:6px 12px;">
-          Verificando motor Docker...
+          Verificando motor...
         </span>
-        <button class="btn-secondary" onclick="openManualLeadModal()">+ Novo Lead Manual</button>
-        <button class="btn-secondary" onclick="openCsvImportModal()">Importar CSV</button>
-        <a href="/api/outreach/export?format=csv" class="btn-secondary" style="text-decoration:none;">Exportar CSV Outreach</a>
-        <a href="/docs" target="_blank" class="btn-secondary" style="text-decoration:none;">API Automação (/docs)</a>
+        <button class="btn-secondary" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+        <a href="/api/outreach/export?format=csv" class="btn-secondary" style="text-decoration:none;">📥 Baixar Planilha CSV</a>
+        <button class="btn-secondary" onclick="openQueueModal()">
+          🤖 Fila do Robô (<span id="btn-queue-count">0</span>)
+        </button>
+        <button class="btn-secondary" onclick="openManualLeadModal()">+ Cliente Manual</button>
       </div>
     </header>
 
-    <!-- Indicadores Rápidos -->
-    <section id="stats-bar" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(155px, 1fr)); gap:12px; margin-bottom:28px;">
-      <div class="tool-card">
-        <div class="tool-card-desc">Total de Leads</div>
-        <div id="stat-total" style="font-size:1.6rem; font-weight:800;">0</div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card-desc">Sem Site / Só Bio</div>
-        <div id="stat-without-site" style="font-size:1.6rem; font-weight:800; color:var(--brand-blue);">0</div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card-desc">Domínio .com.br Livre</div>
-        <div id="stat-domain-free" style="font-size:1.6rem; font-weight:800; color:var(--emerald);">0</div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card-desc">Site Fora do Ar</div>
-        <div id="stat-site-down" style="font-size:1.6rem; font-weight:800; color:var(--crimson);">0</div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card-desc">Potencial Sistema Complexo</div>
-        <div id="stat-complex" style="font-size:1.6rem; font-weight:800; color:#5b21b6;">0</div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card-desc">Carteira (Eu / Amigo)</div>
-        <div id="stat-owners" style="font-size:1.35rem; font-weight:800;">0 / 0</div>
-      </div>
-      <div class="tool-card">
-        <div class="tool-card-desc">Fila Bot Futuro</div>
-        <div id="stat-queue" style="font-size:1.6rem; font-weight:800; color:var(--amber);">0</div>
-      </div>
-    </section>
-
-    <!-- Etapa 1: Selecionar Nichos e Cidade antes de gerar relatórios -->
-    <section style="background:var(--bg-card); border:1px solid var(--border-warm); border-radius:12px; padding:20px 22px; margin-bottom:28px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
-        <div class="section-bar" style="margin-bottom:0;">1. Selecionar Nichos e Cidade (Antes de Gerar Relatórios)</div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn-secondary" onclick="selectAllNiches(true)">Marcar Todos</button>
+    <!-- PASSO 1: Configurar e Gerar Relatório Pronto -->
+    <section class="step-card no-print">
+      <div class="step-header">
+        <div>
+          <span class="step-number">PASSO 1</span>
+          <h2 class="step-title">Selecionar Nichos e Cidade para Gerar o Relatório</h2>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-secondary" onclick="selectAllNiches(true)">Marcar Todos os Nichos</button>
           <button class="btn-secondary" onclick="selectAllNiches(false)">Limpar Seleção</button>
         </div>
       </div>
 
-      <div id="niches-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(275px, 1fr)); gap:10px; margin-bottom:18px;">
+      <!-- Grade de Nichos em 1 clique -->
+      <div id="niches-grid" class="niches-grid-layout">
         <!-- Preenchido via app.js -->
       </div>
 
-      <div style="display:grid; grid-template-columns: 2fr 90px 2fr 150px 190px auto; gap:10px; align-items:end; flex-wrap:wrap;">
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px;">Cidade Alvo</label>
-          <input id="input-city" type="text" value="Campinas" placeholder="Ex: Campinas" style="width:100%; padding:9px 12px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.92rem;" />
+      <!-- Barra Principal de Geração de Relatório (Simples e Direta) -->
+      <div class="generator-bar">
+        <div class="generator-field">
+          <label for="input-city">Cidade Alvo</label>
+          <input id="input-city" type="text" value="Piracicaba" placeholder="Ex: Piracicaba, Campinas..." />
         </div>
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px;">UF</label>
-          <input id="input-state" type="text" value="SP" maxlength="2" style="width:100%; padding:9px 12px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.92rem; text-transform:uppercase;" />
+        <div class="generator-field" style="max-width:95px;">
+          <label for="input-state">UF</label>
+          <input id="input-state" type="text" value="SP" maxlength="2" style="text-transform:uppercase; text-align:center;" />
         </div>
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px;">Termo Extra (Opcional)</label>
-          <input id="input-custom-kw" type="text" placeholder="Ex: clínica de implante, energia solar..." style="width:100%; padding:9px 12px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.92rem;" />
+        <div class="generator-field">
+          <label for="input-custom-kw">Especialidade / Filtro Extra (Opcional)</label>
+          <input id="input-custom-kw" type="text" placeholder="Ex: implante, energia solar, estética..." />
         </div>
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px;">Modo de Captura</label>
-          <select id="input-source-mode" style="width:100%; padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.9rem;">
-            <option value="auto">Auto (Docker / Simulação)</option>
-            <option value="google_maps">Google Maps Docker (8080)</option>
-            <option value="demo">Simulação Rápida Local</option>
-          </select>
+        <div class="generator-field checkbox-field">
+          <label class="checkbox-card-label">
+            <input id="input-include-cnae" type="checkbox" checked />
+            <span>🏢 Incluir também <strong>Empresas Recém-Abertas (CNPJ)</strong> da cidade</span>
+          </label>
         </div>
-        <div>
-          <label style="display:block; font-size:0.8rem; font-weight:700; margin-bottom:4px;">Profundidade / Grade</label>
-          <select id="input-depth" style="width:100%; padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.9rem;">
-            <option value="5">Padrão (Depth 5)</option>
-            <option value="10">Profundo (Depth 10)</option>
-            <option value="15">Cidade Toda (Depth 15)</option>
-          </select>
-        </div>
-        <div>
-          <button id="btn-run-job" class="btn-primary" onclick="runSearchJob()" style="width:100%; white-space:nowrap;">
-            Buscar &amp; Rodar Raio-X
+        <div class="generator-action">
+          <button id="btn-run-job" class="btn-primary btn-generate-report" onclick="runSearchJob()">
+            📊 Gerar Relatórios Prontos
           </button>
         </div>
       </div>
-      <div id="job-feedback" style="margin-top:10px; font-size:0.86rem; color:var(--text-muted);"></div>
+
+      <!-- Opções Avançadas discretas para não poluir a tela -->
+      <details class="advanced-search-details">
+        <summary>⚙️ Opções avançadas de captura (Modo Docker / Profundidade)</summary>
+        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; align-items:center;">
+          <div>
+            <label style="font-size:0.78rem; font-weight:700; margin-right:6px;">Modo de Captura:</label>
+            <select id="input-source-mode" style="padding:6px 10px; border:1px solid var(--border-warm); border-radius:6px;">
+              <option value="auto">Automático Inteligente (Docker + Diagnóstico Instantâneo)</option>
+              <option value="google_maps">Motor Google Maps Docker (Porta 8080)</option>
+              <option value="demo">Diagnóstico Instantâneo Local</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.78rem; font-weight:700; margin-right:6px;">Profundidade:</label>
+            <select id="input-depth" style="padding:6px 10px; border:1px solid var(--border-warm); border-radius:6px;">
+              <option value="5">Rápido (Depth 5)</option>
+              <option value="10">Profundo (Depth 10)</option>
+              <option value="15">Cidade Inteira (Depth 15)</option>
+            </select>
+          </div>
+          <button class="btn-secondary" style="padding:6px 12px; font-size:0.78rem;" onclick="openCsvImportModal()">
+            📂 Importar Lista CSV Externa
+          </button>
+        </div>
+      </details>
+
+      <div id="job-feedback" class="job-feedback-banner"></div>
     </section>
 
-    <!-- As 8 Ferramentas da Imagem: 100% Embutidas no Sistema (Zero Links Externos) -->
-    <section style="display:grid; grid-template-columns:repeat(auto-fit, minmax(460px, 1fr)); gap:24px; margin-bottom:30px;">
-      <!-- Coluna 1: Achar o negócio (Módulos 1 a 4 Embutidos) -->
-      <div>
-        <div class="section-bar">achar o negócio <span class="tool-badge-embedded">4 Módulos Embutidos</span></div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Ferramenta 1: google.com/maps (Motor Docker Embutido) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="tool-card-title">
-                google.com/maps
-                <span class="tool-badge-embedded">Docker 8080 Ativo</span>
-              </span>
-              <div style="display:flex; gap:6px;">
-                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="runEmbeddedMapsEngineCheck()">
-                  Inspecionar Motor &amp; Malha
-                </button>
-                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="startDockerEngineEmbedded()">
-                  Subir/Reiniciar Docker
-                </button>
-              </div>
-            </div>
-            <div class="tool-card-desc">filtra o nicho e vê quem tá sem site (motor <code>gosom/google-maps-scraper:v1.18.1</code> + Geocoding Nominatim embutido)</div>
-            <div id="embedded-maps-box" class="embedded-box">
-              Carregando telemetria do container Docker <code>gmaps-scraper</code> e coordenadas da cidade...
-            </div>
+    <!-- PASSO 2: Resumo Executivo do Relatório -->
+    <section id="executive-summary-section" class="step-card executive-summary-card">
+      <div class="step-header" style="margin-bottom:12px;">
+        <div>
+          <span class="step-number">PASSO 2</span>
+          <h2 class="step-title" id="exec-summary-headline">Resumo Executivo do Relatório</h2>
+          <p id="exec-summary-subtext" style="margin:4px 0 0; font-size:0.9rem; color:var(--text-muted);">
+            Visão consolidada das oportunidades encontradas para criação de sites, reformas urgentes e sistemas web sob medida.
+          </p>
+        </div>
+        <div class="potential-ticket-box">
+          <div style="font-size:0.74rem; text-transform:uppercase; font-weight:800; color:#047857; letter-spacing:0.04em;">
+            Potencial Estimado na Cidade
           </div>
-
-          <!-- Ferramenta 2: casadosdados.com.br (Scanner Embutido de CNPJ & Empresas Recém-Abertas) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="tool-card-title">
-                casadosdados.com.br
-                <span class="tool-badge-embedded">Scanner CNPJ &amp; CNAE Embutido</span>
-              </span>
-              <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                <input id="embedded-cnpj-input" type="text" placeholder="CNPJ ex: 48.192.301/0001-10" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:175px;" />
-                <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnpjLookup(false)">
-                  Consultar CNPJ
-                </button>
-                <button class="btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnaeDiscovery(true)">
-                  Descobrir Recém-Abertas (+ Importar)
-                </button>
-              </div>
-            </div>
-            <div class="tool-card-desc">empresa recém aberta por cidade e atividade (consulta Receita/BrasilAPI + gerador CNAE embutido no painel)</div>
-            <div id="casadosdados-box" class="embedded-box">
-              Clique em <strong>Descobrir Recém-Abertas (+ Importar)</strong> para listar e importar empresas recém-abertas dos nichos selecionados, ou digite um CNPJ acima.
-            </div>
-          </div>
-
-          <!-- Ferramenta 3: registro.br (Scanner Oficial RDAP Embutido) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="tool-card-title">
-                registro.br
-                <span class="tool-badge-embedded">Scanner RDAP Oficial</span>
-              </span>
-              <div style="display:flex; gap:6px;">
-                <input id="quick-domain-input" type="text" placeholder="ex: clinicasorriso.com.br ou nome" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:205px;" />
-                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="checkQuickDomain()">
-                  Escanear RDAP
-                </button>
-              </div>
-            </div>
-            <div class="tool-card-desc">vê se o domínio com o nome dele tá livre, titular, expiração, DNS e 3 variações <code>.com.br</code></div>
-            <div id="quick-domain-result" class="embedded-box">
-              Digite o nome da empresa ou domínio <code>.com.br</code> acima para ver disponibilidade, titular e 3 variações livres aqui dentro.
-            </div>
-          </div>
-
-          <!-- Ferramenta 4: downforeveryoneorjustme.com (Monitor HTTP / DNS / SSL Embutido) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="tool-card-title">
-                downforeveryoneorjustme.com
-                <span class="tool-badge-embedded">Monitor DNS / SSL / HTTP</span>
-              </span>
-              <div style="display:flex; gap:6px;">
-                <input id="quick-health-input" type="text" placeholder="ex: http://mastergroup-wix-demo.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:215px;" />
-                <button class="btn-secondary" style="padding:4px 10px; font-size:0.76rem;" onclick="runEmbeddedSiteHealth()">
-                  Testar Site / SSL
-                </button>
-              </div>
-            </div>
-            <div class="tool-card-desc">confirma se o site dele tá fora do ar, resolve IP (DNS), valida certificado SSL/TLS e mede latência em ms</div>
-            <div id="quick-health-result" class="embedded-box">
-              Testado automaticamente em cada lead. Digite qualquer site acima ou clique em <strong>Inspecionar nas 8 Ferramentas</strong> na tabela abaixo.
-            </div>
+          <div id="stat-ticket-potential" style="font-size:1.35rem; font-weight:900; color:#065f46;">
+            Calculando...
           </div>
         </div>
       </div>
 
-      <!-- Coluna 2: Raio-X do site atual (Módulos 5 a 8 Embutidos) -->
-      <div>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-          <div class="section-bar" style="margin-bottom:0;">raio x do site atual <span class="tool-badge-embedded">4 Scanners Embutidos</span></div>
-          <div style="display:flex; gap:6px; align-items:center;">
-            <input id="quick-xray-url" type="text" placeholder="URL p/ Raio-X (ex: http://mastergroup-wix-demo.com.br)" style="padding:6px 10px; border:1px solid var(--border-warm); border-radius:7px; font-size:0.8rem; width:250px;" />
-            <button class="btn-primary" style="padding:6px 12px; font-size:0.78rem;" onclick="runEmbeddedFullXrayInput()">
-              Rodar Raio-X Aqui
-            </button>
-          </div>
+      <!-- Indicadores Executivos Clicáveis -->
+      <div id="stats-bar" class="exec-kpi-grid">
+        <div class="exec-kpi-card" onclick="applyQuickTab('ALL')" style="cursor:pointer;">
+          <div class="exec-kpi-label">Total de Relatórios Prontos</div>
+          <div id="stat-total" class="exec-kpi-value">0</div>
+          <div class="exec-kpi-hint">Empresas diagnosticadas</div>
         </div>
-
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Ferramenta 5: builtwith.com (Scanner de Infraestrutura, Pixels e Widgets Embutido) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="tool-card-title">
-                builtwith.com
-                <span class="tool-badge-embedded">Infra, Pixels &amp; Chat</span>
-              </span>
-              <span id="builtwith-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
-            </div>
-            <div class="tool-card-desc">mostra com o que o site foi feito: servidor web, CDN, pixels de tráfego (GA4, Meta, TikTok) e widgets de chat</div>
-            <div id="embedded-builtwith-box" class="embedded-box">
-              Selecione qualquer lead na tabela ou rode um Raio-X acima para inspecionar Servidor, CDN, Pixels de Anúncios e Widgets de WhatsApp.
-            </div>
+        <div class="exec-kpi-card" onclick="applyQuickTab('SITE_NOVO')" style="cursor:pointer;">
+          <div class="exec-kpi-label">🌐 Vender Criação de Site</div>
+          <div id="stat-without-site" class="exec-kpi-value" style="color:var(--brand-blue);">0</div>
+          <div class="exec-kpi-hint">Sem site ou só Instagram/Bio</div>
+        </div>
+        <div class="exec-kpi-card" onclick="applyQuickTab('REFORMA_SITE')" style="cursor:pointer;">
+          <div class="exec-kpi-label">🚨 Vender Reforma Urgente</div>
+          <div id="stat-site-down" class="exec-kpi-value" style="color:var(--crimson);">0</div>
+          <div class="exec-kpi-hint">Site fora do ar ou abandonado</div>
+        </div>
+        <div class="exec-kpi-card" onclick="applyQuickTab('SISTEMA_COMPLEXO')" style="cursor:pointer;">
+          <div class="exec-kpi-label">⚙️ Vender Sistema Complexo</div>
+          <div id="stat-complex" class="exec-kpi-value" style="color:#5b21b6;">0</div>
+          <div class="exec-kpi-hint">Precisa de agenda/portal/catálogo</div>
+        </div>
+        <div class="exec-kpi-card" onclick="toggleDomainFreeFilter()" style="cursor:pointer;">
+          <div class="exec-kpi-label">🟢 Domínio .com.br Livre</div>
+          <div id="stat-domain-free" class="exec-kpi-value" style="color:var(--emerald);">0</div>
+          <div class="exec-kpi-hint">Pronto p/ registrar no Registro.br</div>
+        </div>
+        <div class="exec-kpi-card">
+          <div class="exec-kpi-label">🤝 Divisão (Eu / Amigo / Robô)</div>
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <span id="stat-owners" class="exec-kpi-value" style="font-size:1.3rem;">0 / 0</span>
+            <span style="font-size:0.82rem; color:var(--amber); font-weight:800;">(<span id="stat-queue">0</span> na fila)</span>
           </div>
-
-          <!-- Ferramenta 6: wappalyzer.com (Detector Instantâneo de Frameworks, UI e Mobile Viewport) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="tool-card-title">
-                wappalyzer.com
-                <span class="tool-badge-embedded">JS / CSS / Mobile SEO</span>
-              </span>
-              <span id="wappalyzer-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
-            </div>
-            <div class="tool-card-desc">extensão e detector embutido que lê a tecnologia na hora (frameworks JS, bibliotecas CSS, viewport mobile e OpenGraph)</div>
-            <div id="embedded-wappalyzer-box" class="embedded-box">
-              Inspeciona em tempo real React/Next.js, Vue, jQuery, Tailwind, Bootstrap, Elementor UI e tags de responsividade mobile.
-            </div>
-          </div>
-
-          <!-- Ferramenta 7: whatcms.org (Detector de CMS, Plugins e Oportunidades de Sistemas) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span class="tool-card-title">
-                whatcms.org
-                <span class="tool-badge-embedded">CMS &amp; Sistemas Faltantes</span>
-              </span>
-              <span id="whatcms-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
-            </div>
-            <div class="tool-card-desc">descobre se é WordPress, Wix, Linktree ou HTML estático e lista quais Sistemas Complexos faltam para você vender</div>
-            <div id="embedded-whatcms-box" class="embedded-box">
-              Detecta CMS, versão, motor de E-commerce, plugins ativos e gera a lista de sistemas que faltam no cliente (Agendamento, Portal, Catálogo).
-            </div>
-          </div>
-
-          <!-- Ferramenta 8: web.archive.org (Scanner Histórico CDX & Abandono Embutido) -->
-          <div class="tool-card">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-              <span class="tool-card-title">
-                web.archive.org
-                <span class="tool-badge-embedded">Histórico CDX &amp; Abandono</span>
-              </span>
-              <span id="wayback-target-label" style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">Aguardando seleção</span>
-            </div>
-            <div class="tool-card-desc">vê há quanto tempo ninguém mexe no site via API Wayback Machine + Timeline CDX de capturas</div>
-            <div id="embedded-wayback-box" class="embedded-box">
-              Mostra a data do primeiro registro, última modificação arquivada, total de snapshots e quantos dias o site está sem atualização.
-            </div>
-          </div>
+          <div class="exec-kpi-hint">Carteira dividida entre a dupla</div>
         </div>
       </div>
     </section>
 
-    <!-- Etapa 2: Relatório de Leads + Filtros + Central de Contato -->
-    <section>
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
-        <div class="section-bar" style="margin-bottom:0;">2. Leads Encontrados, Diagnóstico Raio-X &amp; Central de Contato</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+    <!-- PASSO 3: Fichas de Relatórios Prontos por Cliente & Central de Contato -->
+    <section class="step-card">
+      <div class="step-header" style="margin-bottom:14px;">
+        <div>
+          <span class="step-number">PASSO 3</span>
+          <h2 class="step-title">Relatórios Prontos por Cliente &amp; Central de Contato</h2>
+          <p style="margin:4px 0 0; font-size:0.88rem; color:var(--text-muted);">
+            Cada ficha abaixo já traz o diagnóstico das 8 ferramentas traduzido em português claro, o serviço ideal para vender e o botão para chamar o cliente no WhatsApp.
+          </p>
+        </div>
+        <div class="no-print" style="display:flex; gap:8px; flex-wrap:wrap;">
           <button class="btn-secondary" onclick="enqueueSelectedLeads('whatsapp')">
-            Enviar Selecionados p/ Fila Bot Futuro (WhatsApp)
+            🤖 EnviarTodos/Selecionados p/ Fila do Robô Futuro
           </button>
-          <button class="btn-secondary" onclick="openQueueModal()">
-            Ver Fila de Automação (<span id="btn-queue-count">0</span>)
+          <button class="btn-secondary" onclick="toggleViewMode()" id="btn-toggle-view">
+            📋 Alternar para Tabela Compacta
           </button>
         </div>
       </div>
 
-      <!-- Barra de Filtros -->
-      <div style="background:var(--bg-card); border:1px solid var(--border-warm); border-radius:10px; padding:14px 16px; margin-bottom:16px; display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:10px; align-items:end;">
+      <!-- Abas Rápidas Intuitivas em 1 Clique -->
+      <div class="quick-tabs-bar no-print">
+        <button class="tab-pill active" data-tab="ALL" onclick="applyQuickTab('ALL')">
+          📋 Todos os Relatórios
+        </button>
+        <button class="tab-pill" data-tab="SITE_NOVO" onclick="applyQuickTab('SITE_NOVO')">
+          🌐 Vender Criação de Site
+        </button>
+        <button class="tab-pill" data-tab="REFORMA_SITE" onclick="applyQuickTab('REFORMA_SITE')">
+          🚨 Vender Reforma Urgente
+        </button>
+        <button class="tab-pill" data-tab="SISTEMA_COMPLEXO" onclick="applyQuickTab('SISTEMA_COMPLEXO')">
+          ⚙️ Vender Sistema Complexo
+        </button>
+        <button class="tab-pill" data-tab="EU" onclick="applyQuickTab('EU')">
+          🙋‍♂️ Minha Carteira (Eu)
+        </button>
+        <button class="tab-pill" data-tab="AMIGO" onclick="applyQuickTab('AMIGO')">
+          🤝 Carteira do Meu Amigo
+        </button>
+      </div>
+
+      <!-- Barra de Busca e Filtros Refinados -->
+      <div class="filter-strip no-print">
+        <div style="flex:2; min-width:220px;">
+          <input id="filter-search" type="text" oninput="loadLeads()" placeholder="🔍 Buscar empresa por nome, nicho, cidade ou diagnóstico..." style="width:100%; padding:9px 12px; border:1px solid var(--border-warm); border-radius:8px;" />
+        </div>
         <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:3px;">Filtrar por Dor / Raio-X</label>
-          <select id="filter-pain" onchange="loadLeads()" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:7px;">
-            <option value="">Todas as Oportunidades</option>
+          <select id="filter-pain" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
+            <option value="">Todas as Dores Detectadas</option>
             <option value="SEM_SITE">Sem Site Próprio</option>
             <option value="DOMINIO_LIVRE">Só Rede Social + Domínio Livre</option>
             <option value="SITE_FORA_DO_AR">Site Fora do Ar (Urgente)</option>
-            <option value="OPORTUNIDADE_SISTEMA">Oportunidade Sistema Complexo</option>
+            <option value="OPORTUNIDADE_SISTEMA">Falta Sistema (Agenda/Catálogo)</option>
             <option value="SITE_AMADOR_ANTIGO">Site Antigo / Wix / Sem SSL</option>
           </select>
         </div>
         <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:3px;">Oferta Recomendada</label>
-          <select id="filter-service" onchange="loadLeads()" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:7px;">
-            <option value="">Todos os Serviços</option>
-            <option value="SITE_NOVO">1. Criação de Site / Landing Page</option>
-            <option value="REFORMA_SITE">2. Reforma / Modernização</option>
-            <option value="SISTEMA_COMPLEXO">3. Sistema Web Mais Complexo</option>
+          <select id="filter-service" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
+            <option value="">Qualquer Serviço Recomendado</option>
+            <option value="SITE_NOVO">1. Criação de Site Profissional</option>
+            <option value="REFORMA_SITE">2. Reforma / Modernização de Site</option>
+            <option value="SISTEMA_COMPLEXO">3. Sistema Web Sob Medida</option>
           </select>
         </div>
         <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:3px;">Responsável (Carteira)</label>
-          <select id="filter-owner" onchange="loadLeads()" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:7px;">
-            <option value="">Todos (Eu + Amigo)</option>
-            <option value="nao_atribuido">Ainda Não Atribuído</option>
+          <select id="filter-owner" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
+            <option value="">Responsável: Todos (Eu + Amigo)</option>
+            <option value="nao_atribuido">Ainda Não Dividido</option>
             <option value="eu">Minha Carteira (Eu)</option>
             <option value="amigo">Carteira do Amigo</option>
           </select>
         </div>
         <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:3px;">Status no Funil</label>
-          <select id="filter-status" onchange="loadLeads()" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:7px;">
-            <option value="">Todos os Status</option>
-            <option value="novo">Novo</option>
+          <select id="filter-status" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
+            <option value="">Status: Todos</option>
+            <option value="novo">Novo Relatório</option>
             <option value="analisado">Analisado</option>
-            <option value="contatado">Contatado</option>
-            <option value="respondeu">Respondeu</option>
-            <option value="reuniao">Reunião</option>
-            <option value="fechado">Fechado (Cliente!)</option>
+            <option value="contatado">Já Chamei no WhatsApp</option>
+            <option value="respondeu">Cliente Respondeu</option>
+            <option value="reuniao">Em Negociação / Reunião</option>
+            <option value="fechado">Fechado (Venda Realizada!)</option>
           </select>
         </div>
-        <div>
-          <label style="display:block; font-size:0.76rem; font-weight:700; margin-bottom:3px;">Buscar Empresa / Cidade</label>
-          <input id="filter-search" type="text" oninput="loadLeads()" placeholder="Nome, nicho, endereço..." style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:7px;" />
-        </div>
-        <div style="display:flex; align-items:center; gap:6px; padding-bottom:6px;">
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.84rem; font-weight:700; cursor:pointer; white-space:nowrap;">
           <input id="filter-domain-free" type="checkbox" onchange="loadLeads()" />
-          <label for="filter-domain-free" style="font-size:0.82rem; font-weight:700; cursor:pointer;">Só .com.br Livre</label>
-        </div>
+          Só .com.br Livre
+        </label>
       </div>
 
-      <!-- Tabela de Leads -->
-      <div style="overflow-x:auto;">
+      <!-- Visão Principal: Fichas de Relatório Prontas (Cards Executivos) -->
+      <div id="ready-reports-grid" class="ready-reports-grid">
+        <!-- Preenchido automaticamente por app.js -->
+      </div>
+
+      <!-- Visão Alternativa: Tabela Compacta (Oculta por padrão, ativada com 1 clique) -->
+      <div id="compact-table-wrapper" style="display:none; overflow-x:auto; margin-top:16px;">
         <table class="table-leads">
           <thead>
             <tr>
               <th style="width:36px;"><input type="checkbox" id="check-all-leads" onchange="toggleSelectAllLeads(this.checked)" /></th>
-              <th>Score</th>
+              <th>Prioridade</th>
               <th>Empresa &amp; Nicho</th>
-              <th>Diagnóstico Raio-X (8 Ferramentas)</th>
+              <th>O Que Vender &amp; Diagnóstico</th>
               <th>Domínio .com.br (Registro.br)</th>
-              <th>Canais &amp; Abordagem 1-Clique</th>
-              <th>Responsável &amp; Status</th>
+              <th>Contato Rápido 1-Clique</th>
+              <th>Carteira &amp; Status</th>
             </tr>
           </thead>
-          <tbody id="leads-tbody">
-            <tr>
-              <td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">
-                Selecione os nichos acima e clique em <strong>Buscar &amp; Rodar Raio-X</strong> para encontrar seus primeiros clientes.
-              </td>
-            </tr>
-          </tbody>
+          <tbody id="leads-tbody"></tbody>
         </table>
       </div>
     </section>
+
+    <!-- BASTIDORES TÉCNICOS (Retrátil): As 8 Ferramentas Embutidas para Inspeção Individual -->
+    <details class="technical-engines-accordion no-print">
+      <summary>
+        🛠️ Bastidores Técnicos: Inspecionar manualmente os 8 Motores Embutidos (Google Maps, Casa dos Dados, Registro.br, Raio-X)
+      </summary>
+      <p style="margin:10px 0 18px; color:var(--text-muted); font-size:0.88rem;">
+        Você <strong>não precisa mexer aqui</strong> para usar o sistema — todas as 8 ferramentas abaixo já rodam sozinhas ao gerar seus relatórios prontos acima. Use apenas se quiser testar um domínio ou CNPJ avulso.
+      </p>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(440px, 1fr)); gap:22px;">
+        <!-- Coluna 1: achar o negócio -->
+        <div>
+          <div class="section-bar">achar o negócio <span class="tool-badge-embedded">4 Motores Embutidos</span></div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="tool-card-title">google.com/maps <span class="tool-badge-embedded">Motor Docker 8080</span></span>
+                <div style="display:flex; gap:6px;">
+                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedMapsEngineCheck()">Ver Status</button>
+                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="startDockerEngineEmbedded()">Reiniciar Docker</button>
+                </div>
+              </div>
+              <div class="tool-card-desc">filtra o nicho e vê quem tá sem site</div>
+              <div id="embedded-maps-box" class="embedded-box">Motor conectado e pronto para gerar relatórios.</div>
+            </div>
+
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="tool-card-title">casadosdados.com.br <span class="tool-badge-embedded">CNPJ &amp; CNAE</span></span>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                  <input id="embedded-cnpj-input" type="text" placeholder="CNPJ avulso" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:150px;" />
+                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnpjLookup(false)">Consultar CNPJ</button>
+                  <button class="btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnaeDiscovery(true)">Importar Recém-Abertas</button>
+                </div>
+              </div>
+              <div class="tool-card-desc">empresa recém aberta por cidade e atividade</div>
+              <div id="casadosdados-box" class="embedded-box">Integrado automaticamente na geração de relatórios prontos.</div>
+            </div>
+
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="tool-card-title">registro.br <span class="tool-badge-embedded">RDAP Oficial</span></span>
+                <div style="display:flex; gap:6px;">
+                  <input id="quick-domain-input" type="text" placeholder="ex: clinicasorriso.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:185px;" />
+                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="checkQuickDomain()">Checar Domínio</button>
+                </div>
+              </div>
+              <div class="tool-card-desc">vê se o domínio com o nome dele tá livre</div>
+              <div id="quick-domain-result" class="embedded-box">Verificado automaticamente em todos os relatórios.</div>
+            </div>
+
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="tool-card-title">downforeveryoneorjustme.com <span class="tool-badge-embedded">DNS / SSL / HTTP</span></span>
+                <div style="display:flex; gap:6px;">
+                  <input id="quick-health-input" type="text" placeholder="ex: https://site.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:185px;" />
+                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedSiteHealth()">Testar Site</button>
+                </div>
+              </div>
+              <div class="tool-card-desc">confirma se o site dele tá fora do ar</div>
+              <div id="quick-health-result" class="embedded-box">Monitorado automaticamente em cada cliente com site.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 2: raio x do site atual -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+            <div class="section-bar" style="margin-bottom:0;">raio x do site atual <span class="tool-badge-embedded">4 Scanners Embutidos</span></div>
+            <div style="display:flex; gap:6px;">
+              <input id="quick-xray-url" type="text" placeholder="Testar URL avulsa..." style="padding:5px 10px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:190px;" />
+              <button class="btn-primary" style="padding:5px 10px; font-size:0.76rem;" onclick="runEmbeddedFullXrayInput()">Rodar Raio-X</button>
+            </div>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="tool-card-title">builtwith.com <span class="tool-badge-embedded">Infra &amp; Pixels</span></span>
+                <span id="builtwith-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
+              </div>
+              <div class="tool-card-desc">mostra com o que o site foi feito</div>
+              <div id="embedded-builtwith-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
+            </div>
+
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="tool-card-title">wappalyzer.com <span class="tool-badge-embedded">Frameworks &amp; Mobile</span></span>
+                <span id="wappalyzer-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
+              </div>
+              <div class="tool-card-desc">extensão que lê a tecnologia na hora</div>
+              <div id="embedded-wappalyzer-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
+            </div>
+
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="tool-card-title">whatcms.org <span class="tool-badge-embedded">CMS &amp; Sistemas Faltantes</span></span>
+                <span id="whatcms-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
+              </div>
+              <div class="tool-card-desc">descobre se é WordPress, Wix e afins</div>
+              <div id="embedded-whatcms-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
+            </div>
+
+            <div class="tool-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="tool-card-title">web.archive.org <span class="tool-badge-embedded">Histórico CDX</span></span>
+                <span id="wayback-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
+              </div>
+              <div class="tool-card-desc">vê há quanto tempo ninguém mexe no site</div>
+              <div id="embedded-wayback-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </details>
   </div>
 
-  <!-- Modal: Central de Contato & Raio-X das 8 Ferramentas -->
+  <!-- Modal: Dossiê Completo & Raio-X Técnico Detalhado -->
   <div id="lead-modal" class="modal-backdrop">
     <div class="modal-panel">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:1px solid var(--border-warm); padding-bottom:14px; margin-bottom:18px;">
         <div>
-          <h2 id="modal-lead-title" style="margin:0; font-size:1.45rem;">Central de Contato &amp; Raio-X</h2>
+          <h2 id="modal-lead-title" style="margin:0; font-size:1.45rem;">Relatório Completo do Cliente</h2>
           <div id="modal-lead-subtitle" style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;"></div>
         </div>
         <button class="btn-secondary" onclick="closeLeadModal()">Fechar ✕</button>
       </div>
-
       <div id="modal-lead-body"></div>
     </div>
   </div>
@@ -395,9 +414,9 @@
     <div class="modal-panel">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-warm); padding-bottom:14px; margin-bottom:16px;">
         <div>
-          <h2 style="margin:0; font-size:1.35rem;">Fila Pré-Pronta para Automação de Contato (Outreach Queue)</h2>
+          <h2 style="margin:0; font-size:1.35rem;">Fila Pré-Pronta para Seu Futuro Robô de Contato</h2>
           <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.86rem;">
-            Pronta para integrar com seu futuro robô de WhatsApp (Evolution API / WPPConnect / n8n) via <code>POST /api/outreach/claim</code> e <code>PATCH /api/outreach/{id}/status</code>.
+            Todos os clientes que você enviar para a fila ficam salvos aqui com telefone e mensagem pronta para o seu futuro bot (Evolution API / WPPConnect / n8n).
           </p>
         </div>
         <button class="btn-secondary" onclick="closeQueueModal()">Fechar ✕</button>
@@ -410,7 +429,7 @@
   <div id="manual-modal" class="modal-backdrop">
     <div class="modal-panel" style="max-width:620px;">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-warm); padding-bottom:12px; margin-bottom:16px;">
-        <h3 id="manual-modal-title" style="margin:0;">Adicionar Lead / Importar CSV</h3>
+        <h3 id="manual-modal-title" style="margin:0;">Adicionar Cliente Manual / Importar CSV</h3>
         <button class="btn-secondary" onclick="closeManualModal()">Fechar ✕</button>
       </div>
       <div id="manual-modal-body"></div>
