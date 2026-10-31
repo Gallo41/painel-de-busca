@@ -47,3 +47,9 @@ def test_dashboard_html_and_assets_served(client):
     assert "/api/jobs" in r_js.text
     assert "/api/outreach/enqueue" in r_js.text
     assert "toggleTheme" in r_js.text
+    assert 'stat-total' in r_js.text
+    assert 'stat-without-site' in r_js.text
+    assert 'stat-site-down' in r_js.text
+    assert 'stat-complex' in r_js.text
+    assert 'stat-domain-free' in r_js.text
+    assert 'kpi-total' not in r_js.text

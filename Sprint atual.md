@@ -1,34 +1,34 @@
-# Sprint Atual: Modo Escuro Nativo (Taste-Skill Framed-Sheet Dark Theme) & Toggle de Tema
+# Sprint Atual: Correção de IDs de KPIs & Blindagem contra Null References no Frontend
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 31/10/2026 às 18:56
+- **Data de Início**: 31/10/2026 às 19:04
 - **Status**: Concluído (100%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-Implementar modo escuro de alto padrão e extremo bom gosto no Painel de Busca seguindo as diretrizes oficiais da skill `design-taste-frontend` (`references/colour.md` e `references/app-screens.md`):
-1. **Tokens Dark Framed-Sheet**: `color-scheme: dark`, `--ground: #0d0f12`, `--surface: #15181d`, `--raised: #1c2026`, `--text: #eaedf1`, `--muted: #9aa1ac`, `--border: #262a32`, acento ciano vivo com contraste WCAG AAA.
-2. **Ativação Padrão & Toggle Fluido**: Modo escuro ativado por padrão com toggle intuitivo no topo/sidebar e persistência via `localStorage`.
-3. **Alto Contraste & Legibilidade**: Folha central, Central de Contato, badges de status, tabela de empresas e modais perfeitamente adaptados sem ofuscamento ou gradientes artificiais.
+Eliminar o erro `Cannot set properties of null (setting 'textContent')` que ocorria ao clicar em "Buscar clientes reais" e blindar o front-end contra referências nulas:
+1. **Sincronização de IDs dos KPIs**: Harmonizados os IDs entre `index.html` e `app.js` (`stat-total`, `stat-without-site`, `stat-site-down`, `stat-complex`, `stat-domain-free`).
+2. **Blindagem Defensiva no JavaScript**: Implementada a função segura `setTxt(id, val)` que valida a existência do elemento no DOM antes de qualquer atribuição.
+3. **Teste Automatizado de Consistência**: Cobertura adicionada em `tests/test_dashboard_ui.py` validando os IDs e garantindo que referências antigas não retornem.
 
 ## Conclusão da Sprint
-- Modo escuro nativo implementado com perfeição visual, ativado por padrão (`data-theme="dark"`), com alternador elegante (Sol / Lua) no topo e persistência no navegador via `localStorage`. Todos os testes passando (35/35), linter com 0 erros e servidor ativo em `http://127.0.0.1:8090`.
+- Causa-raiz diagnosticada com evidência e resolvida com sucesso. O botão "Buscar clientes reais" agora processa e atualiza dinamicamente as métricas e a lista sem qualquer exceção de JavaScript. Todos os 35 testes passando, linter com 0 erros e servidor ativo em `http://127.0.0.1:8090`.
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Especificação e arquitetura dos design tokens do modo escuro (`:root[data-theme="dark"]`) conforme `taste-skill`
-- [x] **20%** - Ativação do tema escuro como padrão na tag `<html>` de `index.html` com suporte a persistência no `localStorage`
-- [x] **30%** - Adicionar botão toggle elegante (Dark / Light) no topo da interface com alternância instantânea
-- [x] **40%** - Adaptação de formulários, inputs de busca, selects, checkboxes e botões de ação para o modo escuro
-- [x] **50%** - Adequação da folha de trabalho (`.sheet`), linhas de empresas reais, estados de seleção e KPI strip em modo escuro
-- [x] **60%** - Ajuste da Central de Contato lateral, cards de diagnóstico das 8 ferramentas e botão do WhatsApp em alto contraste
-- [x] **70%** - Adaptação de modais (Filtros CNAE da Casa dos Dados e Ferramentas Embutidas) e popups
-- [x] **80%** - Validação de qualidade com linter `taste-skill` (`lint.mjs --app`, 0 erros)
-- [x] **90%** - Testes automatizados executados (`pytest`) e validação da API/Assets
+- [x] **10%** - Diagnóstico sistemático com evidência exata do erro (`renderSummary` acessando `kpi-total` em vez de `stat-total`)
+- [x] **20%** - Corrigir IDs dos KPIs em `renderSummary` para espelhar `index.html` (`stat-total`, `stat-without-site`, etc.)
+- [x] **30%** - Blindar `renderSummary` com helper defensivo `setTxt(id, val)` evitando quebras por elementos ausentes
+- [x] **40%** - Blindar `renderRows`, `renderSkeleton` e `renderError` contra elementos nulos
+- [x] **50%** - Auditoria completa via script de todos os seletores `$("<id>")` em `app.js` contra `index.html`
+- [x] **60%** - Testar execução de busca e atualização dinâmica dos dados de Piracicaba sem erro no console
+- [x] **70%** - Validação de qualidade com linter `taste-skill` (`lint.mjs --app`, 0 erros)
+- [x] **80%** - Adicionar teste automatizado em `tests/test_dashboard_ui.py` validando integridade de todos os IDs de KPIs
+- [x] **90%** - Execução da suíte completa de testes `pytest` (35/35 sucesso)
 - [x] **100%** - Atualização de grafo `graphify update .`, validação no servidor `http://127.0.0.1:8090` e sincronização com GitHub
 
 ---
@@ -36,9 +36,9 @@ Implementar modo escuro de alto padrão e extremo bom gosto no Painel de Busca s
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10-40%** | 31/10/2026 18:58 | Tokens dark definidos em `styles.css` (`#0d0f12`, `#15181d`, `#1c2026`, `#eaedf1`), ativação padrão em `index.html` (`data-theme="dark"`), botão `#theme-toggle` no topo com ícones Sun/Moon e persistência em `localStorage`. | `app/static/styles.css`, `app/static/index.html`, `app/static/app.js` |
-| **50-80%** | 31/10/2026 18:59 | Adequação de contraste em todas as superfícies (folha, linhas de empresas, hover, selected, kpis, modal backdrop/panel), linter `taste-skill` com 0 erros. | `app/static/styles.css`, `app/static/app.js` |
-| **90-100%** | 31/10/2026 19:00 | Testes automatizados atualizados e validados (`pytest`), grafo `graphify-out/` atualizado e commit/push concluído. | `tests/test_dashboard_ui.py`, `graphify-out/*`, `Sprint atual.md` |
+| **10%** | 31/10/2026 19:04 | Identificação da causa-raiz do erro no print do usuário: discrepância de IDs entre `renderSummary()` e `index.html`. | `Sprint atual.md` |
+| **20-50%** | 31/10/2026 19:05 | Correção dos IDs (`stat-total`, `stat-without-site`, `stat-site-down`, `stat-complex`, `stat-domain-free`), criação do guard `setTxt` e auditoria de todos os seletores com `check_ids.py`. | `app/static/app.js` |
+| **60-100%** | 31/10/2026 19:06 | Testes atualizados em `test_dashboard_ui.py`, 35 testes passando, `taste-skill lint` 0 erros, grafo `graphify` atualizado e sincronizado com GitHub. | `tests/test_dashboard_ui.py`, `graphify-out/*`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

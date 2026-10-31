@@ -340,43 +340,64 @@ function toggleDomainFreeFilter() {
 function renderSummary(scope) {
   const total = scope.length;
   const noSite = scope.filter(hasNoSite).length;
-  const wpp = scope.filter((l) => waNumber(l)).length;
+  const siteDown = scope.filter((l) => offerOf(l) === "REFORMA_SITE").length;
+  const complex = scope.filter((l) => offerOf(l) === "SISTEMA_COMPLEXO").length;
   const dom = scope.filter((l) => l.domain_available_br).length;
-  const contacted = scope.filter(isContacted).length;
   const offers = { SITE_NOVO: 0, REFORMA_SITE: 0, SISTEMA_COMPLEXO: 0 };
   scope.forEach((l) => offers[offerOf(l)]++);
 
-  $("scope-label").textContent = scope.length ? `${SCOPE_CITY}, ${scope[0].state || ""}` : "Sem cidade";
-  $("exec-summary-headline").textContent = total ? `Clientes em ${SCOPE_CITY}` : "Clientes";
-  $("exec-summary-subtext").textContent = total
-    ? `${fmtInt(noSite)} de ${fmtInt(total)} empresas não têm site próprio e ${fmtInt(dom)} têm o domínio .com.br livre. Comece pelas de maior chance.`
-    : "Escolha os nichos na barra lateral e clique em Buscar clientes reais.";
-  $("kpi-total").textContent = fmtInt(total);
-  $("kpi-nosite").textContent = fmtInt(noSite);
-  $("kpi-wpp").textContent = fmtInt(wpp);
-  $("kpi-domain").textContent = fmtInt(dom);
-  $("kpi-contacted").textContent = fmtInt(contacted);
+  const setTxt = (id, val) => {
+    const el = $(id);
+    if (el) el.textContent = val;
+  };
+
+  setTxt("scope-label", scope.length ? `${SCOPE_CITY}, ${scope[0].state || ""}` : "Sem cidade");
+  setTxt("exec-summary-headline", total ? `Clientes em ${SCOPE_CITY}` : "Clientes");
+  setTxt(
+    "exec-summary-subtext",
+    total
+      ? `${fmtInt(noSite)} de ${fmtInt(total)} empresas não têm site próprio e ${fmtInt(dom)} têm o domínio .com.br livre. Comece pelas de maior chance.`
+      : "Escolha os nichos na barra lateral e clique em Buscar clientes reais."
+  );
+  setTxt("stat-total", fmtInt(total));
+  setTxt("stat-without-site", fmtInt(noSite));
+  setTxt("stat-site-down", fmtInt(siteDown));
+  setTxt("stat-complex", fmtInt(complex));
+  setTxt("stat-domain-free", fmtInt(dom));
 
   document.querySelectorAll("[data-count]").forEach((el) => {
     const k = el.dataset.count;
     el.textContent = k === "ALL" ? fmtInt(total) : fmtInt(offers[k] || 0);
   });
   document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === state.tab));
-  const on = { nosite: state.kpiNoSite, wpp: $("filter-whatsapp").checked, domain: $("filter-domain-free").checked, contacted: state.kpiContacted };
+
+  const filterWpp = $("filter-whatsapp");
+  const filterDom = $("filter-domain-free");
+  const on = {
+    ALL: state.tab === "ALL",
+    SITE_NOVO: state.tab === "SITE_NOVO",
+    REFORMA_SITE: state.tab === "REFORMA_SITE",
+    SISTEMA_COMPLEXO: state.tab === "SISTEMA_COMPLEXO",
+    DOMAIN: filterDom ? !!filterDom.checked : false,
+  };
   document.querySelectorAll("[data-kpi]").forEach((k) => k.classList.toggle("on", !!on[k.dataset.kpi]));
   const now = new Date();
-  $("stamp").textContent = total ? `Atualizado ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : "";
+  setTxt("stamp", total ? `Atualizado ${now.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}` : "");
 }
 
 /* ---------- lista ---------- */
 function renderSkeleton() {
-  $("ready-reports-grid").innerHTML = Array.from({ length: 6 })
+  const grid = $("ready-reports-grid");
+  if (!grid) return;
+  grid.innerHTML = Array.from({ length: 6 })
     .map(() => `<div class="skel"><i style="width:${40 + Math.round(Math.random() * 30)}%"></i></div>`)
     .join("");
 }
 
 function renderError(msg) {
-  $("ready-reports-grid").innerHTML = `<div class="empty"><strong>Não foi possível carregar as empresas.</strong>${esc(msg)}<br/><button class="btn btn-sm" onclick="loadLeads()">Tentar de novo</button></div>`;
+  const grid = $("ready-reports-grid");
+  if (!grid) return;
+  grid.innerHTML = `<div class="empty"><strong>Não foi possível carregar as empresas.</strong>${esc(msg)}<br/><button class="btn btn-sm" onclick="loadLeads()">Tentar de novo</button></div>`;
 }
 
 function shortAddress(addr) {
@@ -386,10 +407,13 @@ function shortAddress(addr) {
 
 function renderRows() {
   const box = $("ready-reports-grid");
+  if (!box) return;
   const total = CURRENT_LEADS.length;
   const shown = Math.min(total, state.limit);
-  $("list-total").textContent = total ? `1–${fmtInt(shown)} de ${fmtInt(total)}` : "0 empresas";
-  $("btn-more").hidden = shown >= total;
+  const listTotal = $("list-total");
+  if (listTotal) listTotal.textContent = total ? `1–${fmtInt(shown)} de ${fmtInt(total)}` : "0 empresas";
+  const btnMore = $("btn-more");
+  if (btnMore) btnMore.hidden = shown >= total;
 
   if (!scopeLeads().length) {
     box.innerHTML = `<div class="empty"><strong>Nenhuma empresa ainda.</strong>Marque os nichos na barra lateral e busque uma cidade.<br/><button class="btn btn-primary btn-sm" onclick="document.getElementById('input-city').focus()">Escolher cidade</button></div>`;
