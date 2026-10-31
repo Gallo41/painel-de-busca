@@ -26,6 +26,13 @@ Notes:
 import argparse, csv, functools, io, json, math, os, re, sys, time, urllib.request, urllib.parse, urllib.error
 from concurrent.futures import ThreadPoolExecutor
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 ENV_KEYS = ("SCRAPER_BASE_URL", "SCRAPER_PORT", "SCRAPER_API_KEY")
 
 
@@ -125,30 +132,30 @@ def dedupe(rows):
     return out
 
 
-def run_job(body):
+def run_job(body, max_poll_attempts=120, poll_interval=8.0):
     """Create one engine job, poll it, download it -> (job_id, raw CSV rows). Raises RuntimeError."""
     try:
         _, raw = req("POST", "/api/v1/jobs", body)
     except urllib.error.HTTPError as e:
-        raise RuntimeError(f"✗ Create failed: HTTP {e.code} — {e.read().decode()[:200]}")
+        raise RuntimeError(f"[Erro] Create failed: HTTP {e.code} - {e.read().decode(errors='replace')[:200]}")
     job_id = json.loads(raw).get("id")
     if not job_id:
-        raise RuntimeError("✗ No job id returned.")
+        raise RuntimeError("[Erro] No job id returned.")
     print(f"  job id: {job_id}")
 
-    print("▶ Polling…")
+    print("[Maps] Polling...")
     status = None
-    for i in range(120):
+    for i in range(max_poll_attempts):
         _, raw = req("GET", f"/api/v1/jobs/{job_id}")
         status = json.loads(raw).get("Status")
         print(f"\r  status: {str(status):<10} (attempt {i + 1})", end="", flush=True)
         if status == "ok":
             print(); break
         if status == "failed":
-            raise RuntimeError("\n✗ Job failed. If this keeps happening you may be rate-limited — wait or add proxies.")
-        time.sleep(8)
+            raise RuntimeError("\n[Erro] Job failed. If this keeps happening you may be rate-limited.")
+        time.sleep(poll_interval)
     else:
-        raise RuntimeError("\n✗ Timed out.")
+        raise RuntimeError(f"\n[Timeout] Job {job_id} continues in background.")
 
     _, raw = req("GET", f"/api/v1/jobs/{job_id}/download")
     return job_id, list(csv.DictReader(io.StringIO(raw.decode("utf-8", "replace"))))
