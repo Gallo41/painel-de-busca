@@ -3,434 +3,314 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel de Busca — Relatórios Prontos de Clientes</title>
+  <title>Painel de Busca — Clientes para sites e sistemas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <div class="container-shell">
-    <!-- Cabeçalho Intuitivo focado em Relatórios Prontos -->
-    <header class="top-header">
-      <div>
-        <div class="eyebrow-badge">PROSPECÇÃO INTELIGENTE PARA FREELANCERS (EU &amp; MEU AMIGO)</div>
-        <h1 class="main-title">
-          Relatórios Prontos de Clientes na Sua Cidade
-        </h1>
-        <p class="main-subtitle">
-          Escolha os nichos e a cidade: o sistema investiga cada empresa nas 8 ferramentas embutidas e entrega a <strong>ficha pronta do que vender, quanto cobrar e a mensagem pronta para enviar no WhatsApp</strong>.
-        </p>
-      </div>
-      <div class="header-actions no-print">
-        <span id="engine-badge" class="pain-tag" style="background:#e5e7eb; color:#374151; padding:6px 12px;">
-          Verificando motor...
-        </span>
-        <button class="btn-secondary" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
-        <a href="/api/outreach/export?format=csv" class="btn-secondary" style="text-decoration:none;">📥 Baixar Planilha CSV</a>
-        <button class="btn-secondary" onclick="openQueueModal()">
-          🤖 Fila do Robô (<span id="btn-queue-count">0</span>)
-        </button>
-        <button class="btn-secondary" onclick="openManualLeadModal()">+ Cliente Manual</button>
-      </div>
-    </header>
-
-    <!-- PASSO 1: Configurar e Gerar Relatório Pronto -->
-    <section class="step-card no-print">
-      <div class="step-header">
+  <div class="app">
+    <!-- Sidebar: mesma cor da moldura, sem linha separadora -->
+    <aside class="sidebar" id="sidebar" aria-label="Navegação">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M11 7.5v7M7.5 11h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         <div>
-          <span class="step-number">PASSO 1</span>
-          <h2 class="step-title">Selecionar Nichos e Cidade para Gerar o Relatório</h2>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn-secondary" onclick="selectAllNiches(true)">Marcar Todos os Nichos</button>
-          <button class="btn-secondary" onclick="selectAllNiches(false)">Limpar Seleção</button>
+          <div class="brand-name">Painel de Busca</div>
+          <div class="brand-scope" id="scope-label">Piracicaba, SP</div>
         </div>
       </div>
 
-      <!-- Grade de Nichos em 1 clique -->
-      <div id="niches-grid" class="niches-grid-layout">
-        <!-- Preenchido via app.js -->
-      </div>
+      <nav class="nav" aria-label="Seções">
+        <a class="nav-item" href="#clientes" data-nav="clientes" aria-current="page">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 7a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM1.5 13.5c0-2.2 1.8-4 4-4s4 1.8 4 4M11 6.5a1.9 1.9 0 100-3.8M11.5 9.6c1.7.3 3 1.8 3 3.9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          Clientes
+        </a>
+        <a class="nav-item" href="#ferramentas" data-nav="ferramentas">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5a3 3 0 00-2.8 4L2.5 11.7a1.2 1.2 0 001.8 1.8L9.5 8.3a3 3 0 004-2.8l-1.8 1.8-1.7-.4-.4-1.7 1.8-1.7z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          Ferramentas
+        </a>
+        <button class="nav-item" type="button" onclick="openQueueModal()">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9l2-5.5h8L14 9v4H2V9zm0 0h3.5l.7 1.5h3.6L10.5 9H14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          Fila do robô
+          <span class="nav-count num" id="btn-queue-count">0</span>
+        </button>
+      </nav>
 
-      <!-- Barra Principal de Geração de Relatório (Simples e Direta) -->
-      <div class="generator-bar">
-        <div class="generator-field">
-          <label for="input-city">Cidade Alvo</label>
-          <input id="input-city" type="text" value="Piracicaba" placeholder="Ex: Piracicaba, Campinas..." />
-        </div>
-        <div class="generator-field" style="max-width:95px;">
-          <label for="input-state">UF</label>
-          <input id="input-state" type="text" value="SP" maxlength="2" style="text-transform:uppercase; text-align:center;" />
-        </div>
-        <div class="generator-field">
-          <label for="input-custom-kw">Especialidade / Filtro Extra (Opcional)</label>
-          <input id="input-custom-kw" type="text" placeholder="Ex: implante, energia solar, estética..." />
-        </div>
-        <div class="generator-field checkbox-field">
-          <label class="checkbox-card-label">
-            <input id="input-include-cnae" type="checkbox" checked />
-            <span>🏢 Incluir também <strong>Empresas Recém-Abertas (CNPJ)</strong> da cidade</span>
+      <!-- Nova busca -->
+      <div class="group-label">Nova busca</div>
+      <form class="search-form" onsubmit="event.preventDefault(); runSearchJob();">
+        <div class="field-row">
+          <label class="field grow">
+            <span>Cidade</span>
+            <input id="input-city" type="text" value="Piracicaba" autocomplete="off" />
+          </label>
+          <label class="field uf">
+            <span>UF</span>
+            <input id="input-state" type="text" value="SP" maxlength="2" autocomplete="off" />
           </label>
         </div>
-        <div class="generator-action">
-          <button id="btn-run-job" class="btn-primary btn-generate-report" onclick="runSearchJob()">
-            📊 Gerar Relatórios Prontos
-          </button>
-        </div>
-      </div>
 
-      <!-- Opções Avançadas discretas para não poluir a tela -->
-      <details class="advanced-search-details">
-        <summary>⚙️ Opções avançadas de captura (Modo Docker / Profundidade)</summary>
-        <div style="display:flex; gap:16px; flex-wrap:wrap; margin-top:10px; align-items:center;">
-          <div>
-            <label style="font-size:0.78rem; font-weight:700; margin-right:6px;">Modo de Captura:</label>
-            <select id="input-source-mode" style="padding:6px 10px; border:1px solid var(--border-warm); border-radius:6px;">
-              <option value="auto">Automático Inteligente (Docker + Diagnóstico Instantâneo)</option>
-              <option value="google_maps">Motor Google Maps Docker (Porta 8080)</option>
-              <option value="demo">Diagnóstico Instantâneo Local</option>
-            </select>
-          </div>
-          <div>
-            <label style="font-size:0.78rem; font-weight:700; margin-right:6px;">Profundidade:</label>
-            <select id="input-depth" style="padding:6px 10px; border:1px solid var(--border-warm); border-radius:6px;">
-              <option value="5">Rápido (Depth 5)</option>
-              <option value="10">Profundo (Depth 10)</option>
-              <option value="15">Cidade Inteira (Depth 15)</option>
-            </select>
-          </div>
-          <button class="btn-secondary" style="padding:6px 12px; font-size:0.78rem;" onclick="openCsvImportModal()">
-            📂 Importar Lista CSV Externa
-          </button>
+        <div class="niche-head">
+          <span class="field-label">Selecionar Nichos</span>
+          <span class="niche-actions">
+            <button type="button" class="link-btn" onclick="selectAllNiches(true)">todos</button>
+            <button type="button" class="link-btn" onclick="selectAllNiches(false)">nenhum</button>
+          </span>
         </div>
-      </details>
+        <div id="niches-grid" class="niche-list" role="group" aria-label="Nichos"></div>
 
-      <div id="job-feedback" class="job-feedback-banner"></div>
-    </section>
-
-    <!-- PASSO 2: Resumo Executivo do Relatório -->
-    <section id="executive-summary-section" class="step-card executive-summary-card">
-      <div class="step-header" style="margin-bottom:12px;">
-        <div>
-          <span class="step-number">PASSO 2</span>
-          <h2 class="step-title" id="exec-summary-headline">Resumo Executivo do Relatório</h2>
-          <p id="exec-summary-subtext" style="margin:4px 0 0; font-size:0.9rem; color:var(--text-muted);">
-            Visão consolidada das oportunidades encontradas para criação de sites, reformas urgentes e sistemas web sob medida.
-          </p>
-        </div>
-        <div class="potential-ticket-box">
-          <div style="font-size:0.74rem; text-transform:uppercase; font-weight:800; color:#047857; letter-spacing:0.04em;">
-            Potencial Estimado na Cidade
-          </div>
-          <div id="stat-ticket-potential" style="font-size:1.35rem; font-weight:900; color:#065f46;">
-            Calculando...
-          </div>
-        </div>
-      </div>
-
-      <!-- Indicadores Executivos Clicáveis -->
-      <div id="stats-bar" class="exec-kpi-grid">
-        <div class="exec-kpi-card" onclick="applyQuickTab('ALL')" style="cursor:pointer;">
-          <div class="exec-kpi-label">Total de Relatórios Prontos</div>
-          <div id="stat-total" class="exec-kpi-value">0</div>
-          <div class="exec-kpi-hint">Empresas diagnosticadas</div>
-        </div>
-        <div class="exec-kpi-card" onclick="applyQuickTab('SITE_NOVO')" style="cursor:pointer;">
-          <div class="exec-kpi-label">🌐 Vender Criação de Site</div>
-          <div id="stat-without-site" class="exec-kpi-value" style="color:var(--brand-blue);">0</div>
-          <div class="exec-kpi-hint">Sem site ou só Instagram/Bio</div>
-        </div>
-        <div class="exec-kpi-card" onclick="applyQuickTab('REFORMA_SITE')" style="cursor:pointer;">
-          <div class="exec-kpi-label">🚨 Vender Reforma Urgente</div>
-          <div id="stat-site-down" class="exec-kpi-value" style="color:var(--crimson);">0</div>
-          <div class="exec-kpi-hint">Site fora do ar ou abandonado</div>
-        </div>
-        <div class="exec-kpi-card" onclick="applyQuickTab('SISTEMA_COMPLEXO')" style="cursor:pointer;">
-          <div class="exec-kpi-label">⚙️ Vender Sistema Complexo</div>
-          <div id="stat-complex" class="exec-kpi-value" style="color:#5b21b6;">0</div>
-          <div class="exec-kpi-hint">Precisa de agenda/portal/catálogo</div>
-        </div>
-        <div class="exec-kpi-card" onclick="toggleDomainFreeFilter()" style="cursor:pointer;">
-          <div class="exec-kpi-label">🟢 Domínio .com.br Livre</div>
-          <div id="stat-domain-free" class="exec-kpi-value" style="color:var(--emerald);">0</div>
-          <div class="exec-kpi-hint">Pronto p/ registrar no Registro.br</div>
-        </div>
-        <div class="exec-kpi-card">
-          <div class="exec-kpi-label">🤝 Divisão (Eu / Amigo / Robô)</div>
-          <div style="display:flex; align-items:baseline; gap:8px;">
-            <span id="stat-owners" class="exec-kpi-value" style="font-size:1.3rem;">0 / 0</span>
-            <span style="font-size:0.82rem; color:var(--amber); font-weight:800;">(<span id="stat-queue">0</span> na fila)</span>
-          </div>
-          <div class="exec-kpi-hint">Carteira dividida entre a dupla</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- PASSO 3: Fichas de Relatórios Prontos por Cliente & Central de Contato -->
-    <section class="step-card">
-      <div class="step-header" style="margin-bottom:14px;">
-        <div>
-          <span class="step-number">PASSO 3</span>
-          <h2 class="step-title">Relatórios Prontos por Cliente &amp; Central de Contato</h2>
-          <p style="margin:4px 0 0; font-size:0.88rem; color:var(--text-muted);">
-            Cada ficha abaixo já traz o diagnóstico das 8 ferramentas traduzido em português claro, o serviço ideal para vender e o botão para chamar o cliente no WhatsApp.
-          </p>
-        </div>
-        <div class="no-print" style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn-secondary" onclick="enqueueSelectedLeads('whatsapp')">
-            🤖 EnviarTodos/Selecionados p/ Fila do Robô Futuro
-          </button>
-          <button class="btn-secondary" onclick="toggleViewMode()" id="btn-toggle-view">
-            📋 Alternar para Tabela Compacta
-          </button>
-        </div>
-      </div>
-
-      <!-- Abas Rápidas Intuitivas em 1 Clique -->
-      <div class="quick-tabs-bar no-print">
-        <button class="tab-pill active" data-tab="ALL" onclick="applyQuickTab('ALL')">
-          📋 Todos os Relatórios
-        </button>
-        <button class="tab-pill" data-tab="SITE_NOVO" onclick="applyQuickTab('SITE_NOVO')">
-          🌐 Vender Criação de Site
-        </button>
-        <button class="tab-pill" data-tab="REFORMA_SITE" onclick="applyQuickTab('REFORMA_SITE')">
-          🚨 Vender Reforma Urgente
-        </button>
-        <button class="tab-pill" data-tab="SISTEMA_COMPLEXO" onclick="applyQuickTab('SISTEMA_COMPLEXO')">
-          ⚙️ Vender Sistema Complexo
-        </button>
-        <button class="tab-pill" data-tab="EU" onclick="applyQuickTab('EU')">
-          🙋‍♂️ Minha Carteira (Eu)
-        </button>
-        <button class="tab-pill" data-tab="AMIGO" onclick="applyQuickTab('AMIGO')">
-          🤝 Carteira do Meu Amigo
-        </button>
-      </div>
-
-      <!-- Barra de Busca e Filtros Refinados -->
-      <div class="filter-strip no-print">
-        <div style="flex:2; min-width:220px;">
-          <input id="filter-search" type="text" oninput="loadLeads()" placeholder="🔍 Buscar empresa por nome, nicho, cidade ou diagnóstico..." style="width:100%; padding:9px 12px; border:1px solid var(--border-warm); border-radius:8px;" />
-        </div>
-        <div>
-          <select id="filter-pain" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
-            <option value="">Todas as Dores Detectadas</option>
-            <option value="SEM_SITE">Sem Site Próprio</option>
-            <option value="DOMINIO_LIVRE">Só Rede Social + Domínio Livre</option>
-            <option value="SITE_FORA_DO_AR">Site Fora do Ar (Urgente)</option>
-            <option value="OPORTUNIDADE_SISTEMA">Falta Sistema (Agenda/Catálogo)</option>
-            <option value="SITE_AMADOR_ANTIGO">Site Antigo / Wix / Sem SSL</option>
-          </select>
-        </div>
-        <div>
-          <select id="filter-service" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
-            <option value="">Qualquer Serviço Recomendado</option>
-            <option value="SITE_NOVO">1. Criação de Site Profissional</option>
-            <option value="REFORMA_SITE">2. Reforma / Modernização de Site</option>
-            <option value="SISTEMA_COMPLEXO">3. Sistema Web Sob Medida</option>
-          </select>
-        </div>
-        <div>
-          <select id="filter-owner" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
-            <option value="">Responsável: Todos (Eu + Amigo)</option>
-            <option value="nao_atribuido">Ainda Não Dividido</option>
-            <option value="eu">Minha Carteira (Eu)</option>
-            <option value="amigo">Carteira do Amigo</option>
-          </select>
-        </div>
-        <div>
-          <select id="filter-status" onchange="loadLeads()" style="padding:9px 10px; border:1px solid var(--border-warm); border-radius:8px;">
-            <option value="">Status: Todos</option>
-            <option value="novo">Novo Relatório</option>
-            <option value="analisado">Analisado</option>
-            <option value="contatado">Já Chamei no WhatsApp</option>
-            <option value="respondeu">Cliente Respondeu</option>
-            <option value="reuniao">Em Negociação / Reunião</option>
-            <option value="fechado">Fechado (Venda Realizada!)</option>
-          </select>
-        </div>
-        <label style="display:flex; align-items:center; gap:6px; font-size:0.84rem; font-weight:700; cursor:pointer; white-space:nowrap;">
-          <input id="filter-domain-free" type="checkbox" onchange="loadLeads()" />
-          Só .com.br Livre
+        <label class="field">
+          <span>Termo extra (opcional)</span>
+          <input id="input-custom-kw" type="text" placeholder="ex.: implante dentário" autocomplete="off" />
         </label>
+
+        <input type="hidden" id="input-source-mode" value="auto" />
+        <input type="hidden" id="input-depth" value="5" />
+
+        <button id="btn-run-job" class="btn btn-block" type="submit">Buscar clientes reais</button>
+        <div id="job-feedback" class="job-feedback" role="status" aria-live="polite"></div>
+      </form>
+
+      <div class="sidebar-bottom">
+        <div class="engine" id="engine-badge">Verificando motor…</div>
       </div>
+    </aside>
 
-      <!-- Visão Principal: Fichas de Relatório Prontas (Cards Executivos) -->
-      <div id="ready-reports-grid" class="ready-reports-grid">
-        <!-- Preenchido automaticamente por app.js -->
-      </div>
-
-      <!-- Visão Alternativa: Tabela Compacta (Oculta por padrão, ativada com 1 clique) -->
-      <div id="compact-table-wrapper" style="display:none; overflow-x:auto; margin-top:16px;">
-        <table class="table-leads">
-          <thead>
-            <tr>
-              <th style="width:36px;"><input type="checkbox" id="check-all-leads" onchange="toggleSelectAllLeads(this.checked)" /></th>
-              <th>Prioridade</th>
-              <th>Empresa &amp; Nicho</th>
-              <th>O Que Vender &amp; Diagnóstico</th>
-              <th>Domínio .com.br (Registro.br)</th>
-              <th>Contato Rápido 1-Clique</th>
-              <th>Carteira &amp; Status</th>
-            </tr>
-          </thead>
-          <tbody id="leads-tbody"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- BASTIDORES TÉCNICOS (Retrátil): As 8 Ferramentas Embutidas para Inspeção Individual -->
-    <details class="technical-engines-accordion no-print">
-      <summary>
-        🛠️ Bastidores Técnicos: Inspecionar manualmente os 8 Motores Embutidos (Google Maps, Casa dos Dados, Registro.br, Raio-X)
-      </summary>
-      <p style="margin:10px 0 18px; color:var(--text-muted); font-size:0.88rem;">
-        Você <strong>não precisa mexer aqui</strong> para usar o sistema — todas as 8 ferramentas abaixo já rodam sozinhas ao gerar seus relatórios prontos acima. Use apenas se quiser testar um domínio ou CNPJ avulso.
-      </p>
-
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(440px, 1fr)); gap:22px;">
-        <!-- Coluna 1: achar o negócio -->
-        <div>
-          <div class="section-bar">achar o negócio <span class="tool-badge-embedded">4 Motores Embutidos</span></div>
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="tool-card-title">google.com/maps <span class="tool-badge-embedded">Motor Docker 8080</span></span>
-                <div style="display:flex; gap:6px;">
-                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedMapsEngineCheck()">Ver Status</button>
-                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="startDockerEngineEmbedded()">Reiniciar Docker</button>
-                </div>
-              </div>
-              <div class="tool-card-desc">filtra o nicho e vê quem tá sem site</div>
-              <div id="embedded-maps-box" class="embedded-box">Motor conectado e pronto para gerar relatórios.</div>
-            </div>
-
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="tool-card-title">casadosdados.com.br <span class="tool-badge-embedded">CNPJ &amp; CNAE</span></span>
-                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                  <input id="embedded-cnpj-input" type="text" placeholder="CNPJ avulso" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:150px;" />
-                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnpjLookup(false)">Consultar CNPJ</button>
-                  <button class="btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedCnaeDiscovery(true)">Importar Recém-Abertas</button>
-                </div>
-              </div>
-              <div class="tool-card-desc">empresa recém aberta por cidade e atividade</div>
-              <div id="casadosdados-box" class="embedded-box">Integrado automaticamente na geração de relatórios prontos.</div>
-            </div>
-
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="tool-card-title">registro.br <span class="tool-badge-embedded">RDAP Oficial</span></span>
-                <div style="display:flex; gap:6px;">
-                  <input id="quick-domain-input" type="text" placeholder="ex: clinicasorriso.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:185px;" />
-                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="checkQuickDomain()">Checar Domínio</button>
-                </div>
-              </div>
-              <div class="tool-card-desc">vê se o domínio com o nome dele tá livre</div>
-              <div id="quick-domain-result" class="embedded-box">Verificado automaticamente em todos os relatórios.</div>
-            </div>
-
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="tool-card-title">downforeveryoneorjustme.com <span class="tool-badge-embedded">DNS / SSL / HTTP</span></span>
-                <div style="display:flex; gap:6px;">
-                  <input id="quick-health-input" type="text" placeholder="ex: https://site.com.br" style="padding:4px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:185px;" />
-                  <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="runEmbeddedSiteHealth()">Testar Site</button>
-                </div>
-              </div>
-              <div class="tool-card-desc">confirma se o site dele tá fora do ar</div>
-              <div id="quick-health-result" class="embedded-box">Monitorado automaticamente em cada cliente com site.</div>
-            </div>
-          </div>
+    <div class="stage">
+      <!-- Barra superior: busca no centro -->
+      <header class="topbar">
+        <button class="icon-btn menu-btn" type="button" onclick="toggleSidebar()" aria-label="Abrir menu">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+        <div class="search-box">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <input id="filter-search" type="search" placeholder="Buscar empresa, categoria ou endereço" oninput="onFilterChange()" aria-label="Buscar empresa" />
+          <kbd>/</kbd>
         </div>
+      </header>
 
-        <!-- Coluna 2: raio x do site atual -->
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-            <div class="section-bar" style="margin-bottom:0;">raio x do site atual <span class="tool-badge-embedded">4 Scanners Embutidos</span></div>
-            <div style="display:flex; gap:6px;">
-              <input id="quick-xray-url" type="text" placeholder="Testar URL avulsa..." style="padding:5px 10px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem; width:190px;" />
-              <button class="btn-primary" style="padding:5px 10px; font-size:0.76rem;" onclick="runEmbeddedFullXrayInput()">Rodar Raio-X</button>
+      <main class="sheet">
+        <!-- ============ VISÃO: CLIENTES ============ -->
+        <section id="view-clientes" class="view">
+          <div class="title-row">
+            <div>
+              <h1 id="exec-summary-headline">Clientes em Piracicaba</h1>
+              <p class="sub" id="exec-summary-subtext">Carregando relatório…</p>
+            </div>
+            <div class="title-actions">
+              <span class="stamp" id="stamp"></span>
+              <button class="btn btn-sm" type="button" onclick="window.print()">Imprimir relatório</button>
+              <a class="btn btn-sm" href="/api/outreach/export?format=csv" download>Baixar planilha</a>
             </div>
           </div>
 
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="tool-card-title">builtwith.com <span class="tool-badge-embedded">Infra &amp; Pixels</span></span>
-                <span id="builtwith-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
+          <!-- KPIs: um container dividido por linhas finas -->
+          <div id="stats-bar" class="kpi-strip" role="group" aria-label="Resumo">
+            <button class="kpi" type="button" data-kpi="ALL" onclick="applyQuickTab('ALL')">
+              <span class="kpi-label">Empresas</span>
+              <span class="kpi-value num" id="stat-total">—</span>
+            </button>
+            <button class="kpi" type="button" data-kpi="SITE_NOVO" onclick="applyQuickTab('SITE_NOVO')">
+              <span class="kpi-label">Sem site próprio</span>
+              <span class="kpi-value num" id="stat-without-site">—</span>
+            </button>
+            <button class="kpi" type="button" data-kpi="REFORMA_SITE" onclick="applyQuickTab('REFORMA_SITE')">
+              <span class="kpi-label">Site fora do ar ou antigo</span>
+              <span class="kpi-value num" id="stat-site-down">—</span>
+            </button>
+            <button class="kpi" type="button" data-kpi="SISTEMA_COMPLEXO" onclick="applyQuickTab('SISTEMA_COMPLEXO')">
+              <span class="kpi-label">Perfil para sistema</span>
+              <span class="kpi-value num" id="stat-complex">—</span>
+            </button>
+            <button class="kpi" type="button" data-kpi="DOMAIN" onclick="toggleDomainFreeFilter()">
+              <span class="kpi-label">Domínio .com.br livre</span>
+              <span class="kpi-value num" id="stat-domain-free">—</span>
+            </button>
+          </div>
+          <span class="visually-hidden"><span id="stat-owners"></span><span id="stat-queue"></span></span>
+
+          <!-- Abas com linha embaixo -->
+          <div class="tabs" role="tablist" aria-label="Tipo de oferta">
+            <button class="tab active" role="tab" data-tab="ALL" onclick="applyQuickTab('ALL')">Todos <span class="num" data-count="ALL"></span></button>
+            <button class="tab" role="tab" data-tab="SITE_NOVO" onclick="applyQuickTab('SITE_NOVO')">Vender site <span class="num" data-count="SITE_NOVO"></span></button>
+            <button class="tab" role="tab" data-tab="REFORMA_SITE" onclick="applyQuickTab('REFORMA_SITE')">Vender reforma <span class="num" data-count="REFORMA_SITE"></span></button>
+            <button class="tab" role="tab" data-tab="SISTEMA_COMPLEXO" onclick="applyQuickTab('SISTEMA_COMPLEXO')">Vender sistema <span class="num" data-count="SISTEMA_COMPLEXO"></span></button>
+          </div>
+
+          <div class="filters">
+            <select id="filter-niche" onchange="onFilterChange()" aria-label="Nicho"><option value="">Todos os nichos</option></select>
+            <select id="filter-owner" onchange="onFilterChange()" aria-label="Responsável">
+              <option value="">Eu e meu amigo</option>
+              <option value="nao_atribuido">Sem responsável</option>
+              <option value="eu">Minha carteira</option>
+              <option value="amigo">Carteira do amigo</option>
+            </select>
+            <select id="filter-status" onchange="onFilterChange()" aria-label="Situação">
+              <option value="">Qualquer situação</option>
+              <option value="novo">Novo</option>
+              <option value="contatado">Já chamei</option>
+              <option value="respondeu">Respondeu</option>
+              <option value="reuniao">Reunião</option>
+              <option value="fechado">Fechado</option>
+              <option value="descartado">Descartado</option>
+            </select>
+            <label class="check"><input id="filter-whatsapp" type="checkbox" onchange="onFilterChange()" /> Só com WhatsApp</label>
+            <label class="check"><input id="filter-domain-free" type="checkbox" onchange="onFilterChange()" /> Só domínio livre</label>
+            <span class="spacer"></span>
+            <span class="stamp num" id="list-total"></span>
+          </div>
+
+          <!-- Lista + Central de Contato -->
+          <div class="split">
+            <div class="list-col">
+              <div class="rows-head" aria-hidden="true">
+                <span>Empresa</span><span>Oferta</span><span class="r">Nota</span><span class="r">Chance</span>
               </div>
-              <div class="tool-card-desc">mostra com o que o site foi feito</div>
-              <div id="embedded-builtwith-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
+              <div id="ready-reports-grid" class="rows" role="listbox" aria-label="Empresas encontradas"></div>
+              <div class="list-more"><button id="btn-more" class="btn btn-sm" type="button" onclick="showMoreRows()" hidden>Mostrar mais</button></div>
             </div>
 
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="tool-card-title">wappalyzer.com <span class="tool-badge-embedded">Frameworks &amp; Mobile</span></span>
-                <span id="wappalyzer-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
-              </div>
-              <div class="tool-card-desc">extensão que lê a tecnologia na hora</div>
-              <div id="embedded-wappalyzer-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
-            </div>
+            <aside class="detail" id="detail" aria-label="Central de Contato">
+              <div id="detail-body"></div>
+            </aside>
+          </div>
 
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="tool-card-title">whatcms.org <span class="tool-badge-embedded">CMS &amp; Sistemas Faltantes</span></span>
-                <span id="whatcms-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
-              </div>
-              <div class="tool-card-desc">descobre se é WordPress, Wix e afins</div>
-              <div id="embedded-whatcms-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
-            </div>
+          <!-- tabela compacta mantida para impressão/relatório -->
+          <table class="print-only table-leads"><tbody id="leads-tbody"></tbody></table>
+          <input type="checkbox" id="check-all-leads" class="visually-hidden" tabindex="-1" aria-hidden="true" />
+        </section>
 
-            <div class="tool-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="tool-card-title">web.archive.org <span class="tool-badge-embedded">Histórico CDX</span></span>
-                <span id="wayback-target-label" style="font-size:0.74rem; color:var(--text-muted);">Automático</span>
-              </div>
-              <div class="tool-card-desc">vê há quanto tempo ninguém mexe no site</div>
-              <div id="embedded-wayback-box" class="embedded-box">Consolidado automaticamente na ficha de cada cliente.</div>
+        <!-- ============ VISÃO: FERRAMENTAS ============ -->
+        <section id="view-ferramentas" class="view" hidden>
+          <div class="title-row">
+            <div>
+              <h1>Ferramentas de diagnóstico</h1>
+              <p class="sub">Os oito motores já rodam sozinhos em cada empresa. Use esta tela só para testar um CNPJ, domínio ou site avulso.</p>
             </div>
           </div>
-        </div>
-      </div>
-    </details>
+
+          <div class="tools-grid">
+            <div>
+              <h2 class="section-title">achar o negócio</h2>
+              <div class="tool-stack">
+                <div class="panel">
+                  <header><h3>google.com/maps</h3>
+                    <div class="row-actions">
+                      <button class="btn btn-sm" type="button" onclick="runEmbeddedMapsEngineCheck()">Ver status</button>
+                      <button class="btn btn-sm" type="button" onclick="startDockerEngineEmbedded()">Reiniciar Docker</button>
+                    </div>
+                  </header>
+                  <p class="meta">filtra o nicho e vê quem tá sem site (motor Docker na porta 8080)</p>
+                  <div id="embedded-maps-box" class="embedded-box">Motor conectado e pronto para gerar relatórios.</div>
+                </div>
+
+                <div class="panel">
+                  <header><h3>casadosdados.com.br</h3>
+                    <div class="row-actions">
+                      <input id="embedded-cnpj-input" type="text" placeholder="CNPJ (14 números)" />
+                      <button class="btn btn-sm" type="button" onclick="runEmbeddedCnpjLookup(false)">Consultar CNPJ</button>
+                    </div>
+                  </header>
+                  <p class="meta">dados cadastrais reais da Receita Federal por CNPJ (via BrasilAPI)</p>
+                  <div id="casadosdados-box" class="embedded-box">Digite um CNPJ para ver razão social, sócios, abertura e CNAE.</div>
+                </div>
+
+                <div class="panel">
+                  <header><h3>registro.br</h3>
+                    <div class="row-actions">
+                      <input id="quick-domain-input" type="text" placeholder="ex.: clinicasorriso.com.br" />
+                      <button class="btn btn-sm" type="button" onclick="checkQuickDomain()">Checar domínio</button>
+                    </div>
+                  </header>
+                  <p class="meta">vê se o domínio com o nome dele tá livre (consulta RDAP oficial)</p>
+                  <div id="quick-domain-result" class="embedded-box">Verificado automaticamente em todas as empresas.</div>
+                </div>
+
+                <div class="panel">
+                  <header><h3>downforeveryoneorjustme.com</h3>
+                    <div class="row-actions">
+                      <input id="quick-health-input" type="text" placeholder="ex.: https://site.com.br" />
+                      <button class="btn btn-sm" type="button" onclick="runEmbeddedSiteHealth()">Testar site</button>
+                    </div>
+                  </header>
+                  <p class="meta">confirma se o site dele tá fora do ar (DNS, SSL e HTTP)</p>
+                  <div id="quick-health-result" class="embedded-box">Monitorado automaticamente em cada empresa com site.</div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="section-head">
+                <h2 class="section-title">raio x do site atual</h2>
+                <div class="row-actions">
+                  <input id="quick-xray-url" type="text" placeholder="URL avulsa" />
+                  <button class="btn btn-sm" type="button" onclick="runEmbeddedFullXrayInput()">Rodar raio-x</button>
+                </div>
+              </div>
+              <div class="tool-stack">
+                <div class="panel">
+                  <header><h3>builtwith.com</h3><span class="meta" id="builtwith-target-label">Automático</span></header>
+                  <p class="meta">mostra com o que o site foi feito</p>
+                  <div id="embedded-builtwith-box" class="embedded-box">Consolidado na ficha de cada empresa.</div>
+                </div>
+                <div class="panel">
+                  <header><h3>wappalyzer.com</h3><span class="meta" id="wappalyzer-target-label">Automático</span></header>
+                  <p class="meta">extensão que lê a tecnologia na hora</p>
+                  <div id="embedded-wappalyzer-box" class="embedded-box">Consolidado na ficha de cada empresa.</div>
+                </div>
+                <div class="panel">
+                  <header><h3>whatcms.org</h3><span class="meta" id="whatcms-target-label">Automático</span></header>
+                  <p class="meta">descobre se é WordPress, Wix e afins</p>
+                  <div id="embedded-whatcms-box" class="embedded-box">Consolidado na ficha de cada empresa.</div>
+                </div>
+                <div class="panel">
+                  <header><h3>web.archive.org</h3><span class="meta" id="wayback-target-label">Automático</span></header>
+                  <p class="meta">vê há quanto tempo ninguém mexe no site</p>
+                  <div id="embedded-wayback-box" class="embedded-box">Consolidado na ficha de cada empresa.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <!-- Modal: Dossiê Completo & Raio-X Técnico Detalhado -->
-  <div id="lead-modal" class="modal-backdrop">
-    <div class="modal-panel">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; border-bottom:1px solid var(--border-warm); padding-bottom:14px; margin-bottom:18px;">
+  <!-- Modal: dossiê completo -->
+  <div id="lead-modal" class="modal-backdrop" onclick="if(event.target===this) closeLeadModal()">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="modal-lead-title">
+      <div class="modal-head">
         <div>
-          <h2 id="modal-lead-title" style="margin:0; font-size:1.45rem;">Relatório Completo do Cliente</h2>
-          <div id="modal-lead-subtitle" style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;"></div>
+          <h2 id="modal-lead-title">Relatório completo</h2>
+          <div id="modal-lead-subtitle" class="meta"></div>
         </div>
-        <button class="btn-secondary" onclick="closeLeadModal()">Fechar ✕</button>
+        <button class="btn btn-sm" type="button" onclick="closeLeadModal()">Fechar</button>
       </div>
       <div id="modal-lead-body"></div>
     </div>
   </div>
 
-  <!-- Modal: Fila de Automação Futura -->
-  <div id="queue-modal" class="modal-backdrop">
-    <div class="modal-panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-warm); padding-bottom:14px; margin-bottom:16px;">
+  <!-- Modal: fila do robô -->
+  <div id="queue-modal" class="modal-backdrop" onclick="if(event.target===this) closeQueueModal()">
+    <div class="modal-panel" role="dialog" aria-modal="true">
+      <div class="modal-head">
         <div>
-          <h2 style="margin:0; font-size:1.35rem;">Fila Pré-Pronta para Seu Futuro Robô de Contato</h2>
-          <p style="margin:4px 0 0; color:var(--text-muted); font-size:0.86rem;">
-            Todos os clientes que você enviar para a fila ficam salvos aqui com telefone e mensagem pronta para o seu futuro bot (Evolution API / WPPConnect / n8n).
-          </p>
+          <h2>Fila do robô de contato</h2>
+          <div class="meta">Empresas guardadas com telefone e mensagem prontos para o futuro bot (Evolution API, WPPConnect ou n8n).</div>
         </div>
-        <button class="btn-secondary" onclick="closeQueueModal()">Fechar ✕</button>
+        <button class="btn btn-sm" type="button" onclick="closeQueueModal()">Fechar</button>
       </div>
       <div id="queue-modal-body"></div>
     </div>
   </div>
 
-  <!-- Modal: Novo Lead Manual / Importar CSV -->
-  <div id="manual-modal" class="modal-backdrop">
-    <div class="modal-panel" style="max-width:620px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-warm); padding-bottom:12px; margin-bottom:16px;">
-        <h3 id="manual-modal-title" style="margin:0;">Adicionar Cliente Manual / Importar CSV</h3>
-        <button class="btn-secondary" onclick="closeManualModal()">Fechar ✕</button>
+  <!-- Modal: cliente manual / CSV -->
+  <div id="manual-modal" class="modal-backdrop" onclick="if(event.target===this) closeManualModal()">
+    <div class="modal-panel narrow" role="dialog" aria-modal="true">
+      <div class="modal-head">
+        <h2 id="manual-modal-title">Adicionar empresa</h2>
+        <button class="btn btn-sm" type="button" onclick="closeManualModal()">Fechar</button>
       </div>
       <div id="manual-modal-body"></div>
     </div>
