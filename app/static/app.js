@@ -5,6 +5,7 @@ let SELECTED_NICHES = new Set([
   "imobiliarias-corretores",
 ]);
 let CURRENT_LEADS = [];
+let VIEW_MODE = "cards"; // "cards" (Fichas de Relatório Prontas) ou "table" (Tabela Compacta)
 
 const PAIN_LABELS = {
   SEM_SITE: "Sem Site Próprio",
@@ -15,9 +16,9 @@ const PAIN_LABELS = {
 };
 
 const SERVICE_LABELS = {
-  SITE_NOVO: "Criação de Site / LP",
-  REFORMA_SITE: "Reforma de Site",
-  SISTEMA_COMPLEXO: "Sistema Mais Complexo",
+  SITE_NOVO: "Criação de Site Profissional",
+  REFORMA_SITE: "Reforma / Modernização de Site",
+  SISTEMA_COMPLEXO: "Sistema Web Sob Medida",
 };
 
 async function initDashboard() {
@@ -25,6 +26,7 @@ async function initDashboard() {
     loadHealthAndStats(),
     loadNiches(),
     loadLeads(),
+    loadExecutiveSummary(),
     runEmbeddedMapsEngineCheck(),
   ]);
   if (CURRENT_LEADS.length > 0) {
@@ -37,27 +39,62 @@ async function loadHealthAndStats() {
     const res = await fetch("/api/health");
     const data = await res.json();
     const badge = document.getElementById("engine-badge");
-    if (data.scraper_engine && data.scraper_engine.online) {
-      badge.textContent = "● Docker Maps Scraper: ONLINE (8080)";
-      badge.style.background = "#dcfce7";
-      badge.style.color = "#166534";
-    } else {
-      badge.textContent = "○ Docker Maps Offline (Modo Simulação/CSV Ativo)";
-      badge.style.background = "#fef3c7";
-      badge.style.color = "#92400e";
+    if (badge) {
+      if (data.scraper_engine && data.scraper_engine.online) {
+        badge.textContent = "● Motor Docker Ativo (8080)";
+        badge.style.background = "#dcfce7";
+        badge.style.color = "#166534";
+      } else {
+        badge.textContent = "● Motor Local Instantâneo Ativo";
+        badge.style.background = "#dbeafe";
+        badge.style.color = "#1e40af";
+      }
     }
 
     const st = data.stats || {};
-    document.getElementById("stat-total").textContent = st.total_leads ?? 0;
-    document.getElementById("stat-without-site").textContent = st.without_site ?? 0;
-    document.getElementById("stat-domain-free").textContent = st.domain_available ?? 0;
-    document.getElementById("stat-site-down").textContent = st.site_down ?? 0;
-    document.getElementById("stat-complex").textContent = st.complex_system_opportunities ?? 0;
-    document.getElementById("stat-owners").textContent = `${st.assigned_eu ?? 0} / ${st.assigned_amigo ?? 0}`;
-    document.getElementById("stat-queue").textContent = st.outreach_queue_ready ?? 0;
-    document.getElementById("btn-queue-count").textContent = st.outreach_queue_ready ?? 0;
+    const setEl = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+    };
+    setEl("stat-total", st.total_leads ?? 0);
+    setEl("stat-without-site", st.without_site ?? 0);
+    setEl("stat-domain-free", st.domain_available ?? 0);
+    setEl("stat-site-down", st.site_down ?? 0);
+    setEl("stat-complex", st.complex_system_opportunities ?? 0);
+    setEl("stat-owners", `${st.assigned_eu ?? 0} / ${st.assigned_amigo ?? 0}`);
+    setEl("stat-queue", st.outreach_queue_ready ?? 0);
+    setEl("btn-queue-count", st.outreach_queue_ready ?? 0);
   } catch (err) {
     console.error("Erro ao carregar health:", err);
+  }
+}
+
+async function loadExecutiveSummary() {
+  try {
+    const city = (document.getElementById("input-city")?.value || "").trim();
+    const res = await fetch(`/api/reports/summary?city=${encodeURIComponent(city)}`);
+    if (!res.ok) return;
+    const summary = await res.json();
+    updateExecutiveSummaryUI(summary);
+  } catch (err) {
+    console.error("Erro ao carregar resumo executivo:", err);
+  }
+}
+
+function updateExecutiveSummaryUI(summary) {
+  if (!summary) return;
+  const headline = document.getElementById("exec-summary-headline");
+  const subtext = document.getElementById("exec-summary-subtext");
+  const pot = document.getElementById("stat-ticket-potential");
+
+  if (headline && summary.headline) {
+    headline.textContent = summary.headline;
+  }
+  if (subtext && summary.subheadline) {
+    subtext.textContent = summary.subheadline;
+  }
+  if (pot && summary.estimated_ticket_potential) {
+    pot.textContent = summary.estimated_ticket_potential;
   }
 }
 
@@ -69,21 +106,19 @@ async function loadNiches() {
 
 function renderNichesGrid() {
   const grid = document.getElementById("niches-grid");
+  if (!grid) return;
   grid.innerHTML = ALL_NICHES.map((n) => {
     const isSel = SELECTED_NICHES.has(n.slug);
     const offerLabel = SERVICE_LABELS[n.recommended_service || n.recommended_offer] || n.recommended_offer;
     return `
       <div class="niche-chip ${isSel ? "selected" : ""}" onclick="toggleNiche('${n.slug}')">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-          <strong style="font-size:0.9rem;">${isSel ? "☑" : "☐"} ${n.name}</strong>
-          <span style="font-size:0.7rem; background:#e5e7eb; padding:2px 6px; border-radius:4px; font-weight:700;">
+          <strong style="font-size:0.92rem;">${isSel ? "✅" : "⬜"} ${n.name}</strong>
+          <span style="font-size:0.68rem; background:#e2e8f0; color:#1e293b; padding:2px 7px; border-radius:999px; font-weight:800;">
             ${offerLabel}
           </span>
         </div>
-        <div style="font-size:0.78rem; color:var(--text-muted);">${n.description}</div>
-        <div style="font-size:0.72rem; color:var(--brand-blue); font-weight:600;">
-          CNAE: ${(n.cnae_codes || []).join(", ")}
-        </div>
+        <div style="font-size:0.79rem; color:var(--text-muted); margin-top:2px;">${n.description}</div>
       </div>
     `;
   }).join("");
@@ -108,23 +143,24 @@ function selectAllNiches(selectAll) {
 }
 
 async function runSearchJob() {
-  const city = document.getElementById("input-city").value.trim() || "Campinas";
+  const city = document.getElementById("input-city").value.trim() || "Piracicaba";
   const state = document.getElementById("input-state").value.trim() || "SP";
   const customKw = document.getElementById("input-custom-kw").value.trim();
-  const sourceMode = document.getElementById("input-source-mode").value;
-  const depth = parseInt(document.getElementById("input-depth").value || "5", 10);
+  const sourceMode = document.getElementById("input-source-mode")?.value || "auto";
+  const depth = parseInt(document.getElementById("input-depth")?.value || "5", 10);
+  const includeCnae = document.getElementById("input-include-cnae")?.checked ?? true;
   const slugs = Array.from(SELECTED_NICHES);
 
   if (slugs.length === 0 && !customKw) {
-    alert("Selecione pelo menos 1 nicho (ou digite um termo extra) antes de rodar a busca!");
+    alert("Selecione pelo menos 1 nicho acima antes de gerar o relatório!");
     return;
   }
 
   const btn = document.getElementById("btn-run-job");
   const fb = document.getElementById("job-feedback");
   btn.disabled = true;
-  btn.textContent = "Executando Raio-X...";
-  fb.textContent = `Buscando empresas em ${city}-${state} e passando pelo motor de Raio-X das 8 ferramentas...`;
+  btn.textContent = "⏳ Gerando Relatórios Prontos...";
+  fb.innerHTML = `<span style="color:var(--brand-blue); font-weight:700;">⏳ Investigando empresas em ${city}-${state} nas 8 ferramentas embutidas e montando seus relatórios prontos...</span>`;
 
   try {
     const res = await fetch("/api/jobs", {
@@ -144,27 +180,358 @@ async function runSearchJob() {
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(data.detail || "Erro ao rodar job");
+      throw new Error(data.detail || "Erro ao gerar relatório");
     }
-    fb.innerHTML = `<strong style="color:var(--emerald);">✓ Busca concluída!</strong> ${data.total_leads_processed} leads qualificados com Raio-X das 8 ferramentas embutidas e scripts prontos.`;
-    await Promise.all([loadHealthAndStats(), loadLeads(), runEmbeddedMapsEngineCheck()]);
+
+    let cnaeCount = 0;
+    if (includeCnae) {
+      try {
+        const resCnae = await fetch("/api/tools/cnpj-discover", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            city,
+            state,
+            niche_slugs: slugs.length ? slugs : ["clinicas-odontologicas"],
+            days_opened: 90,
+            import_as_leads: true,
+          }),
+        });
+        if (resCnae.ok) {
+          const cnaeData = await resCnae.json();
+          cnaeCount = cnaeData.imported_count || 0;
+        }
+      } catch (_) {
+        // Ignora silenciosamente se falhar complemento CNAE
+      }
+    }
+
+    // Limpa filtros restritivos para exibir os relatórios recém-gerados da cidade
+    const searchInput = document.getElementById("filter-search");
+    if (searchInput) searchInput.value = city;
+
+    await Promise.all([
+      loadHealthAndStats(),
+      loadLeads(),
+      loadExecutiveSummary(),
+      runEmbeddedMapsEngineCheck(),
+    ]);
+
+    if (data.executive_summary) {
+      updateExecutiveSummaryUI(data.executive_summary);
+    }
+
+    const totalReady = (data.total_leads_processed || 0) + cnaeCount;
+    fb.innerHTML = `
+      <div style="background:#ecfdf5; border:1px solid #6ee7b7; color:#065f46; padding:10px 14px; border-radius:8px; font-weight:700;">
+        ✅ Relatório Pronto de ${city}-${state} concluído! ${totalReady} fichas completas de clientes geradas abaixo com diagnóstico das 8 ferramentas e mensagem de WhatsApp pronta.
+      </div>
+    `;
+
     if (CURRENT_LEADS.length > 0) {
       populateEmbeddedToolsFromLead(CURRENT_LEADS[0]);
     }
   } catch (err) {
-    fb.innerHTML = `<strong style="color:var(--crimson);">✗ Erro:</strong> ${err.message}`;
+    fb.innerHTML = `
+      <div style="background:#fef2f2; border:1px solid #fca5a5; color:#991b1b; padding:10px 14px; border-radius:8px; font-weight:700;">
+        ✗ Não foi possível gerar o relatório: ${err.message}
+      </div>
+    `;
   } finally {
     btn.disabled = false;
-    btn.textContent = "Buscar & Rodar Raio-X";
+    btn.textContent = "📊 Gerar Relatórios Prontos";
   }
 }
 
 // ============================================================================
-// AS 8 FERRAMENTAS 100% EMBUTIDAS NO PAINEL (ZERO LINKS EXTERNOS)
+// ABAS RÁPIDAS EM 1 CLIQUE & ALTERNÂNCIA DE VISÃO (FICHAS vs TABELA)
+// ============================================================================
+
+function applyQuickTab(tabKey) {
+  document.querySelectorAll(".tab-pill").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tabKey);
+  });
+
+  const serviceEl = document.getElementById("filter-service");
+  const ownerEl = document.getElementById("filter-owner");
+  const painEl = document.getElementById("filter-pain");
+
+  if (serviceEl) serviceEl.value = "";
+  if (ownerEl) ownerEl.value = "";
+  if (painEl) painEl.value = "";
+
+  if (tabKey === "SITE_NOVO" && serviceEl) {
+    serviceEl.value = "SITE_NOVO";
+  } else if (tabKey === "REFORMA_SITE" && serviceEl) {
+    serviceEl.value = "REFORMA_SITE";
+  } else if (tabKey === "SISTEMA_COMPLEXO" && serviceEl) {
+    serviceEl.value = "SISTEMA_COMPLEXO";
+  } else if (tabKey === "EU" && ownerEl) {
+    ownerEl.value = "eu";
+  } else if (tabKey === "AMIGO" && ownerEl) {
+    ownerEl.value = "amigo";
+  }
+
+  loadLeads();
+}
+
+function toggleDomainFreeFilter() {
+  const cb = document.getElementById("filter-domain-free");
+  if (!cb) return;
+  cb.checked = !cb.checked;
+  loadLeads();
+}
+
+function toggleViewMode() {
+  VIEW_MODE = VIEW_MODE === "cards" ? "table" : "cards";
+  const cardsGrid = document.getElementById("ready-reports-grid");
+  const tableWrap = document.getElementById("compact-table-wrapper");
+  const btn = document.getElementById("btn-toggle-view");
+
+  if (VIEW_MODE === "cards") {
+    if (cardsGrid) cardsGrid.style.display = "flex";
+    if (tableWrap) tableWrap.style.display = "none";
+    if (btn) btn.textContent = "📋 Alternar para Tabela Compacta";
+  } else {
+    if (cardsGrid) cardsGrid.style.display = "none";
+    if (tableWrap) tableWrap.style.display = "block";
+    if (btn) btn.textContent = "📊 Alternar para Fichas de Relatório Prontas";
+  }
+}
+
+// ============================================================================
+// CARREGAMENTO E RENDERIZAÇÃO DAS FICHAS DE RELATÓRIO PRONTAS
+// ============================================================================
+
+async function loadLeads() {
+  const pain = document.getElementById("filter-pain")?.value || "";
+  const service = document.getElementById("filter-service")?.value || "";
+  const owner = document.getElementById("filter-owner")?.value || "";
+  const status = document.getElementById("filter-status")?.value || "";
+  const search = (document.getElementById("filter-search")?.value || "").trim();
+  const domFree = document.getElementById("filter-domain-free")?.checked || false;
+
+  const params = new URLSearchParams();
+  if (pain) params.set("primary_pain", pain);
+  if (service) params.set("recommended_service", service);
+  if (owner) params.set("assigned_to", owner);
+  if (status) params.set("lead_status", status);
+  if (search) params.set("search_query", search);
+  if (domFree) params.set("only_domain_available", "true");
+
+  const res = await fetch(`/api/leads?${params.toString()}`);
+  CURRENT_LEADS = await res.json();
+  renderReadyReportsGrid();
+  renderLeadsTable();
+}
+
+function buildFallbackReadyReport(l) {
+  const serviceLabel = SERVICE_LABELS[l.recommended_service] || "Criação de Site Profissional";
+  const ticket =
+    l.recommended_service === "SISTEMA_COMPLEXO"
+      ? "R$ 3.500 a R$ 8.000"
+      : l.recommended_service === "REFORMA_SITE"
+      ? "R$ 1.800 a R$ 3.500"
+      : "R$ 1.200 a R$ 2.500";
+  return {
+    urgency_badge: l.opportunity_score >= 85 ? "🔥 Prioridade Máxima" : "⚡ Boa Oportunidade",
+    what_to_sell: serviceLabel,
+    ticket_range: ticket,
+    executive_pitch: l.pain_summary || "Oportunidade identificada nas 8 ferramentas.",
+    bullets: [
+      {
+        icon: "📍",
+        label: "Presença no Google Maps & CNPJ",
+        status: "ok",
+        text: `Nota ⭐ ${l.review_rating || 0} (${l.review_count || 0} avaliações) em ${l.city}-${l.state}.${l.cnpj ? " CNPJ: " + l.cnpj : ""}`,
+      },
+      {
+        icon: "🌐",
+        label: "Domínio Oficial (Registro.br)",
+        status: l.domain_available_br ? "opportunity" : "neutral",
+        text: l.domain_available_br
+          ? `O domínio ${l.suggested_domain} está LIVRE para registro imediato.`
+          : `Domínio ${l.suggested_domain} já registrado.`,
+      },
+      {
+        icon: "🩺",
+        label: "Saúde do Site & Histórico Web Archive",
+        status: !l.has_website || !l.site_in_air ? "urgent" : "ok",
+        text: !l.has_website
+          ? "Empresa não possui site próprio (depende apenas de redes sociais)."
+          : !l.site_in_air
+          ? "Site cadastrado está FORA DO AR no momento."
+          : `Site online (CMS: ${l.detected_cms || "Detectado"}).`,
+      },
+      {
+        icon: "⚙️",
+        label: "Tecnologia & Sistemas Faltantes",
+        status: l.has_complex_system ? "ok" : "opportunity",
+        text: l.has_complex_system
+          ? "Já possui sistema integrado."
+          : "Não possui sistema online de agendamento, orçamento ou área do cliente.",
+      },
+    ],
+  };
+}
+
+function renderReadyReportsGrid() {
+  const grid = document.getElementById("ready-reports-grid");
+  if (!grid) return;
+
+  if (!CURRENT_LEADS.length) {
+    grid.innerHTML = `
+      <div style="text-align:center; padding:42px 20px; background:#faf9f5; border:1.5px dashed var(--border-warm); border-radius:12px; color:var(--text-muted);">
+        <div style="font-size:1.15rem; font-weight:800; color:var(--text-ink); margin-bottom:6px;">
+          Nenhum relatório encontrado para este filtro
+        </div>
+        <div style="font-size:0.9rem; margin-bottom:14px;">
+          Limpe o campo de busca acima ou clique em <strong>📊 Gerar Relatórios Prontos</strong> no Passo 1 para analisar uma nova cidade.
+        </div>
+        <button class="btn-secondary" onclick="document.getElementById('filter-search').value=''; applyQuickTab('ALL');">
+          Mostrar Todos os Relatórios Salvos
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  grid.innerHTML = CURRENT_LEADS.map((l) => {
+    const sc = l.outreach_scripts || {};
+    const rr = sc.ready_report || buildFallbackReadyReport(l);
+    const scoreClass =
+      l.opportunity_score >= 85 ? "score-high" : l.opportunity_score >= 70 ? "score-med" : "score-low";
+    const bullets = rr.bullets || [];
+
+    const bulletsHtml = bullets
+      .map(
+        (b) => `
+        <div class="report-bullet-item status-${b.status || "neutral"}">
+          <div class="report-bullet-label">
+            <span>${b.icon || "•"}</span>
+            <span>${b.label}</span>
+          </div>
+          <div class="report-bullet-text">${b.text}</div>
+        </div>
+      `
+      )
+      .join("");
+
+    return `
+      <article class="report-card">
+        <!-- Topo da Ficha do Cliente -->
+        <div class="report-card-header">
+          <div>
+            <h3 class="report-company-name">
+              <input type="checkbox" class="lead-checkbox no-print" value="${l.id}" title="Selecionar relatório" />
+              <span>${l.title}</span>
+              <span class="badge-score ${scoreClass}">${rr.urgency_badge || "Prioridade"} • ${l.opportunity_score}/100</span>
+            </h3>
+            <div class="report-meta-line">
+              <span>🏷️ <strong>${l.category || l.niche_slug}</strong></span>
+              <span>📍 ${l.city}-${l.state}</span>
+              <span>⭐ ${l.review_rating || 0} (${l.review_count || 0} avaliações)</span>
+              ${l.phone ? `<span>📞 <strong>${l.phone}</strong></span>` : ""}
+              ${l.emails ? `<span>✉️ ${l.emails}</span>` : ""}
+              ${l.cnpj ? `<span style="color:var(--brand-blue); font-weight:700;">🏢 CNPJ: ${l.cnpj}</span>` : ""}
+            </div>
+          </div>
+
+          <!-- Divisão da Dupla (Eu / Amigo) e Status -->
+          <div class="no-print" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <select onchange="updateLeadOwnerOrStatus(${l.id}, {assigned_to: this.value})" style="padding:7px 10px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.82rem; font-weight:700;">
+              <option value="nao_atribuido" ${l.assigned_to === "nao_atribuido" ? "selected" : ""}>👤 Sem Dono</option>
+              <option value="eu" ${l.assigned_to === "eu" ? "selected" : ""}>🙋‍♂️ Minha Carteira (Eu)</option>
+              <option value="amigo" ${l.assigned_to === "amigo" ? "selected" : ""}>🤝 Carteira do Amigo</option>
+            </select>
+            <select onchange="updateLeadOwnerOrStatus(${l.id}, {lead_status: this.value})" style="padding:7px 10px; border:1px solid var(--border-warm); border-radius:8px; font-size:0.82rem; font-weight:700;">
+              <option value="novo" ${l.lead_status === "novo" ? "selected" : ""}>📌 Novo Relatório</option>
+              <option value="analisado" ${l.lead_status === "analisado" ? "selected" : ""}>🔍 Analisado</option>
+              <option value="contatado" ${l.lead_status === "contatado" ? "selected" : ""}>💬 Já Chamei</option>
+              <option value="respondeu" ${l.lead_status === "respondeu" ? "selected" : ""}>🙋 Cliente Respondeu</option>
+              <option value="reuniao" ${l.lead_status === "reuniao" ? "selected" : ""}>📅 Reunião Marcada</option>
+              <option value="fechado" ${l.lead_status === "fechado" ? "selected" : ""}>💰 Fechado (Cliente!)</option>
+              <option value="descartado" ${l.lead_status === "descartado" ? "selected" : ""}>✕ Descartado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Banner Comercial: O QUE VENDER + TICKET SUGERIDO -->
+        <div class="report-sell-banner service-${l.recommended_service || "SITE_NOVO"}">
+          <div>
+            <div style="font-size:0.74rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; opacity:0.85;">
+               Recomendação Pronta de Venda
+            </div>
+            <div style="font-size:1.08rem; font-weight:900; margin-top:2px;">
+              🎯 Vender: ${rr.what_to_sell}
+            </div>
+            <div style="font-size:0.86rem; margin-top:3px; opacity:0.95;">
+              ${rr.executive_pitch}
+            </div>
+          </div>
+          <div class="report-ticket-pill">
+            💰 Ticket Sugerido: ${rr.ticket_range}
+          </div>
+        </div>
+
+        <!-- O Que Descobrimos nas 8 Ferramentas (4 Blocos Mastigados) -->
+        <div class="report-bullets-grid">
+          ${bulletsHtml}
+        </div>
+
+        <!-- Central de Contato Pronta em 1 Clique -->
+        <div class="report-outreach-box no-print">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <strong style="font-size:0.85rem; color:#1e293b;">
+              💬 Mensagem Pronta para Enviar ao Cliente (Personalizada com os dados do relatório):
+            </strong>
+            <span id="copy-feedback-${l.id}" style="font-size:0.78rem; color:var(--emerald); font-weight:700;"></span>
+          </div>
+          <textarea id="card-wpp-${l.id}" class="report-outreach-textarea">${sc.whatsapp || ""}</textarea>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              ${
+                sc.whatsapp_url
+                  ? `<a href="${sc.whatsapp_url}" target="_blank" class="btn-whatsapp" onclick="markLeadContacted(${l.id})">🟢 Chamar no WhatsApp Agora ↗</a>`
+                  : `<button class="btn-secondary" onclick="copyCardMessage(${l.id})">📋 Copiar Abordagem</button>`
+              }
+              <button class="btn-secondary" onclick="copyCardMessage(${l.id})">
+                📋 Copiar Mensagem
+              </button>
+              <button class="btn-secondary" onclick="enqueueSingleLead(${l.id}, 'whatsapp')">
+                🤖 Guardar na Fila do Robô Futuro
+              </button>
+            </div>
+            <button class="btn-secondary" onclick="openLeadModal(${l.id})">
+              🔍 Ver E-mail, Direct &amp; Detalhes Técnicos
+            </button>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function copyCardMessage(leadId) {
+  const el = document.getElementById(`card-wpp-${leadId}`);
+  const fb = document.getElementById(`copy-feedback-${leadId}`);
+  if (!el) return;
+  el.select();
+  navigator.clipboard.writeText(el.value);
+  if (fb) {
+    fb.textContent = "✓ Mensagem copiada!";
+    setTimeout(() => {
+      fb.textContent = "";
+    }, 2500);
+  }
+}
+
+// ============================================================================
+// AS 8 FERRAMENTAS 100% EMBUTIDAS NO PAINEL (BASTIDORES E MODAL)
 // ============================================================================
 
 async function runEmbeddedMapsEngineCheck() {
-  const city = (document.getElementById("input-city")?.value || "Campinas").trim();
+  const city = (document.getElementById("input-city")?.value || "Piracicaba").trim();
   const state = (document.getElementById("input-state")?.value || "SP").trim();
   const box = document.getElementById("embedded-maps-box");
   if (!box) return;
@@ -212,7 +579,7 @@ async function runEmbeddedCnpjLookup(importLead = false) {
   const input = document.getElementById("embedded-cnpj-input")?.value.trim() || "";
   const box = document.getElementById("casadosdados-box");
   if (!input) {
-    alert("Digite um CNPJ (14 números) no campo do módulo Casa dos Dados / CNPJ.");
+    alert("Digite um CNPJ (14 números) para consulta.");
     return;
   }
   const firstNiche = Array.from(SELECTED_NICHES)[0] || "geral";
@@ -238,24 +605,18 @@ async function runEmbeddedCnpjLookup(importLead = false) {
           <span class="embedded-pill">Abertura: ${c.data_inicio_atividade || "N/D"}</span>
         </div>
         <button class="btn-secondary" style="padding:3px 9px; font-size:0.74rem;" onclick="runEmbeddedCnpjLookup(true)">
-          + Converter este CNPJ em Lead
+          + Gerar Relatório para este CNPJ
         </button>
       </div>
       <div style="margin-top:4px; font-size:0.78rem; color:var(--text-muted);">
         <strong>Razão Social:</strong> ${c.razao_social} • <strong>CNPJ:</strong> ${c.cnpj_formatted}<br/>
         <strong>CNAE Principal:</strong> ${c.cnae_fiscal} — ${c.cnae_fiscal_descricao}<br/>
-        <strong>Quadro Societário (QSA):</strong> ${sociosHtml || "Não informado"} • <strong>Capital:</strong> R$ ${(c.capital_social || 0).toLocaleString("pt-BR")}<br/>
-        <strong>Contato Receita:</strong> 📞 ${c.telefone || "Sem telefone"} • ✉️ ${c.email || "Sem e-mail"} • 📍 ${c.municipio}-${c.uf}<br/>
-        <strong>Domínio Sugerido:</strong> <code>${c.suggested_domain}</code>
+        <strong>Quadro Societário (QSA):</strong> ${sociosHtml || "Não informado"}<br/>
+        <strong>Contato Receita:</strong> 📞 ${c.telefone || "Sem telefone"} • ✉️ ${c.email || "Sem e-mail"} • 📍 ${c.municipio}-${c.uf}
       </div>
-      ${
-        data.imported_lead
-          ? `<div style="margin-top:6px; color:var(--emerald); font-weight:700;">✓ Empresa convertida e salva na tabela de Leads (#${data.imported_lead.id})!</div>`
-          : ""
-      }
     `;
     if (data.imported_lead) {
-      await Promise.all([loadHealthAndStats(), loadLeads()]);
+      await Promise.all([loadHealthAndStats(), loadLeads(), loadExecutiveSummary()]);
     }
   } catch (err) {
     box.innerHTML = `<span class="embedded-pill err">✗ ${err.message}</span>`;
@@ -263,11 +624,11 @@ async function runEmbeddedCnpjLookup(importLead = false) {
 }
 
 async function runEmbeddedCnaeDiscovery(importAsLeads = true) {
-  const city = (document.getElementById("input-city")?.value || "Campinas").trim();
+  const city = (document.getElementById("input-city")?.value || "Piracicaba").trim();
   const state = (document.getElementById("input-state")?.value || "SP").trim();
   const slugs = Array.from(SELECTED_NICHES);
   const box = document.getElementById("casadosdados-box");
-  box.innerHTML = `Varrendo empresas recém-abertas por CNAE em ${city}-${state}...`;
+  if (box) box.innerHTML = `Varrendo empresas recém-abertas por CNAE em ${city}-${state}...`;
 
   try {
     const res = await fetch("/api/tools/cnpj-discover", {
@@ -285,39 +646,23 @@ async function runEmbeddedCnaeDiscovery(importAsLeads = true) {
     const disc = data.discovery || {};
     const companies = disc.companies || [];
 
-    box.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
-        <span class="embedded-pill ok">✓ ${companies.length} Empresas Recém-Abertas Encontradas (${city}-${state})</span>
-        ${
-          data.imported_count > 0
-            ? `<span class="embedded-pill ok">+${data.imported_count} importadas p/ Tabela de Leads!</span>`
-            : ""
-        }
-      </div>
-      <div style="max-height:155px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
-        ${companies
-          .map(
-            (c) => `
-          <div style="padding:6px 8px; background:#ffffff; border:1px solid var(--border-warm); border-radius:6px; font-size:0.77rem;">
-            <div style="display:flex; justify-content:space-between; gap:6px;">
-              <strong>${c.nome_fantasia}</strong>
-              <span style="color:var(--brand-blue); font-weight:700;">Abertura: ${c.opened_date}</span>
-            </div>
-            <div style="color:var(--text-muted);">
-              CNPJ: <code>${c.cnpj}</code> • CNAE: <code>${c.cnae_fiscal}</code> • Sócio: ${c.socio_administrador}<br/>
-              📞 ${c.phone} • ✉️ ${c.email} • Domínio Livre: <code>${c.suggested_domain}</code>
-            </div>
-          </div>
-        `
-          )
-          .join("")}
-      </div>
-    `;
+    if (box) {
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+          <span class="embedded-pill ok">✓ ${companies.length} Empresas Recém-Abertas Encontradas (${city}-${state})</span>
+          ${
+            data.imported_count > 0
+              ? `<span class="embedded-pill ok">+${data.imported_count} relatórios prontos gerados!</span>`
+              : ""
+          }
+        </div>
+      `;
+    }
     if (importAsLeads) {
-      await Promise.all([loadHealthAndStats(), loadLeads()]);
+      await Promise.all([loadHealthAndStats(), loadLeads(), loadExecutiveSummary()]);
     }
   } catch (err) {
-    box.innerHTML = `<span class="embedded-pill err">Erro ao descobrir empresas por CNAE: ${err.message}</span>`;
+    if (box) box.innerHTML = `<span class="embedded-pill err">Erro ao descobrir empresas por CNAE: ${err.message}</span>`;
   }
 }
 
@@ -335,24 +680,14 @@ function renderRegistroBrBox(data) {
     out.innerHTML = `
       <div style="margin-bottom:4px;">
         <span class="embedded-pill ok">✓ DOMÍNIO LIVRE NO REGISTRO.BR: <strong>${data.domain}</strong></span>
-        <span class="embedded-pill">Status: Disponível para Registro Imediato</span>
       </div>
-      <div style="font-size:0.76rem; color:var(--text-muted); margin-bottom:4px;">
-        Argumento de venda pronto: você pode registrar <code>${data.domain}</code> hoje para o cliente!
-      </div>
-      <div><strong>3 Variações Testadas:</strong> ${variationsHtml}</div>
+      <div><strong>Variações Testadas:</strong> ${variationsHtml}</div>
     `;
   } else {
     out.innerHTML = `
       <div style="margin-bottom:4px;">
         <span class="embedded-pill warn">● DOMÍNIO JÁ REGISTRADO: <strong>${data.domain}</strong></span>
         ${data.owner_name ? `<span class="embedded-pill">Titular: ${data.owner_name}</span>` : ""}
-        ${data.owner_handle ? `<span class="embedded-pill">Doc/ID: ${data.owner_handle}</span>` : ""}
-      </div>
-      <div style="font-size:0.76rem; color:var(--text-muted); margin-bottom:4px;">
-        ${data.created_at ? `Criado em: <strong>${data.created_at}</strong> • ` : ""}
-        ${data.expires_at ? `Expira em: <strong>${data.expires_at}</strong> • ` : ""}
-        DNS: <code>${(data.nameservers || []).join(", ") || "Padrão"}</code>
       </div>
       <div><strong>Alternativas .com.br Livres:</strong> ${variationsHtml}</div>
     `;
@@ -362,9 +697,9 @@ function renderRegistroBrBox(data) {
 async function checkQuickDomain(customQuery) {
   const inputEl = document.getElementById("quick-domain-input");
   const query = (customQuery || inputEl?.value || "").trim();
-  const city = (document.getElementById("input-city")?.value || "Campinas").trim();
+  const city = (document.getElementById("input-city")?.value || "Piracicaba").trim();
   const out = document.getElementById("quick-domain-result");
-  if (!query) return;
+  if (!query || !out) return;
   if (inputEl && customQuery) inputEl.value = customQuery;
   out.innerHTML = "Consultando servidor RDAP Oficial do Registro.br...";
   try {
@@ -391,13 +726,8 @@ function renderSiteHealthBox(data, targetUrl) {
   box.innerHTML = `
     <div style="display:flex; flex-wrap:wrap; gap:4px; margin-bottom:4px;">
       <span class="embedded-pill ${pillClass}">${statusTitle}</span>
-      <span class="embedded-pill">IP / DNS: <strong>${data.resolved_ip || (data.dns_ok ? "Resolvido" : "Falha DNS / Sem Host")}</strong></span>
-      <span class="embedded-pill ${data.has_ssl ? "ok" : "warn"}">${data.has_ssl ? "🔒 HTTPS Válido" : "⚠️ Sem SSL / HTTP Inseguro"}</span>
-    </div>
-    <div style="font-size:0.76rem; color:var(--text-muted);">
-      <strong>Alvo:</strong> <code>${targetUrl || data.final_url || "Nenhum"}</code> •
-      <strong>Emissor SSL:</strong> ${data.ssl_issuer || "N/A"} •
-      <strong>Veredito:</strong> <code>${data.verdict || "ANALISADO"}</code>
+      <span class="embedded-pill">IP / DNS: <strong>${data.resolved_ip || (data.dns_ok ? "Resolvido" : "Sem Host")}</strong></span>
+      <span class="embedded-pill ${data.has_ssl ? "ok" : "warn"}">${data.has_ssl ? "🔒 HTTPS Válido" : "⚠️ Sem SSL"}</span>
     </div>
   `;
 }
@@ -406,7 +736,7 @@ async function runEmbeddedSiteHealth(customUrl) {
   const inputEl = document.getElementById("quick-health-input");
   const url = (customUrl || inputEl?.value || "").trim();
   const box = document.getElementById("quick-health-result");
-  if (!url) return;
+  if (!url || !box) return;
   if (inputEl && customUrl) inputEl.value = customUrl;
   box.innerHTML = `Testando resolução DNS, certificado SSL e latência HTTP de <code>${url}</code>...`;
   try {
@@ -429,7 +759,6 @@ function renderAll4RightColumnScanners(reports, leadOrXray, targetLabel) {
     if (lbl) lbl.textContent = targetLabel || "Analisado";
   });
 
-  // 5. BuiltWith Box
   const bwBox = document.getElementById("embedded-builtwith-box");
   if (bwBox) {
     const pixels = (bw.analytics_pixels || []).length
@@ -443,14 +772,12 @@ function renderAll4RightColumnScanners(reports, leadOrXray, targetLabel) {
       <div style="margin-bottom:4px;">
         <span class="embedded-pill">Servidor: <strong>${bw.server || "Não detectado"}</strong></span>
         <span class="embedded-pill">CDN: <strong>${bw.cdn || "Nenhuma"}</strong></span>
-        <span class="embedded-pill">Infra: <strong>${bw.hosting_hints || "Padrão"}</strong></span>
       </div>
-      <div style="margin-bottom:3px;"><strong>Pixels &amp; Analytics:</strong> ${pixels}</div>
-      <div><strong>Widgets de Conversão:</strong> ${chats}</div>
+      <div style="margin-bottom:3px;"><strong>Pixels:</strong> ${pixels}</div>
+      <div><strong>Conversão:</strong> ${chats}</div>
     `;
   }
 
-  // 6. Wappalyzer Box
   const wpBox = document.getElementById("embedded-wappalyzer-box");
   if (wpBox) {
     const jsList = (wp.js_frameworks || ["Sem JS SPA"]).map((j) => `<span class="embedded-pill">${j}</span>`).join("");
@@ -461,73 +788,45 @@ function renderAll4RightColumnScanners(reports, leadOrXray, targetLabel) {
       <div style="margin-bottom:4px;"><strong>UI &amp; Estilo:</strong> ${cssList}</div>
       <div>
         <span class="embedded-pill ${seo.is_mobile_viewport ? "ok" : "err"}">${seo.is_mobile_viewport ? "✓ Mobile Viewport OK" : "✗ Sem Mobile Viewport"}</span>
-        <span class="embedded-pill ${seo.has_title ? "ok" : "warn"}">${seo.has_title ? "✓ Tag Title" : "✗ Sem Title"}</span>
-        <span class="embedded-pill ${seo.has_meta_description ? "ok" : "warn"}">${seo.has_meta_description ? "✓ Meta Description" : "✗ Sem Meta Description"}</span>
-        <span class="embedded-pill ${seo.has_opengraph ? "ok" : "warn"}">${seo.has_opengraph ? "✓ OpenGraph" : "○ Sem OpenGraph"}</span>
       </div>
     `;
   }
 
-  // 7. WhatCMS Box
   const wcBox = document.getElementById("embedded-whatcms-box");
   if (wcBox) {
     const opps = (wc.missing_systems_opportunities || [])
       .map((o) => `<li><strong>Oportunidade:</strong> ${o}</li>`)
       .join("");
-    const plugins = (wc.detected_plugins || []).length
-      ? wc.detected_plugins.join(", ")
-      : "Nenhum plugin exposto";
     wcBox.innerHTML = `
       <div style="margin-bottom:4px;">
-        <span class="embedded-pill ${wc.cms_name === "Sem Site" || wc.cms_name === "Wix" ? "warn" : "ok"}">CMS: <strong>${wc.cms_name || leadOrXray.detected_cms || "Desconhecido"}</strong> (${wc.cms_version || "Padrão"})</span>
-        <span class="embedded-pill">E-commerce: <strong>${wc.ecommerce_engine || "Nenhum"}</strong></span>
+        <span class="embedded-pill ${wc.cms_name === "Sem Site" || wc.cms_name === "Wix" ? "warn" : "ok"}">CMS: <strong>${wc.cms_name || leadOrXray.detected_cms || "Desconhecido"}</strong></span>
         <span class="embedded-pill ${wc.has_complex_system ? "ok" : "warn"}">${wc.has_complex_system ? "Possui Sistema Integrado" : "Sem Sistema de Agendamento/Portal"}</span>
       </div>
-      <div style="font-size:0.76rem; color:var(--text-muted); margin-bottom:4px;">
-        <strong>Plugins detectados:</strong> ${plugins}
-      </div>
-      ${
-        opps
-          ? `<ul style="margin:4px 0 0; padding-left:18px; font-size:0.76rem; color:var(--brand-blue);">${opps}</ul>`
-          : ""
-      }
+      ${opps ? `<ul style="margin:4px 0 0; padding-left:18px; font-size:0.76rem; color:var(--brand-blue);">${opps}</ul>` : ""}
     `;
   }
 
-  // 8. Web Archive Box
   const wbBox = document.getElementById("embedded-wayback-box");
   if (wbBox) {
     const firstSeen = wb.wayback_first_seen || leadOrXray.wayback_first_seen || "Sem registro";
     const lastSeen = wb.wayback_last_seen || leadOrXray.wayback_last_seen || "Sem registro";
     const days = wb.wayback_days_since_update ?? leadOrXray.wayback_days_since_update;
-    const tl = (wb.snapshots_timeline || [])
-      .slice(-5)
-      .map((s) => `<span class="embedded-pill">${s.date} (HTTP ${s.status})</span>`)
-      .join("");
-
     wbBox.innerHTML = `
-      <div style="margin-bottom:4px;">
+      <div>
         <span class="embedded-pill ${days && days > 365 ? "warn" : "ok"}">
           ${days !== null && days !== undefined ? `⏱️ ${days} dias desde a última captura` : "Sem capturas no Archive.org"}
         </span>
-        <span class="embedded-pill">1ª Captura: <strong>${firstSeen}</strong></span>
+        <span class="embedded-pill">1ª: <strong>${firstSeen}</strong></span>
         <span class="embedded-pill">Última: <strong>${lastSeen}</strong></span>
       </div>
-      <div style="font-size:0.76rem; color:var(--text-muted);">
-        <strong>Veredito Histórico:</strong> <code>${wb.abandonment_verdict || "ANALISADO"}</code>
-      </div>
-      ${tl ? `<div style="margin-top:4px;"><strong>Linha do Tempo CDX:</strong> ${tl}</div>` : ""}
     `;
   }
 }
 
 async function runEmbeddedFullXrayInput() {
   const url = (document.getElementById("quick-xray-url")?.value || "").trim();
-  const city = (document.getElementById("input-city")?.value || "Campinas").trim();
-  if (!url) {
-    alert("Digite uma URL ou domínio no campo 'URL p/ Raio-X' (ex: http://mastergroup-wix-demo.com.br).");
-    return;
-  }
+  const city = (document.getElementById("input-city")?.value || "Piracicaba").trim();
+  if (!url) return;
   const bwBox = document.getElementById("embedded-builtwith-box");
   if (bwBox) bwBox.innerHTML = `Executando Raio-X profundo em <code>${url}</code>...`;
 
@@ -586,41 +885,14 @@ function populateEmbeddedToolsFromLead(lead) {
   renderAll4RightColumnScanners(reports, lead, `${lead.title} (${lead.website || "Sem site"})`);
 }
 
-function inspectLeadInEmbeddedTools(leadId) {
-  const lead = CURRENT_LEADS.find((item) => item.id === leadId);
-  if (!lead) return;
-  populateEmbeddedToolsFromLead(lead);
-  window.scrollTo({ top: 320, behavior: "smooth" });
-}
-
-async function loadLeads() {
-  const pain = document.getElementById("filter-pain").value;
-  const service = document.getElementById("filter-service").value;
-  const owner = document.getElementById("filter-owner").value;
-  const status = document.getElementById("filter-status").value;
-  const search = document.getElementById("filter-search").value.trim();
-  const domFree = document.getElementById("filter-domain-free").checked;
-
-  const params = new URLSearchParams();
-  if (pain) params.set("primary_pain", pain);
-  if (service) params.set("recommended_service", service);
-  if (owner) params.set("assigned_to", owner);
-  if (status) params.set("lead_status", status);
-  if (search) params.set("search_query", search);
-  if (domFree) params.set("only_domain_available", "true");
-
-  const res = await fetch(`/api/leads?${params.toString()}`);
-  CURRENT_LEADS = await res.json();
-  renderLeadsTable();
-}
-
 function renderLeadsTable() {
   const tbody = document.getElementById("leads-tbody");
+  if (!tbody) return;
   if (!CURRENT_LEADS.length) {
     tbody.innerHTML = `
       <tr>
         <td colspan="7" style="text-align:center; padding:32px; color:var(--text-muted);">
-          Nenhum lead encontrado para os filtros selecionados. Clique em <strong>Buscar &amp; Rodar Raio-X</strong> acima!
+          Nenhum relatório encontrado para os filtros selecionados.
         </td>
       </tr>
     `;
@@ -640,15 +912,12 @@ function renderLeadsTable() {
     return `
       <tr>
         <td><input type="checkbox" class="lead-checkbox" value="${l.id}" /></td>
-        <td>
-          <span class="badge-score ${scoreClass}">${l.opportunity_score}/100</span>
-        </td>
+        <td><span class="badge-score ${scoreClass}">${l.opportunity_score}/100</span></td>
         <td>
           <div style="font-weight:700; font-size:0.95rem;">${l.title}</div>
           <div style="font-size:0.78rem; color:var(--text-muted);">
             ${l.category || l.niche_slug} • ${l.city}-${l.state} • ⭐ ${l.review_rating} (${l.review_count} aval.)
           </div>
-          ${l.cnpj ? `<div style="font-size:0.73rem; color:var(--brand-blue);">CNPJ: ${l.cnpj} ${l.opened_date ? `(Abertura: ${l.opened_date})` : ""}</div>` : ""}
         </td>
         <td>
           <div style="margin-bottom:4px;">
@@ -656,19 +925,8 @@ function renderLeadsTable() {
             <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-left:4px;">→ ${serviceLabel}</span>
           </div>
           <div style="font-size:0.8rem; color:var(--text-ink);">${l.pain_summary}</div>
-          <div style="font-size:0.74rem; color:var(--text-muted); margin-top:3px;">
-            CMS: <strong>${l.detected_cms}</strong>
-            ${l.wayback_last_seen ? ` • Web Archive: ${l.wayback_last_seen}` : ""}
-          </div>
         </td>
-        <td style="font-size:0.82rem;">
-          ${domBadge}
-          <div style="margin-top:4px; display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="btn-secondary" style="padding:3px 8px; font-size:0.72rem;" onclick="checkQuickDomain('${l.suggested_domain}')">
-              Escanear RDAP no Painel
-            </button>
-          </div>
-        </td>
+        <td style="font-size:0.82rem;">${domBadge}</td>
         <td>
           <div style="display:flex; flex-wrap:wrap; gap:6px;">
             ${
@@ -676,21 +934,15 @@ function renderLeadsTable() {
                 ? `<a href="${sc.whatsapp_url}" target="_blank" class="btn-whatsapp" onclick="markLeadContacted(${l.id})">WhatsApp 1-Clique ↗</a>`
                 : ""
             }
-            <button class="btn-secondary" style="padding:6px 10px; font-size:0.76rem;" onclick="inspectLeadInEmbeddedTools(${l.id})">
-              Inspecionar nas 8 Ferramentas
-            </button>
             <button class="btn-secondary" style="padding:6px 10px; font-size:0.76rem;" onclick="openLeadModal(${l.id})">
-              Raio-X &amp; Scripts
+              Abrir Relatório
             </button>
-          </div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">
-            ${l.phone ? `📞 ${l.phone}` : ""} ${l.emails ? `• ✉️ ${l.emails}` : ""}
           </div>
         </td>
         <td>
           <div style="display:flex; flex-direction:column; gap:6px;">
             <select onchange="updateLeadOwnerOrStatus(${l.id}, {assigned_to: this.value})" style="padding:5px 8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.78rem;">
-              <option value="nao_atribuido" ${l.assigned_to === "nao_atribuido" ? "selected" : ""}>👤 Não atribuído</option>
+              <option value="nao_atribuido" ${l.assigned_to === "nao_atribuido" ? "selected" : ""}>👤 Sem Dono</option>
               <option value="eu" ${l.assigned_to === "eu" ? "selected" : ""}>🙋‍♂️ Eu</option>
               <option value="amigo" ${l.assigned_to === "amigo" ? "selected" : ""}>🤝 Meu Amigo</option>
             </select>
@@ -716,7 +968,7 @@ async function updateLeadOwnerOrStatus(leadId, patchObj) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(patchObj),
   });
-  await loadHealthAndStats();
+  await Promise.all([loadHealthAndStats(), loadExecutiveSummary()]);
 }
 
 async function markLeadContacted(leadId) {
@@ -734,7 +986,7 @@ async function reanalyzeLeadEmbedded(leadId) {
   const btn = document.getElementById("btn-reanalyze-modal");
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "Reexecutando 8 Scanners...";
+    btn.textContent = "Atualizando Relatório...";
   }
   await fetch(`/api/leads/${leadId}/reanalyze`, { method: "POST" });
   await loadLeads();
@@ -745,6 +997,7 @@ async function openLeadModal(leadId) {
   const res = await fetch(`/api/leads/${leadId}`);
   const l = await res.json();
   const sc = l.outreach_scripts || {};
+  const rr = sc.ready_report || buildFallbackReadyReport(l);
   const ext = l.external_tools_links || {};
   const rep = ext.embedded_reports || {};
   const bw = rep.builtwith || {};
@@ -755,7 +1008,7 @@ async function openLeadModal(leadId) {
 
   populateEmbeddedToolsFromLead(l);
 
-  document.getElementById("modal-lead-title").textContent = `${l.title} — Score ${l.opportunity_score}/100`;
+  document.getElementById("modal-lead-title").textContent = `${l.title} — ${rr.what_to_sell} (${rr.ticket_range})`;
   document.getElementById("modal-lead-subtitle").textContent = `${l.address || l.city} • 📞 ${l.phone || "Sem telefone"} • ✉️ ${l.emails || "Sem e-mail"}`;
 
   const missingOpps = (wc.missing_systems_opportunities || [])
@@ -767,18 +1020,18 @@ async function openLeadModal(leadId) {
 
   document.getElementById("modal-lead-body").innerHTML = `
     <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(430px, 1fr)); gap:20px;">
-      <!-- Coluna Esquerda: Diagnóstico Embutido das 8 Ferramentas (Zero Links Externos) -->
+      <!-- Coluna Esquerda: Diagnóstico das 8 Ferramentas -->
       <div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-          <div class="section-bar" style="margin-bottom:0;">Diagnóstico Embutido (8 Ferramentas)</div>
+          <div class="section-bar" style="margin-bottom:0;">Diagnóstico Detalhado (8 Motores)</div>
           <button id="btn-reanalyze-modal" class="btn-secondary" style="padding:5px 10px; font-size:0.76rem;" onclick="reanalyzeLeadEmbedded(${l.id})">
-            ↻ Reexecutar Scanners Agora
+            ↻ Atualizar Diagnóstico
           </button>
         </div>
 
-        <div class="tool-card" style="margin-bottom:10px;">
-          <div style="font-weight:700; margin-bottom:4px;">Resumo Comercial (${SERVICE_LABELS[l.recommended_service] || l.recommended_service})</div>
-          <div style="font-size:0.86rem; color:var(--text-ink);">${l.pain_summary}</div>
+        <div class="tool-card" style="margin-bottom:10px; background:#eff6ff; border-color:#bfdbfe;">
+          <div style="font-weight:800; color:#1e3a8a; margin-bottom:4px;">🎯 ${rr.what_to_sell} — Ticket: ${rr.ticket_range}</div>
+          <div style="font-size:0.86rem; color:#1e3a8a;">${rr.executive_pitch}</div>
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -791,8 +1044,7 @@ async function openLeadModal(leadId) {
           <div class="embedded-box" style="margin-top:0;">
             <strong>2. casadosdados / CNPJ</strong><br/>
             CNPJ: <code>${l.cnpj || "Não informado"}</code><br/>
-            Abertura: ${l.opened_date || "Não informada"}<br/>
-            Origem: <code>${l.source}</code>
+            Abertura: ${l.opened_date || "Não informada"}
           </div>
           <div class="embedded-box" style="margin-top:0;">
             <strong>3. registro.br (RDAP)</strong><br/>
@@ -833,15 +1085,15 @@ async function openLeadModal(leadId) {
         </div>
       </div>
 
-      <!-- Coluna Direita: Central de Contato & Scripts Prontos -->
+      <!-- Coluna Direita: Mensagens Prontas para Todos os Canais -->
       <div>
-        <div class="section-bar">Central de Contato &amp; Scripts Personalizados</div>
+        <div class="section-bar">Mensagens Prontas (WhatsApp, Direct e E-mail)</div>
 
         <div class="tool-card" style="margin-bottom:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <strong style="font-size:0.88rem;">Script WhatsApp (Personalizado pela Dor)</strong>
+            <strong style="font-size:0.88rem;">🟢 Script WhatsApp</strong>
             <div style="display:flex; gap:6px;">
-              <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="copyText('modal-wpp-text')">Copiar Texto</button>
+              <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="copyText('modal-wpp-text')">Copiar</button>
               ${
                 sc.whatsapp_url
                   ? `<a href="${sc.whatsapp_url}" target="_blank" class="btn-whatsapp" onclick="markLeadContacted(${l.id})">Abrir WhatsApp ↗</a>`
@@ -849,12 +1101,12 @@ async function openLeadModal(leadId) {
               }
             </div>
           </div>
-          <textarea id="modal-wpp-text" rows="6" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.83rem; font-family:inherit;">${sc.whatsapp || ""}</textarea>
+          <textarea id="modal-wpp-text" rows="5" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:6px; font-size:0.83rem; font-family:inherit;">${sc.whatsapp || ""}</textarea>
         </div>
 
         <div class="tool-card" style="margin-bottom:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <strong style="font-size:0.88rem;">Script Instagram DM</strong>
+            <strong style="font-size:0.88rem;">📸 Script Instagram Direct (DM)</strong>
             <div style="display:flex; gap:6px;">
               <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="copyText('modal-ig-text')">Copiar DM</button>
               ${
@@ -869,7 +1121,7 @@ async function openLeadModal(leadId) {
 
         <div class="tool-card" style="margin-bottom:12px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <strong style="font-size:0.88rem;">E-mail Consultivo (${sc.email_subject || ""})</strong>
+            <strong style="font-size:0.88rem;">✉️ E-mail Consultivo (${sc.email_subject || ""})</strong>
             <div style="display:flex; gap:6px;">
               <button class="btn-secondary" style="padding:4px 10px; font-size:0.75rem;" onclick="copyText('modal-email-text')">Copiar E-mail</button>
               ${
@@ -884,7 +1136,7 @@ async function openLeadModal(leadId) {
 
         <div style="display:flex; gap:8px; justify-content:flex-end;">
           <button class="btn-primary" onclick="enqueueSingleLead(${l.id}, 'whatsapp')">
-            + Enfileirar para Robô Futuro (Outreach Queue)
+            🤖 Guardar na Fila do Robô Futuro
           </button>
         </div>
       </div>
@@ -912,15 +1164,18 @@ async function enqueueSingleLead(leadId, channel) {
     body: JSON.stringify({ lead_ids: [leadId], channels: [channel] }),
   });
   await loadHealthAndStats();
-  alert("Lead adicionado à fila de automação futura (/api/outreach/queue)!");
+  alert("Cliente guardado na Fila do Robô Futuro (/api/outreach/queue)!");
 }
 
 async function enqueueSelectedLeads(channel) {
-  const ids = Array.from(document.querySelectorAll(".lead-checkbox:checked")).map((cb) =>
+  let ids = Array.from(document.querySelectorAll(".lead-checkbox:checked")).map((cb) =>
     parseInt(cb.value, 10)
   );
+  if (!ids.length && CURRENT_LEADS.length) {
+    ids = CURRENT_LEADS.map((l) => l.id);
+  }
   if (!ids.length) {
-    alert("Marque pelo menos um lead na tabela para enviar à fila de automação.");
+    alert("Gere um relatório primeiro antes de enviar clientes para a fila do robô.");
     return;
   }
   const res = await fetch("/api/outreach/enqueue", {
@@ -930,7 +1185,7 @@ async function enqueueSelectedLeads(channel) {
   });
   const data = await res.json();
   await loadHealthAndStats();
-  alert(`${data.enqueued_count} disparo(s) preparados na fila de automação futura!`);
+  alert(`${data.enqueued_count} cliente(s) guardados na fila do seu futuro robô de WhatsApp!`);
 }
 
 async function openQueueModal() {
@@ -939,7 +1194,7 @@ async function openQueueModal() {
   const body = document.getElementById("queue-modal-body");
 
   if (!items.length) {
-    body.innerHTML = `<p style="color:var(--text-muted);">A fila está vazia. Selecione leads na tabela e clique em "Enviar Selecionados p/ Fila Bot Futuro".</p>`;
+    body.innerHTML = `<p style="color:var(--text-muted);">A fila está vazia. Clique em "🤖 Guardar na Fila do Robô Futuro" em qualquer relatório de cliente para deixar pré-pronto para seu futuro bot.</p>`;
   } else {
     body.innerHTML = `
       <table class="table-leads">
@@ -949,7 +1204,7 @@ async function openQueueModal() {
             <th>Empresa</th>
             <th>Canal / Destino</th>
             <th>Status</th>
-            <th>Mensagem Preparada</th>
+            <th>Mensagem Pronta</th>
           </tr>
         </thead>
         <tbody>
@@ -958,7 +1213,7 @@ async function openQueueModal() {
               (it) => `
             <tr>
               <td>#${it.id}</td>
-              <td><strong>${it.lead_title || "Lead #" + it.lead_id}</strong><br/><small>${it.lead_city || ""}</small></td>
+              <td><strong>${it.lead_title || "Cliente #" + it.lead_id}</strong><br/><small>${it.lead_city || ""}</small></td>
               <td><code>${it.channel}</code><br/>${it.recipient}</td>
               <td><span class="pain-tag">${it.status}</span></td>
               <td style="font-size:0.8rem; max-width:420px; white-space:pre-wrap;">${it.message_body}</td>
@@ -978,29 +1233,29 @@ function closeQueueModal() {
 }
 
 function openManualLeadModal() {
-  document.getElementById("manual-modal-title").textContent = "Cadastrar Novo Lead Manualmente + Rodar Raio-X";
+  document.getElementById("manual-modal-title").textContent = "Adicionar Cliente Manualmente + Gerar Relatório Pronto";
   document.getElementById("manual-modal-body").innerHTML = `
     <div style="display:flex; flex-direction:column; gap:10px;">
       <input id="m-title" placeholder="Nome da Empresa (ex: Clínica Sorriso)" style="padding:9px; border:1px solid var(--border-warm); border-radius:7px;" />
-      <input id="m-city" value="Campinas" placeholder="Cidade" style="padding:9px; border:1px solid var(--border-warm); border-radius:7px;" />
+      <input id="m-city" value="${document.getElementById("input-city")?.value || "Piracicaba"}" placeholder="Cidade" style="padding:9px; border:1px solid var(--border-warm); border-radius:7px;" />
       <input id="m-phone" placeholder="Telefone / WhatsApp (ex: 19 99876-5432)" style="padding:9px; border:1px solid var(--border-warm); border-radius:7px;" />
       <input id="m-website" placeholder="Website atual (deixe em branco se não tiver)" style="padding:9px; border:1px solid var(--border-warm); border-radius:7px;" />
       <input id="m-email" placeholder="E-mail (opcional)" style="padding:9px; border:1px solid var(--border-warm); border-radius:7px;" />
-      <button class="btn-primary" onclick="submitManualLead()">Salvar &amp; Executar Raio-X</button>
+      <button class="btn-primary" onclick="submitManualLead()">Gerar Relatório Pronto deste Cliente</button>
     </div>
   `;
   document.getElementById("manual-modal").classList.add("open");
 }
 
 function openCsvImportModal() {
-  document.getElementById("manual-modal-title").textContent = "Importar CSV (Gerado pelo scrape.py ou Casa dos Dados)";
+  document.getElementById("manual-modal-title").textContent = "Importar Lista CSV e Gerar Relatórios Prontos";
   document.getElementById("manual-modal-body").innerHTML = `
     <div style="display:flex; flex-direction:column; gap:10px;">
       <p style="margin:0; font-size:0.84rem; color:var(--text-muted);">
         Cole abaixo o conteúdo do arquivo CSV (com cabeçalho <code>title,phone,emails,website,category,address,review_rating,review_count</code>):
       </p>
       <textarea id="csv-paste-area" rows="8" placeholder="title,phone,emails,website,category,address,review_rating,review_count&#10;Empresa Exemplo,(19) 99999-0000,contato@exemplo.com,,Dentista,Rua A 10,4.9,45" style="width:100%; padding:8px; border:1px solid var(--border-warm); border-radius:7px; font-family:monospace; font-size:0.8rem;"></textarea>
-      <button class="btn-primary" onclick="submitCsvImport()">Importar &amp; Qualificar Leads</button>
+      <button class="btn-primary" onclick="submitCsvImport()">Importar &amp; Gerar Relatórios</button>
     </div>
   `;
   document.getElementById("manual-modal").classList.add("open");
@@ -1018,7 +1273,7 @@ async function submitManualLead() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       title,
-      city: document.getElementById("m-city").value.trim() || "Campinas",
+      city: document.getElementById("m-city").value.trim() || "Piracicaba",
       phone: document.getElementById("m-phone").value.trim(),
       website: document.getElementById("m-website").value.trim(),
       emails: document.getElementById("m-email").value.trim(),
@@ -1026,20 +1281,20 @@ async function submitManualLead() {
     }),
   });
   closeManualModal();
-  await Promise.all([loadHealthAndStats(), loadLeads()]);
+  await Promise.all([loadHealthAndStats(), loadLeads(), loadExecutiveSummary()]);
 }
 
 async function submitCsvImport() {
   const csvText = document.getElementById("csv-paste-area").value.trim();
   if (!csvText) return;
-  const city = document.getElementById("input-city").value.trim() || "Campinas";
+  const city = document.getElementById("input-city").value.trim() || "Piracicaba";
   await fetch("/api/leads/import-csv", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ csv_text: csvText, city, state: "SP", run_xray: true }),
   });
   closeManualModal();
-  await Promise.all([loadHealthAndStats(), loadLeads()]);
+  await Promise.all([loadHealthAndStats(), loadLeads(), loadExecutiveSummary()]);
 }
 
 window.addEventListener("DOMContentLoaded", initDashboard);
