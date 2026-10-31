@@ -79,11 +79,9 @@ def build_ready_report_for_lead(
     )
 
     if dom_free:
-        alt_str = f" (Opções extras: {', '.join(variations[1:3])})" if len(variations) > 1 else ""
-        bullet_domain = f"Domínio {dom} está LIVRE no Registro.br para você registrar pro cliente!{alt_str}"
+        bullet_domain = f"Domínio {dom} consta como LIVRE no Registro.br (consulta RDAP oficial)."
     else:
-        alt_str = f" — mas {', '.join(variations[1:3])} estão LIVRES" if len(variations) > 1 else ""
-        bullet_domain = f"Domínio {dom} já existe no Registro.br{alt_str}."
+        bullet_domain = f"Domínio {dom} já está registrado no Registro.br."
 
     if not has_site:
         bullet_health = "Empresa não possui nenhum site cadastrado (100% invisível nas buscas orgânicas do Google)."
@@ -348,3 +346,38 @@ def process_and_save_lead(
         update_lead_xray_and_score(lead_id, xray, score, scripts, db_path=db_path)
 
     return get_lead(lead_id, db_path=db_path) or {}
+
+
+def process_leads_batch(
+    raw_leads: List[Dict[str, Any]],
+    run_xray: bool = True,
+    force_skip_network: bool = False,
+    max_workers: int = 12,
+    db_path: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Processa muitos leads em paralelo (Raio-X real de rede: HTTP/SSL, Registro.br RDAP, Web Archive).
+    Leads simulados (`sim_*`) nunca usam rede. Falhas individuais não derrubam o lote.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _one(raw: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        is_sim = str(raw.get("place_id") or "").startswith("sim_")
+        try:
+            return process_and_save_lead(
+                raw,
+                run_xray=run_xray,
+                skip_live_network=force_skip_network or is_sim,
+                db_path=db_path,
+            )
+        except Exception:
+            try:
+                return process_and_save_lead(raw, run_xray=run_xray, skip_live_network=True, db_path=db_path)
+            except Exception:
+                return None
+
+    if not raw_leads:
+        return []
+    with ThreadPoolExecutor(max_workers=max(1, min(max_workers, len(raw_leads)))) as pool:
+        results = list(pool.map(_one, raw_leads))
+    return [r for r in results if r]

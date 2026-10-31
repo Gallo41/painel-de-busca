@@ -4,7 +4,8 @@ import json
 import os
 import re
 import subprocess
-from typing import Any, Dict, List, Optional
+import urllib.request
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from app.services.niches_catalog import get_niches_by_slugs
 import scripts.scrape as kit_scraper
@@ -238,6 +239,93 @@ def parse_csv_content_to_leads(
     return leads
 
 
+def infer_niche_slug_from_row(row: Dict[str, Any], default_slug: str = "geral") -> str:
+    text = " ".join(
+        [
+            str(row.get("category") or ""),
+            str(row.get("title") or ""),
+            str(row.get("input_id") or ""),
+        ]
+    ).lower()
+    if any(k in text for k in ("dent", "odonto", "ortodont", "implant")):
+        return "clinicas-odontologicas"
+    if any(k in text for k in ("advog", "advocacia", "jurídic", "juridic")):
+        return "escritorios-advocacia"
+    if any(k in text for k in ("imobil", "corretor", "construt", "imóve", "imove")):
+        return "imobiliarias-corretores"
+    if any(k in text for k in ("psicolog", "fisioter")):
+        return "psicologia-fisioterapia"
+    if any(k in text for k in ("estétic", "estetic", "harmoniz", "dermat", "médic", "medic")):
+        return "clinicas-medicas-estetica"
+    if any(k in text for k in ("veterin", "pet shop", "petshop")):
+        return "clinicas-veterinarias-pet"
+    if any(k in text for k in ("contab", "contador", "auditor", "consultor")):
+        return "contabilidade-consultoria"
+    if any(k in text for k in ("arquitet", "engenhar", "solar")):
+        return "arquitetura-engenharia-solar"
+    if any(k in text for k in ("oficina", "mecânic", "mecanic", "automot", "funilar")):
+        return "oficinas-estetica-automotiva"
+    if any(k in text for k in ("ar condicionado", "dedetiz", "climatiz", "reparo")):
+        return "climatizacao-dedetizacao-reparos"
+    if any(k in text for k in ("academia", "pilates", "studio", "crossfit")):
+        return "academias-studios-pilates"
+    if any(k in text for k in ("restaurante", "buffet", "evento")):
+        return "restaurantes-buffets-eventos"
+    return default_slug
+
+
+def harvest_completed_docker_jobs_for_city(
+    city: str,
+    base_url: Optional[str] = None,
+) -> Tuple[List[Dict[str, Any]], Set[str]]:
+    """
+    Coleta todas as linhas CSV reais de jobs com Status='ok' no container Docker gmaps-scraper
+    para a cidade informada, evitando perder capturas reais já concluídas pelo Chromium.
+    """
+    base_url = (base_url or kit_scraper.BASE).replace("localhost", "127.0.0.1")
+    city_norm = city.strip().lower()
+    target_job_name = f"painel-{city_norm}"
+    harvested_rows: List[Dict[str, Any]] = []
+    covered_keywords: Set[str] = set()
+
+    try:
+        req = urllib.request.Request(f"{base_url}/api/v1/jobs", headers={"Accept": "application/json"})
+        with urllib.request.urlopen(req, timeout=4.0) as resp:
+            jobs = json.loads(resp.read().decode("utf-8", errors="replace"))
+        if not isinstance(jobs, list):
+            return [], set()
+
+        for j in jobs:
+            status = str(j.get("Status") or j.get("status") or "").lower()
+            name = str(j.get("Name") or j.get("name") or "").strip().lower()
+            jid = j.get("ID") or j.get("id")
+            kws = (j.get("Data") or {}).get("keywords") or []
+            kw_match = any(city_norm in str(k).lower() for k in kws)
+            if status == "ok" and jid and (name == target_job_name or kw_match):
+                for k in kws:
+                    covered_keywords.add(str(k).strip().lower())
+                try:
+                    dl_req = urllib.request.Request(f"{base_url}/api/v1/jobs/{jid}/download")
+                    with urllib.request.urlopen(dl_req, timeout=6.0) as dl_resp:
+                        raw_csv = dl_resp.read().decode("utf-8-sig", errors="replace")
+                    rows = list(csv.DictReader(io.StringIO(raw_csv)))
+                    harvested_rows.extend(rows)
+                except Exception:
+                    continue
+    except Exception:
+        return [], set()
+
+    return kit_scraper.dedupe(harvested_rows), covered_keywords
+
+
+def _clean_maps_address(title: str, address: str) -> str:
+    addr = (address or "").strip()
+    t = (title or "").strip()
+    if t and addr.startswith(t):
+        addr = addr[len(t):].lstrip(" -–—|")
+    return addr
+
+
 def run_live_maps_scrape(
     city: str,
     state: str,
@@ -247,86 +335,96 @@ def run_live_maps_scrape(
     grid_size: int = 1,
     include_socials: bool = True,
     job_id: Optional[int] = None,
+    max_poll_seconds: int = 35,
 ) -> List[Dict[str, Any]]:
     """
-    Executa a busca usando o motor Docker gosom/google-maps-scraper (scripts/scrape.py).
-    Se o job no container Docker ainda estiver processando em background após a janela rápida
-    ou retornar vazio, complementa imediatamente com empresas qualificadas da cidade/nicho
-    para entregar o Relatório Pronto sem travar a tela do usuário.
+    Executa a busca REAL usando o motor Docker gosom/google-maps-scraper (porta 8080):
+    1. Coleta imediatamente todos os resultados reais já concluídos no container para a cidade.
+    2. Se houver termos/nichos ainda não varridos no container para aquela cidade, dispara o job
+       no Docker e aguarda a conclusão real do Chromium headless.
     """
     keywords = build_keywords_for_job(city, state, niche_slugs, custom_keywords)
     geo_info = geocode_city_embedded(city=city, state=state, grid_size=grid_size)
     lat = geo_info["lat"]
     lon = geo_info["lon"]
-    bbox = geo_info.get("bbox")
-    cells = geo_info.get("cells") if (grid_size and grid_size > 1) else []
 
-    body = {
-        "name": f"painel-{city.strip().lower()}",
-        "keywords": keywords[:4],
-        "lang": "pt",
-        "zoom": 15,
-        "lat": str(lat),
-        "lon": str(lon),
-        "fast_mode": True,
-        "radius": 10000,
-        "depth": max(1, min(int(depth or 5), 10)),
-        "email": True,
-        "max_time": 180,
-    }
+    existing_rows, covered_kws = harvest_completed_docker_jobs_for_city(city)
+    missing_kws = [k for k in keywords if k.strip().lower() not in covered_kws]
 
-    rows: List[Dict[str, Any]] = []
-    try:
-        if not cells:
-            _, rows = kit_scraper.run_job(body, max_poll_attempts=1, poll_interval=0.5)
-        else:
-            for cell in cells[:1]:
-                try:
-                    _, cell_rows = kit_scraper.run_job(dict(body, **cell), max_poll_attempts=1, poll_interval=0.5)
-                    rows = kit_scraper.dedupe(rows + cell_rows)
-                except Exception:
-                    continue
-            if bbox and rows:
-                rows = [r for r in rows if kit_scraper.in_bbox(r, bbox)]
-    except Exception:
-        # O job continua rodando em background dentro do container Docker gmaps-scraper
-        rows = []
+    rows: List[Dict[str, Any]] = list(existing_rows)
 
-    rows = rows[:12]
+    # Se não houver linhas reais da cidade ou se o usuário pediu termos novos ainda não buscados no Docker:
+    if not rows or missing_kws:
+        target_kws = (missing_kws if missing_kws else keywords)[:4]
+        body = {
+            "name": f"painel-{city.strip().lower()}",
+            "keywords": target_kws,
+            "lang": "pt",
+            "zoom": 15,
+            "lat": str(lat),
+            "lon": str(lon),
+            "fast_mode": True,
+            "radius": 10000,
+            "depth": max(1, min(int(depth or 3), 5)),
+            "email": True,
+            "max_time": 120,
+        }
+        attempts = max(2, int(max_poll_seconds / 2))
+        try:
+            _, new_rows = kit_scraper.run_job(body, max_poll_attempts=attempts, poll_interval=2.0)
+            rows = kit_scraper.dedupe(rows + new_rows)
+        except Exception:
+            # Se o novo job ainda estiver finalizando, recolhe o que já ficou pronto no container
+            latest_rows, _ = harvest_completed_docker_jobs_for_city(city)
+            rows = kit_scraper.dedupe(rows + latest_rows)
 
     default_niche = niche_slugs[0] if niche_slugs else "geral"
+    allowed_niches = set(niche_slugs) if niche_slugs else set()
     leads: List[Dict[str, Any]] = []
+
     for r in rows:
         title = (r.get("title") or "").strip()
         if not title:
             continue
+        inferred_niche = infer_niche_slug_from_row(r, default_slug=default_niche)
+        if allowed_niches and not custom_keywords and inferred_niche not in allowed_niches and len(rows) > 25:
+            # Mantém foco nos nichos selecionados quando há muitos resultados
+            continue
+
         phone = (r.get("phone") or "").strip()
+        website = (r.get("website") or "").strip()
+        instagram = (r.get("instagram") or "").strip()
+        facebook = (r.get("facebook") or "").strip()
+        if not instagram and "instagram.com" in website.lower():
+            instagram = website
+        if not facebook and "facebook.com" in website.lower():
+            facebook = website
+
         leads.append(
             {
                 "job_id": job_id,
                 "place_id": (r.get("place_id") or r.get("cid") or "").strip(),
-                "niche_slug": default_niche,
+                "niche_slug": inferred_niche,
                 "title": title,
                 "category": (r.get("category") or "").strip(),
                 "phone": phone,
                 "whatsapp_clean": normalize_whatsapp_br(phone),
                 "emails": (r.get("emails") or "").strip(),
-                "website": (r.get("website") or "").strip(),
-                "address": (r.get("address") or "").strip(),
+                "website": website,
+                "address": _clean_maps_address(title, r.get("address") or ""),
                 "city": city,
                 "state": state,
-                "review_rating": float(r.get("review_rating") or 0.0),
+                "review_rating": round(float(r.get("review_rating") or 0.0), 1),
                 "review_count": int(float(r.get("review_count") or 0)),
-                "instagram": (r.get("instagram") or "").strip(),
-                "facebook": (r.get("facebook") or "").strip(),
+                "instagram": instagram,
+                "facebook": facebook,
                 "linkedin": (r.get("linkedin") or "").strip(),
                 "source": "google_maps",
             }
         )
 
-    # Se o container Docker ainda estiver processando em background ou retornou vazio na janela rápida,
-    # entrega imediatamente o lote qualificado da cidade selecionada para que o relatório venha pronto!
-    if not leads:
+    # Só usa fallback simulado se o container Docker estiver OFFLINE e não retornar absolutamente nada
+    if not leads and not check_scraper_engine_health().get("online", False):
         leads = generate_sample_leads_for_niches(
             city=city,
             state=state,

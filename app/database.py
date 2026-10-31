@@ -540,6 +540,15 @@ def list_leads(
     return [_deserialize_lead(r) for r in rows if r]
 
 
+def purge_simulated_leads(db_path: Optional[str] = None) -> int:
+    """Remove leads de demonstração/simulados (place_id 'sim_*' ou origem de gerador CNAE ilustrativo)."""
+    with get_connection(db_path) as conn:
+        cur = conn.execute(
+            "DELETE FROM leads WHERE place_id LIKE 'sim_%' OR source = 'cnae_recem_abertas'"
+        )
+        return cur.rowcount
+
+
 def get_dashboard_stats(db_path: Optional[str] = None) -> Dict[str, Any]:
     with get_connection(db_path) as conn:
         total = conn.execute("SELECT COUNT(*) FROM leads").fetchone()[0]

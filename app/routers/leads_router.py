@@ -36,6 +36,7 @@ from app.services.outreach_generator import (
     build_executive_summary_report,
     build_ready_report_for_lead,
     process_and_save_lead,
+    process_leads_batch,
 )
 from app.services.site_xray import (
     check_wayback_machine,
@@ -253,10 +254,18 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
     update_search_job(job_id, status="running")
 
     engine_health = check_scraper_engine_health()
+    engine_online = engine_health.get("online", False)
     use_live_engine = (not payload.skip_live_network) and (
         payload.source_mode == "google_maps"
-        or (payload.source_mode == "auto" and engine_health.get("online", False))
+        or (payload.source_mode == "auto" and engine_online)
     )
+
+    if payload.source_mode in ("auto", "google_maps") and not payload.skip_live_network and not engine_online:
+        update_search_job(job_id, status="failed", error_message="Motor Google Maps (Docker) offline")
+        raise HTTPException(
+            status_code=503,
+            detail="O motor do Google Maps (Docker, porta 8080) está desligado. Suba o container 'gmaps-scraper' para buscar empresas reais.",
+        )
 
     try:
         if use_live_engine:
@@ -270,7 +279,7 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
                 include_socials=payload.include_socials,
                 job_id=job_id,
             )
-            skip_net = payload.skip_live_network or len(raw_leads) > 2
+            force_skip = False
         else:
             raw_leads = generate_sample_leads_for_niches(
                 city=payload.city,
@@ -278,17 +287,13 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
                 niche_slugs=payload.niche_slugs,
                 job_id=job_id,
             )
-            skip_net = True
+            force_skip = True
 
-        processed_leads = []
-        for raw in raw_leads:
-            is_sim = str(raw.get("place_id") or "").startswith("sim_")
-            saved = process_and_save_lead(
-                raw,
-                run_xray=payload.run_xray,
-                skip_live_network=skip_net or is_sim,
-            )
-            processed_leads.append(saved)
+        processed_leads = process_leads_batch(
+            raw_leads,
+            run_xray=payload.run_xray,
+            force_skip_network=force_skip,
+        )
 
         update_search_job(job_id, status="completed", total_found=len(processed_leads))
         return {

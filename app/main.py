@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.database import init_db, upsert_niches
+from app.database import init_db, purge_simulated_leads, upsert_niches
 from app.routers.leads_router import router as leads_router
 from app.routers.outreach_router import router as outreach_router
 from app.services.niches_catalog import DEFAULT_NICHES
@@ -25,6 +25,9 @@ def create_app(db_path: Optional[str] = None) -> FastAPI:
 
     init_db(db_path)
     upsert_niches(DEFAULT_NICHES, db_path=db_path)
+    if not db_path:
+        # Banco real do usuário: nunca mantém leads de demonstração/gerados misturados com dados reais
+        purge_simulated_leads()
 
     app = FastAPI(
         title="Painel de Busca, Raio-X & Prospecção de Leads",
