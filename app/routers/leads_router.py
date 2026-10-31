@@ -32,7 +32,11 @@ from app.services.maps_scraper import (
     run_live_maps_scrape,
     start_scraper_engine_docker,
 )
-from app.services.outreach_generator import process_and_save_lead
+from app.services.outreach_generator import (
+    build_executive_summary_report,
+    build_ready_report_for_lead,
+    process_and_save_lead,
+)
 from app.services.site_xray import (
     check_wayback_machine,
     run_embedded_site_xray_by_url,
@@ -277,10 +281,11 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
 
         processed_leads = []
         for raw in raw_leads:
+            is_sim = str(raw.get("place_id") or "").startswith("sim_")
             saved = process_and_save_lead(
                 raw,
                 run_xray=payload.run_xray,
-                skip_live_network=skip_net,
+                skip_live_network=skip_net or is_sim,
             )
             processed_leads.append(saved)
 
@@ -289,6 +294,7 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
             "job": get_search_job(job_id),
             "used_live_docker_engine": use_live_engine,
             "total_leads_processed": len(processed_leads),
+            "executive_summary": build_executive_summary_report(processed_leads, city=payload.city),
             "leads": processed_leads,
             "casadosdados_filters": build_casadosdados_links(
                 city=payload.city,
@@ -323,6 +329,22 @@ def api_create_manual_lead(payload: ManualLeadCreate) -> Dict[str, Any]:
     return process_and_save_lead(lead_dict, run_xray=run_xray, skip_live_network=True)
 
 
+def _ensure_ready_report(lead: Dict[str, Any]) -> Dict[str, Any]:
+    sc = lead.get("outreach_scripts")
+    if not isinstance(sc, dict):
+        sc = {}
+    if "ready_report" not in sc:
+        sc["ready_report"] = build_ready_report_for_lead(lead, lead, lead)
+        lead["outreach_scripts"] = sc
+    return lead
+
+
+@router.get("/reports/summary")
+def api_get_executive_summary(city: Optional[str] = Query(None)) -> Dict[str, Any]:
+    leads = list_leads(city=city, limit=500)
+    return build_executive_summary_report(leads, city=city or "")
+
+
 @router.get("/leads")
 def api_list_leads(
     niche_slug: Optional[str] = Query(None),
@@ -336,7 +358,7 @@ def api_list_leads(
     search_query: Optional[str] = Query(None),
     limit: int = Query(200, ge=1, le=500),
 ) -> List[Dict[str, Any]]:
-    return list_leads(
+    rows = list_leads(
         niche_slug=niche_slug,
         city=city,
         primary_pain=primary_pain,
@@ -348,6 +370,7 @@ def api_list_leads(
         search_query=search_query,
         limit=limit,
     )
+    return [_ensure_ready_report(r) for r in rows]
 
 
 @router.get("/leads/{lead_id}")
@@ -355,7 +378,7 @@ def api_get_lead(lead_id: int) -> Dict[str, Any]:
     lead = get_lead(lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail="Lead não encontrado")
-    return lead
+    return _ensure_ready_report(lead)
 
 
 @router.patch("/leads/{lead_id}")
