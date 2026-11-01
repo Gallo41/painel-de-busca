@@ -15,11 +15,10 @@ from app.services.landing_generator import (
 
 
 @pytest.fixture
-def db_path():
-    with tempfile.TemporaryDirectory() as tmp:
-        path = os.path.join(tmp, "t.db")
-        init_db(path)
-        yield path
+def db_path(tmp_path):
+    path = str(tmp_path / "test_painel.db")
+    init_db(path)
+    return path
 
 
 def _lead(**over):

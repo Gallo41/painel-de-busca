@@ -38,3 +38,49 @@ Implementar paginação completa, fluida e responsiva na tabela de recomendaçõ
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
+
+
+---
+
+# Sprint Paralela: Landing Pages de Demonstração Automáticas por Cliente
+
+- **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
+- **Data de Início**: 01/11/2026 às 20:45
+- **Status**: Em andamento (60%)
+- **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
+
+---
+
+## Objetivo
+Gerar automaticamente, para cada lead elegível (sem site ou com site ruim), uma landing page de exemplo personalizada (nome, nicho, cidade, WhatsApp, avaliações) para usar na apresentação comercial. Template fixo por nicho + textos via Gemini (opcional, com fallback).
+
+## Premissas adotadas (aguardando confirmação do usuário)
+- Elegibilidade: `has_website = 0` ou `primary_pain` de site ruim.
+- Conteúdo: template + Gemini (`GEMINI_API_KEY`), fallback determinístico.
+- Publicação: servida localmente em `/demo/{slug}` (túnel/deploy a definir).
+
+## Arquivos alvo
+`app/database.py`, `app/services/landing_generator.py`, `app/routers/landing_router.py`, `app/main.py`, `app/static/*`, `app/services/outreach_generator.py`, `tests/test_landing_generator.py`
+
+---
+
+## Checklist de Progresso (Regra dos 10%)
+
+- [x] **10%** - Definir elegibilidade e abordagem de geração (premissas acima)
+- [x] **20%** - Tabela `landing_pages` + funções no `database.py`
+- [x] **30%** - Template base genérico com dados do lead (HTML escapado)
+- [x] **40%** - `landing_generator.py` (slug, contexto, render, persistência)
+- [x] **50%** - Rotas `POST/GET /api/leads/{id}/landing` e `GET /demo/{slug}`
+- [x] **60%** - Temas por nicho (saúde, beleza, serviços, comércio, genérico)
+- [ ] **70%** - Copy via Gemini com fallback (implementado) + teste com chave real
+- [ ] **80%** - Gatilho automático no pipeline + fila em background
+- [ ] **90%** - UI (botão/status no card do lead) + `{link_demo}` nos scripts de outreach
+- [ ] **100%** - Testes `pytest`, `graphify update .`, commit/push
+
+---
+
+## Diário de Bordo & Checkpoints Salvos
+| % Concluído | Data / Hora | Descrição | Arquivos Modificados |
+| :---: | :---: | :--- | :--- |
+| **10-60%** | 01/11/2026 20:47 | Tabela `landing_pages`, gerador com temas por nicho, rotas de geração e `/demo/{slug}`, 7 testes novos (42 passando). | `app/database.py`, `app/services/landing_generator.py`, `app/routers/landing_router.py`, `app/main.py`, `tests/test_landing_generator.py` |
+
