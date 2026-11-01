@@ -1,45 +1,39 @@
-# Sprint Concluída: Paginação na Tabela de Recomendações e Oportunidades do Painel
+# Sprint Atual: Ajuste de Densidade e Redução da Quantidade de Sites por Tela
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 01/11/2026 às 20:45
-- **Data de Conclusão**: 01/11/2026 às 20:52
-- **Status**: Concluído (100%)
+- **Data de Início**: 01/11/2026 às 20:59
+- **Status**: Em Andamento (10%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-Implementar paginação completa, fluida e responsiva na tabela de recomendações/oportunidades do Painel de Busca:
-1. **Controles Completos de Paginação**: Botões `« Anterior`, números de página com elipses inteligentes (ex: `1 ... 4 5 6 ... 17`), `Próxima »`, contador `1–10 de X empresas` e seletor de itens por página (`10`, `20`, `50`, `100`).
-2. **Experiência Visual e Usabilidade**: Evitar listas infinitas que exigem rolagem vertical cansativa, integrando perfeitamente a navegação entre páginas com a Central de Contato lateral e atalhos de teclado (`ArrowUp`, `ArrowDown`, `j`, `k`).
-3. **Persistência e Suporte Completo**: Reset automático para página 1 ao filtrar ou buscar, sincronização instantânea da seleção com o painel lateral de detalhes, modo de impressão sem quebras e compatibilidade total com os temas Dark e Light.
+Reduzir a quantidade de empresas/sites exibidos por tela na tabela de recomendações para que a visualização fique enxuta, sem exigir rolagem vertical e adaptando-se perfeitamente à altura da tela e da Central de Contato:
+1. **Redução da Quantidade Padrão**: Reduzir o padrão de 10 para 5 itens por página.
+2. **Opções Mais Enxutas**: Atualizar o seletor com as opções `5`, `8`, `10`, `15` e `20`.
+3. **Persistência de Preferência**: Salvar a preferência do usuário no `localStorage` para que a escolha seja lembrada nos próximos acessos.
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Diagnóstico e Especificação da Paginação (mapeamento do estado em `app.js`, markup em `index.html` e estilos em `styles.css`)
-- [x] **20%** - Estrutura HTML da Barra de Paginação (controles `« Anterior`, números de página, `Próxima »`, seletor por página e contadores)
-- [x] **30%** - Estilização CSS responsiva e compatível com temas Dark/Light (`.pagination-bar`, botões, badges, estados ativo/desabilitado)
-- [x] **40%** - Lógica de Estado da Paginação no JavaScript (`page`, `pageSize`, cálculo de `totalPages`, fatiamento `slice` dos leads)
-- [x] **50%** - Renderização dinâmica dos botões numéricos com elipses inteligentes (ex: `1 ... 4 5 6 ... 17`)
-- [x] **60%** - Integração com filtros, buscas, abas e KPIs (reset automático para página 1 ao filtrar ou buscar)
-- [x] **70%** - Interatividade completa: seletor de itens por página (10, 20, 50, 100), seleção sincronizada com Central de Contato e navegação por setas
-- [x] **80%** - Compatibilidade com atalhos de teclado, modo impressão (`beforeprint`/`afterprint`) e visualização mobile/overlay
-- [x] **90%** - Testes automatizados em `tests/test_dashboard_ui.py` cobrindo a presença e integridade dos elementos de paginação
-- [x] **100%** - Validação completa com suíte `pytest` (37 testes), `graphify update .`, verificação final e sincronização com GitHub
+- [x] **10%** - Diagnóstico do ajuste de densidade (definição do novo padrão de 5 itens por tela e opções mais enxutas 5, 8, 10, 15, 20)
+- [ ] **20%** - Atualização do markup HTML do seletor em `index.html` com padrão de 5 itens
+- [ ] **30%** - Atualização do `DEFAULT_PAGE_SIZE = 5` no `app.js`
+- [ ] **40%** - Implementação de persistência local da preferência no `localStorage` (`painel_page_size`)
+- [ ] **50%** - Ajuste fino de altura/espaçamento nas linhas da tabela para visualização compacta
+- [ ] **60%** - Sincronização do seletor na inicialização (`initDashboard` recupera do `localStorage`)
+- [ ] **70%** - Validação de navegação de teclado e elipses numéricas com 5 itens por página
+- [ ] **80%** - Verificação de compatibilidade mobile e responsividade
+- [ ] **90%** - Testes automatizados no `pytest` cobrindo o novo padrão e seletor
+- [ ] **100%** - Validação no servidor ativo (`http://127.0.0.1:8090`), `graphify update .` e sincronização com GitHub
 
 ---
 
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10%** | 01/11/2026 20:45 | Diagnóstico realizado: mapeamento de renderRows(), estado do frontend, markup e estilos necessários para substituir lista única por paginação estruturada. | `Sprint atual.md`, `task.md` |
-| **20%** | 01/11/2026 20:46 | Estrutura HTML da barra de navegação/paginação implementada com controles de página anterior, próxima, números e seletor de itens por página. | `app/static/index.html` |
-| **30%** | 01/11/2026 20:47 | Estilos CSS da barra de paginação, botões, estados hover/active/disabled e suporte a modo escuro/claro e impressão adicionados. | `app/static/styles.css` |
-| **40-70%** | 01/11/2026 20:50 | Implementação completa do estado (`page`, `pageSize`), fatiamento de leads, cálculo dinâmico de botões numéricos com elipses, seletor de 10/20/50/100 itens e sincronismo com a Central de Contato. | `app/static/app.js` |
-| **80-90%** | 01/11/2026 20:51 | Suporte a navegação por setas de teclado entre páginas, modo impressão sem paginação, layout responsivo mobile e testes em `test_dashboard_ui.py`. | `app/static/app.js`, `app/static/styles.css`, `tests/test_dashboard_ui.py` |
-| **100%** | 01/11/2026 20:52 | 37/37 testes automatizados passando no pytest, grafo `graphify` atualizado e sincronizado com GitHub. | `graphify-out/*`, `Sprint atual.md` |
+| **10%** | 01/11/2026 20:59 | Diagnóstico: identificado que 10 itens ainda demandam rolagem vertical; planejado novo padrão de 5 itens e opções 5, 8, 10, 15, 20 com persistência local. | `Sprint atual.md`, `task.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
