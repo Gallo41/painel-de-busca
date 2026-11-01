@@ -53,3 +53,29 @@ def test_dashboard_html_and_assets_served(client):
     assert 'stat-complex' in r_js.text
     assert 'stat-domain-free' in r_js.text
     assert 'kpi-total' not in r_js.text
+
+
+def test_dashboard_pagination_elements_present(client):
+    r_index = client.get("/")
+    assert r_index.status_code == 200
+    html = r_index.text
+    assert 'id="pagination-bar"' in html
+    assert 'id="page-size-select"' in html
+    assert 'id="btn-prev-page"' in html
+    assert 'id="btn-next-page"' in html
+    assert 'id="pagination-pages"' in html
+    assert 'id="page-info"' in html
+
+    r_css = client.get("/static/styles.css")
+    assert r_css.status_code == 200
+    assert ".pagination-bar" in r_css.text
+    assert ".btn-page-num" in r_css.text
+    assert ".pagination-pages" in r_css.text
+
+    r_js = client.get("/static/app.js")
+    assert r_js.status_code == 200
+    assert "renderPagination" in r_js.text
+    assert "goToPage" in r_js.text
+    assert "onPageSizeChange" in r_js.text
+    assert "buildPaginationButtons" in r_js.text
+

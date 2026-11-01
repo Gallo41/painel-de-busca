@@ -364,6 +364,9 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
   .row .cell-note, .row .cell-score { display: none; }
   .title-actions .btn { display: none; }
   .filters select { flex: 1 1 140px; }
+  .pagination-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+  .pagination-info { justify-content: space-between; }
+  .pagination-controls { justify-content: center; }
 }
 
 /* ---------- impressão ---------- */

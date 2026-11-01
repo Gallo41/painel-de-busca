@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1793576983.1552434,
-    "seen": 1793576997.9114761,
-    "ast_hash": "7cab6a4c79121a021bd88c6f06745113",
+    "mtime": 1793577004.6364272,
+    "seen": 1793577066.9580772,
+    "ast_hash": "c861ff786b3ef96252dbfc006b594500",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1793484326.51851,
-    "seen": 1793484392.2788732,
-    "ast_hash": "36e0ca00caff6b661fb062b3e9941c66",
+    "mtime": 1793577033.1584485,
+    "seen": 1793577066.9580853,
+    "ast_hash": "88c340eb32c0b79fb4897c139be70bfe",
     "semantic_hash": ""
   },
   "tests/test_database.py": {

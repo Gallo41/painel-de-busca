@@ -6,8 +6,18 @@ let SELECTED_NICHES = new Set(["clinicas-odontologicas", "escritorios-advocacia"
 let ALL_LEADS = [];
 let CURRENT_LEADS = [];
 let SCOPE_CITY = "";
-const PAGE = 50;
-const state = { tab: "ALL", limit: PAGE, selectedId: null, kpiNoSite: false, kpiContacted: false };
+const DEFAULT_PAGE_SIZE = 10;
+const PAGE = DEFAULT_PAGE_SIZE;
+const state = {
+  tab: "ALL",
+  page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+  limit: DEFAULT_PAGE_SIZE,
+  selectedId: null,
+  kpiNoSite: false,
+  kpiContacted: false,
+  isPrinting: false,
+};
 
 const SERVICE_LABELS = {
   SITE_NOVO: "Site novo",
@@ -75,11 +85,11 @@ async function initDashboard() {
   await loadLeads();
   window.addEventListener("hashchange", routeFromHash);
   window.addEventListener("beforeprint", () => {
-    state.limit = Infinity;
+    state.isPrinting = true;
     renderRows();
   });
   window.addEventListener("afterprint", () => {
-    state.limit = PAGE;
+    state.isPrinting = false;
     renderRows();
   });
   routeFromHash();
@@ -134,10 +144,34 @@ function bindShortcuts() {
 
 function moveSelection(delta) {
   if (!CURRENT_LEADS.length) return;
-  const idx = CURRENT_LEADS.findIndex((l) => l.id === state.selectedId);
-  const next = CURRENT_LEADS[Math.min(Math.max(idx + delta, 0), Math.min(CURRENT_LEADS.length, state.limit) - 1)];
-  if (next) {
-    selectLead(next.id, { scroll: true, overlay: false });
+  const startIdx = (state.page - 1) * state.pageSize;
+  const endIdx = Math.min(startIdx + state.pageSize, CURRENT_LEADS.length);
+  const pageLeads = CURRENT_LEADS.slice(startIdx, endIdx);
+  if (!pageLeads.length) return;
+
+  const idx = pageLeads.findIndex((l) => l.id === state.selectedId);
+  if (idx === -1) {
+    selectLead(pageLeads[0].id, { scroll: true, overlay: false });
+    return;
+  }
+
+  const nextIdx = idx + delta;
+  if (nextIdx >= 0 && nextIdx < pageLeads.length) {
+    selectLead(pageLeads[nextIdx].id, { scroll: true, overlay: false });
+  } else if (nextIdx < 0 && state.page > 1) {
+    goToPage(state.page - 1);
+    const prevStart = (state.page - 1) * state.pageSize;
+    const prevLeads = CURRENT_LEADS.slice(prevStart, prevStart + state.pageSize);
+    if (prevLeads.length) {
+      selectLead(prevLeads[prevLeads.length - 1].id, { scroll: true, overlay: false });
+    }
+  } else if (nextIdx >= pageLeads.length && state.page < Math.ceil(CURRENT_LEADS.length / state.pageSize)) {
+    goToPage(state.page + 1);
+    const nextStart = (state.page - 1) * state.pageSize;
+    const nextLeads = CURRENT_LEADS.slice(nextStart, Math.min(nextStart + state.pageSize, CURRENT_LEADS.length));
+    if (nextLeads.length) {
+      selectLead(nextLeads[0].id, { scroll: true, overlay: false });
+    }
   }
 }
 
@@ -232,7 +266,8 @@ async function runSearchJob() {
     if (!res.ok) throw new Error(data.detail || "A busca falhou.");
     SCOPE_CITY = city;
     state.tab = "ALL";
-    state.limit = PAGE;
+    state.page = 1;
+    state.limit = state.pageSize;
     state.selectedId = null;
     await Promise.all([loadHealthAndStats(), loadLeads()]);
     const secs = Math.round((Date.now() - started) / 1000);
@@ -274,7 +309,7 @@ async function loadLeads() {
 }
 
 function onFilterChange() {
-  state.limit = PAGE;
+  state.page = 1;
   applyFilters();
 }
 
@@ -308,8 +343,11 @@ function applyFilters() {
 
   renderSummary(scope);
   renderRows();
-  if (!CURRENT_LEADS.some((l) => l.id === state.selectedId)) {
-    state.selectedId = CURRENT_LEADS[0] ? CURRENT_LEADS[0].id : null;
+  const startIdx = (state.page - 1) * state.pageSize;
+  const endIdx = Math.min(startIdx + state.pageSize, CURRENT_LEADS.length);
+  const pageLeads = CURRENT_LEADS.slice(startIdx, endIdx);
+  if (!pageLeads.some((l) => l.id === state.selectedId)) {
+    state.selectedId = pageLeads[0] ? pageLeads[0].id : null;
   }
   renderDetail();
 }
@@ -409,22 +447,37 @@ function renderRows() {
   const box = $("ready-reports-grid");
   if (!box) return;
   const total = CURRENT_LEADS.length;
-  const shown = Math.min(total, state.limit);
-  const listTotal = $("list-total");
-  if (listTotal) listTotal.textContent = total ? `1–${fmtInt(shown)} de ${fmtInt(total)}` : "0 empresas";
-  const btnMore = $("btn-more");
-  if (btnMore) btnMore.hidden = shown >= total;
 
   if (!scopeLeads().length) {
     box.innerHTML = `<div class="empty"><strong>Nenhuma empresa ainda.</strong>Marque os nichos na barra lateral e busque uma cidade.<br/><button class="btn btn-primary btn-sm" onclick="document.getElementById('input-city').focus()">Escolher cidade</button></div>`;
+    const listTotal = $("list-total");
+    if (listTotal) listTotal.textContent = "0 empresas";
+    renderPagination(0, 1, 0, 0);
     return;
   }
   if (!total) {
     box.innerHTML = `<div class="empty"><strong>Nenhuma empresa neste filtro.</strong>Tire algum filtro para ver mais.<br/><button class="btn btn-sm" onclick="applyQuickTab('ALL')">Limpar filtros</button></div>`;
+    const listTotal = $("list-total");
+    if (listTotal) listTotal.textContent = "0 empresas";
+    renderPagination(0, 1, 0, 0);
     return;
   }
 
-  box.innerHTML = CURRENT_LEADS.slice(0, shown)
+  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+  if (state.page > totalPages) state.page = totalPages;
+  if (state.page < 1) state.page = 1;
+
+  const startIdx = (state.page - 1) * state.pageSize;
+  const endIdx = Math.min(startIdx + state.pageSize, total);
+
+  const listTotal = $("list-total");
+  if (listTotal) {
+    listTotal.textContent = `Pág. ${state.page} de ${totalPages} · ${fmtInt(total)} empresas`;
+  }
+
+  const displayedLeads = state.isPrinting ? CURRENT_LEADS : CURRENT_LEADS.slice(startIdx, endIdx);
+
+  box.innerHTML = displayedLeads
     .map((l) => {
       const offer = offerOf(l);
       const sel = l.id === state.selectedId;
@@ -443,11 +496,115 @@ function renderRows() {
       </div>`;
     })
     .join("");
+
+  renderPagination(total, totalPages, startIdx, endIdx);
+}
+
+function renderPagination(total, totalPages, startIdx, endIdx) {
+  const bar = $("pagination-bar");
+  if (!bar) return;
+
+  if (total === 0) {
+    bar.style.display = "none";
+    return;
+  }
+  bar.style.display = "flex";
+
+  const pageInfo = $("page-info");
+  if (pageInfo) {
+    pageInfo.textContent = `${fmtInt(startIdx + 1)}–${fmtInt(endIdx)} de ${fmtInt(total)}`;
+  }
+
+  const sizeSelect = $("page-size-select");
+  if (sizeSelect && Number(sizeSelect.value) !== state.pageSize) {
+    sizeSelect.value = String(state.pageSize);
+  }
+
+  const btnPrev = $("btn-prev-page");
+  if (btnPrev) {
+    btnPrev.disabled = state.page <= 1;
+  }
+  const btnNext = $("btn-next-page");
+  if (btnNext) {
+    btnNext.disabled = state.page >= totalPages;
+  }
+
+  const pagesContainer = $("pagination-pages");
+  if (pagesContainer) {
+    pagesContainer.innerHTML = buildPaginationButtons(state.page, totalPages);
+  }
+}
+
+function buildPaginationButtons(current, total) {
+  if (total <= 1) return "";
+
+  const pages = [];
+  const delta = 1;
+
+  if (total <= 7) {
+    for (let i = 1; i <= total; i++) pages.push(i);
+  } else {
+    pages.push(1);
+    if (current > delta + 2) {
+      pages.push("...");
+    }
+    const start = Math.max(2, current - delta);
+    const end = Math.min(total - 1, current + delta);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    if (current < total - (delta + 1)) {
+      pages.push("...");
+    }
+    pages.push(total);
+  }
+
+  return pages
+    .map((p) => {
+      if (p === "...") {
+        return `<span class="pagination-ellipsis">&hellip;</span>`;
+      }
+      const isActive = p === current;
+      return `<button type="button" class="btn-page-num ${isActive ? "active" : ""}" aria-current="${isActive ? "page" : "false"}" onclick="goToPage(${p})">${p}</button>`;
+    })
+    .join("");
+}
+
+function goToPage(p) {
+  const total = CURRENT_LEADS.length;
+  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+  const newPage = Math.max(1, Math.min(p, totalPages));
+  if (newPage === state.page && !state.isPrinting) return;
+  state.page = newPage;
+  renderRows();
+
+  const startIdx = (state.page - 1) * state.pageSize;
+  const endIdx = Math.min(startIdx + state.pageSize, total);
+  const pageLeads = CURRENT_LEADS.slice(startIdx, endIdx);
+  if (pageLeads.length && !pageLeads.some((l) => l.id === state.selectedId)) {
+    selectLead(pageLeads[0].id, { scroll: false, overlay: false });
+  }
+
+  const box = $("ready-reports-grid");
+  if (box) box.scrollTop = 0;
+}
+
+function onPageSizeChange(newSize) {
+  state.pageSize = Number(newSize) || 10;
+  state.limit = state.pageSize;
+  state.page = 1;
+  renderRows();
+
+  const startIdx = 0;
+  const endIdx = Math.min(state.pageSize, CURRENT_LEADS.length);
+  const pageLeads = CURRENT_LEADS.slice(startIdx, endIdx);
+  if (pageLeads.length && !pageLeads.some((l) => l.id === state.selectedId)) {
+    selectLead(pageLeads[0].id, { scroll: false, overlay: false });
+  }
 }
 
 function showMoreRows() {
-  state.limit += PAGE;
-  renderRows();
+  goToPage(state.page + 1);
 }
 
 function selectLead(id, opts = {}) {
