@@ -146,19 +146,6 @@ def init_db(db_path: Optional[str] = None) -> None:
             );
 
             CREATE INDEX IF NOT EXISTS idx_outreach_status_channel ON outreach_queue(status, channel);
-
-            CREATE TABLE IF NOT EXISTS landing_pages (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                lead_id INTEGER NOT NULL UNIQUE,
-                slug TEXT UNIQUE NOT NULL,
-                template TEXT NOT NULL DEFAULT 'generico',
-                html TEXT NOT NULL DEFAULT '',
-                content_source TEXT NOT NULL DEFAULT 'fallback',
-                version INTEGER NOT NULL DEFAULT 1,
-                created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL,
-                FOREIGN KEY(lead_id) REFERENCES leads(id) ON DELETE CASCADE
-            );
             """
         )
 
@@ -995,42 +982,3 @@ def update_outreach_status(
             )
         row = conn.execute("SELECT * FROM outreach_queue WHERE id = ?", (queue_id,)).fetchone()
     return _deserialize_outreach(row)
-
-
-def upsert_landing_page(
-    lead_id: int,
-    slug: str,
-    template: str,
-    html: str,
-    content_source: str = "fallback",
-    db_path: Optional[str] = None,
-) -> Dict[str, Any]:
-    now = _now_iso()
-    with get_connection(db_path) as conn:
-        conn.execute(
-            """
-            INSERT INTO landing_pages (lead_id, slug, template, html, content_source, version, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-            ON CONFLICT(lead_id) DO UPDATE SET
-                template = excluded.template,
-                html = excluded.html,
-                content_source = excluded.content_source,
-                version = landing_pages.version + 1,
-                updated_at = excluded.updated_at
-            """,
-            (lead_id, slug, template, html, content_source, now, now),
-        )
-        row = conn.execute("SELECT * FROM landing_pages WHERE lead_id = ?", (lead_id,)).fetchone()
-        return dict(row)
-
-
-def get_landing_page_by_slug(slug: str, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    with get_connection(db_path) as conn:
-        row = conn.execute("SELECT * FROM landing_pages WHERE slug = ?", (slug,)).fetchone()
-        return dict(row) if row else None
-
-
-def get_landing_page_by_lead(lead_id: int, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    with get_connection(db_path) as conn:
-        row = conn.execute("SELECT * FROM landing_pages WHERE lead_id = ?", (lead_id,)).fetchone()
-        return dict(row) if row else None
