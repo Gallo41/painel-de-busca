@@ -172,7 +172,32 @@
                 <span>Empresa</span><span>Oferta</span><span class="r">Nota</span><span class="r">Chance</span>
               </div>
               <div id="ready-reports-grid" class="rows" role="listbox" aria-label="Empresas encontradas"></div>
-              <div class="list-more"><button id="btn-more" class="btn btn-sm" type="button" onclick="showMoreRows()" hidden>Mostrar mais</button></div>
+
+              <!-- Barra de Paginação -->
+              <nav class="pagination-bar" id="pagination-bar" aria-label="Paginação de empresas">
+                <div class="pagination-info">
+                  <span id="page-info" class="num">—</span>
+                  <div class="page-size-wrap">
+                    <label for="page-size-select">Exibir</label>
+                    <select id="page-size-select" class="page-size-select" onchange="onPageSizeChange(this.value)" aria-label="Itens por página">
+                      <option value="10" selected>10</option>
+                      <option value="20">20</option>
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                    </select>
+                    <span>por pág.</span>
+                  </div>
+                </div>
+                <div class="pagination-controls" id="pagination-controls">
+                  <button class="btn btn-sm btn-page" id="btn-prev-page" type="button" onclick="goToPage(state.page - 1)" aria-label="Página anterior" disabled>
+                    &lsaquo; Anterior
+                  </button>
+                  <div class="pagination-pages" id="pagination-pages"></div>
+                  <button class="btn btn-sm btn-page" id="btn-next-page" type="button" onclick="goToPage(state.page + 1)" aria-label="Próxima página">
+                    Próxima &rsaquo;
+                  </button>
+                </div>
+              </nav>
             </div>
 
             <aside class="detail" id="detail" aria-label="Central de Contato">

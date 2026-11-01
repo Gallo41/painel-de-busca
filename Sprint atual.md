@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 01/11/2026 às 20:45
-- **Status**: Em Andamento (10%)
+- **Status**: Em Andamento (20%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -18,7 +18,7 @@ Implementar paginação completa, fluida e responsiva na tabela de recomendaçõ
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
 - [x] **10%** - Diagnóstico e Especificação da Paginação (mapeamento do estado em `app.js`, markup em `index.html` e estilos em `styles.css`)
-- [ ] **20%** - Estrutura HTML da Barra de Paginação (controles `« Anterior`, números de página, `Próxima »`, seletor por página e contadores)
+- [x] **20%** - Estrutura HTML da Barra de Paginação (controles `« Anterior`, números de página, `Próxima »`, seletor por página e contadores)
 - [ ] **30%** - Estilização CSS responsiva e compatível com temas Dark/Light (`.pagination-bar`, botões, badges, estados ativo/desabilitado)
 - [ ] **40%** - Lógica de Estado da Paginação no JavaScript (`page`, `pageSize`, cálculo de `totalPages`, fatiamento `slice` dos leads)
 - [ ] **50%** - Renderização dinâmica dos botões numéricos com elipses inteligentes (ex: `1 ... 4 5 6 ... 17`)
@@ -34,6 +34,7 @@ Implementar paginação completa, fluida e responsiva na tabela de recomendaçõ
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
 | **10%** | 01/11/2026 20:45 | Diagnóstico realizado: mapeamento de renderRows(), estado do frontend, markup e estilos necessários para substituir lista única por paginação estruturada. | `Sprint atual.md`, `task.md` |
+| **20%** | 01/11/2026 20:46 | Estrutura HTML da barra de navegação/paginação implementada com controles de página anterior, próxima, números e seletor de itens por página. | `app/static/index.html` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
