@@ -19,6 +19,9 @@ Win32/
 *.exe
 *.dll
 *.dcu
+dist/
+build/
+*.spec
 
 # Node & previews
 node_modules/
