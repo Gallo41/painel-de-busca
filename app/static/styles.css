@@ -160,17 +160,20 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
 .nav-item[aria-current="page"] { background: var(--surface); color: var(--text); border-color: var(--border); font-weight: 600; box-shadow: inset 3px 0 0 var(--accent); }
 .nav-item[aria-current="page"] svg { color: var(--accent); }
 .nav-count { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--control); color: var(--muted); }
-.group-label { margin: 22px 8px 8px; font-size: var(--fs-small); color: var(--faint); }
+.group-label { margin: 16px 2px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); display: flex; align-items: center; gap: 8px; }
+.group-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-.search-form { display: flex; flex-direction: column; gap: 12px; padding: 0 4px; }
-.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.field span, .field-label { font-size: var(--fs-small); font-weight: 500; color: var(--muted); }
-.field-row { display: flex; gap: 8px; }
+.search-form { display: flex; flex-direction: column; gap: 14px; padding: 0 2px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field span, .field-label { font-size: 12px; font-weight: 500; color: var(--muted); }
+.field-row { display: flex; gap: 10px; }
 .field.grow { flex: 1; }
-.field.uf { width: 56px; }
+.field.uf { width: 64px; flex: none; }
 .field input, .filters select, .row-actions input, .detail select, .detail textarea { height: var(--control-height); padding: 0 10px; background: var(--surface); border: 1px solid var(--control); border-radius: var(--radius-control); }
+.search-form .field input { height: 36px; padding: 0 12px; font-size: 13px; transition: border-color 140ms ease, box-shadow 140ms ease; }
 .field input:focus, .filters select:focus, .detail select:focus, .detail textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
-.field.uf input { text-transform: uppercase; text-align: center; padding: 0; }
+.search-form .field input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(47, 165, 190, 0.25); }
+.field.uf input { text-transform: uppercase; text-align: center; font-weight: 600; letter-spacing: 0.04em; padding: 0; }
 
 .niche-head { display: flex; align-items: center; justify-content: space-between; margin-top: 2px; }
 .niche-actions { display: flex; gap: 10px; }
