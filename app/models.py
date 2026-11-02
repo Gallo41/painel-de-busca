@@ -19,7 +19,7 @@ class LeadManagementUpdate(BaseModel):
     assigned_to: Optional[str] = Field(None, description="'nao_atribuido', 'eu' ou 'amigo'")
     lead_status: Optional[str] = Field(
         None,
-        description="'novo', 'analisado', 'contatado', 'respondeu', 'reuniao', 'fechado', 'descartado'",
+        description="'novo', 'vou_fazer', 'fazendo', 'nao_fazer', 'fechado', 'analisado', 'contatado', 'respondeu', 'reuniao', 'descartado'",
     )
     notes: Optional[str] = None
 

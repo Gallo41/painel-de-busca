@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=2.1" />
+  <link rel="stylesheet" href="/static/styles.css?v=2.2" />
 </head>
 <body>
   <div class="app">
@@ -152,13 +152,13 @@
             </select>
             <select id="filter-status" onchange="onFilterChange()" aria-label="Situação">
               <option value="">Qualquer situação</option>
-              <option value="novo">Novo</option>
-              <option value="contatado">Já chamei</option>
-              <option value="respondeu">Respondeu</option>
-              <option value="reuniao">Reunião</option>
-              <option value="fechado">Fechado</option>
-              <option value="descartado">Descartado</option>
+              <option value="novo">⚪ Novo</option>
+              <option value="vou_fazer">🎯 Vou fazer</option>
+              <option value="fazendo">⏳ Estou fazendo</option>
+              <option value="fechado">✅ Fechado</option>
+              <option value="nao_fazer">❌ Não vou fazer</option>
             </select>
+            <label class="check"><input id="filter-hide-ignored" type="checkbox" onchange="onFilterChange()" /> Ocultar "Não vou fazer"</label>
             <label class="check"><input id="filter-whatsapp" type="checkbox" onchange="onFilterChange()" /> Só com WhatsApp</label>
             <label class="check"><input id="filter-domain-free" type="checkbox" onchange="onFilterChange()" /> Só domínio livre</label>
             <span class="spacer"></span>
@@ -169,7 +169,7 @@
           <div class="split">
             <div class="list-col">
               <div class="rows-head" aria-hidden="true">
-                <span>Empresa</span><span>Oferta</span><span class="r">Nota</span><span class="r">Chance</span>
+                <span>Empresa</span><span>Oferta</span><span class="r">Nota</span><span class="r">Chance</span><span class="r">Decisão</span>
               </div>
               <div id="ready-reports-grid" class="rows" role="listbox" aria-label="Empresas encontradas"></div>
 
@@ -346,6 +346,6 @@
     </div>
   </div>
 
-  <script src="/static/app.js?v=2.1"></script>
+  <script src="/static/app.js?v=2.2"></script>
 </body>
 </html>

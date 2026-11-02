@@ -79,3 +79,27 @@ def test_dashboard_pagination_elements_present(client):
     assert "onPageSizeChange" in r_js.text
     assert "buildPaginationButtons" in r_js.text
 
+
+def test_dashboard_decision_status_elements_present(client):
+    r_index = client.get("/")
+    assert r_index.status_code == 200
+    html = r_index.text
+    assert "filter-hide-ignored" in html
+    assert "Decisão" in html
+    assert "vou_fazer" in html
+    assert "nao_fazer" in html
+
+    r_css = client.get("/static/styles.css")
+    assert r_css.status_code == 200
+    assert ".lead-status-select" in r_css.text
+    assert ".btn-decision" in r_css.text
+    assert ".status-vou-fazer" in r_css.text
+    assert ".status-nao-fazer" in r_css.text
+
+    r_js = client.get("/static/app.js")
+    assert r_js.status_code == 200
+    assert "quickUpdateLeadStatus" in r_js.text
+    assert "normStatus" in r_js.text
+    assert "renderDecisionButtons" in r_js.text
+
+

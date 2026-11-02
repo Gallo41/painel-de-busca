@@ -1,17 +1,17 @@
 # Graph Report - Painel de Busca  (2026-11-01)
 
 ## Corpus Check
-- 35 files · ~31,220 words
+- 35 files · ~31,130 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: .bat 2, (none) 1, .css 1)
 
 ## Summary
-- 438 nodes · 1058 edges · 20 communities (13 shown, 7 thin omitted)
+- 439 nodes · 1059 edges · 20 communities (13 shown, 7 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 39 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1bf01e1b`
+- Built from commit: `d4942e09`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -66,32 +66,32 @@ Cohesion: 0.07
 Nodes (31): build_casadosdados_links(), check_registro_br_availability(), check_site_availability_and_ssl(), _default_http_get(), discover_companies_by_cnae_and_city(), extract_hostname(), format_cnpj(), is_social_or_directory_url() (+23 more)
 
 ### Community 1 - "Google Maps Scraper Engine"
-Cohesion: 0.08
-Nodes (21): Diretrizes de Commit Automático, Regra Mandatória: Commit e Sincronização Automática com GitHub, Repositório Oficial, collect_keywords(), contact_links(), enrich_emails(), work(), enrich_socials() (+13 more)
+Cohesion: 0.07
+Nodes (24): Diretrizes de Commit Automático, Regra Mandatória: Commit e Sincronização Automática com GitHub, Repositório Oficial, api_export_outreach_ready(), harvest_completed_docker_jobs_for_city(), collect_keywords(), contact_links(), dedupe() (+16 more)
 
 ### Community 2 - "Business Discovery & RDAP"
 Cohesion: 0.06
-Nodes (69): ALL_LEADS, ALL_NICHES, applyFilters(), applyQuickTab(), bindShortcuts(), buildPaginationButtons(), checkQuickDomain(), closeDetailOverlay() (+61 more)
+Nodes (70): ALL_LEADS, ALL_NICHES, applyFilters(), applyQuickTab(), bindShortcuts(), buildPaginationButtons(), checkQuickDomain(), closeDetailOverlay() (+62 more)
 
 ### Community 3 - "Site X-Ray & Tech Stack"
 Cohesion: 0.16
 Nodes (31): claim_next_outreach(), create_search_job(), deduplicate_existing_leads_db(), _deserialize_job(), _deserialize_lead(), _deserialize_outreach(), enqueue_outreach(), _find_existing_lead_id() (+23 more)
 
 ### Community 4 - "SQLite Persistence & Lead Scoring"
-Cohesion: 0.07
-Nodes (35): init_db(), api_casadosdados_links(), api_check_registro_br(), api_create_manual_lead(), api_get_executive_summary(), api_get_lead(), api_health(), api_import_csv() (+27 more)
+Cohesion: 0.09
+Nodes (30): api_casadosdados_links(), api_check_registro_br(), api_create_and_run_job(), api_create_manual_lead(), api_get_executive_summary(), api_get_lead(), api_health(), api_import_csv() (+22 more)
 
 ### Community 5 - "outreach_router.py"
-Cohesion: 0.13
+Cohesion: 0.17
 Nodes (10): LeadManagementUpdate, ManualLeadCreate, OutreachClaimRequest, OutreachEnqueueRequest, OutreachStatusUpdate, SearchJobRequest, api_claim_next_outreach(), api_enqueue_outreach() (+2 more)
 
 ### Community 6 - "Outreach Scripts & Queue"
-Cohesion: 0.08
-Nodes (10): create_app(), score_and_classify_lead(), client(), client(), test_score_lead_for_complex_system_expansion(), test_score_lead_with_offline_website(), test_score_lead_without_website_and_free_domain(), client() (+2 more)
+Cohesion: 0.06
+Nodes (15): init_db(), create_app(), score_and_classify_lead(), generate_outreach_scripts(), client(), client(), db_path(), test_score_lead_for_complex_system_expansion() (+7 more)
 
 ### Community 7 - "maps_scraper.py"
-Cohesion: 0.11
-Nodes (22): api_create_and_run_job(), api_export_outreach_ready(), build_keywords_for_job(), check_scraper_engine_health(), _clean_maps_address(), delete_engine_job(), generate_sample_leads_for_niches(), geocode_city_embedded() (+14 more)
+Cohesion: 0.12
+Nodes (19): build_keywords_for_job(), check_scraper_engine_health(), _clean_maps_address(), delete_engine_job(), generate_sample_leads_for_niches(), geocode_city_embedded(), infer_niche_slug_from_row(), list_engine_jobs() (+11 more)
 
 ### Community 9 - "Cluster 9: app/__init__.py"
 Cohesion: 0.14
@@ -115,7 +115,7 @@ Nodes (5): 📋 Checklist de Progresso Obrigatório (Regra dos 10%), 📝 Diári
 
 ## Knowledge Gaps
 - **2 isolated node(s):** `README Painel de Busca`, `Sprint Atual`
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 145 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 146 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **7 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
@@ -127,11 +127,11 @@ _Questions this graph is uniquely positioned to answer:_
   _2 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Site X-Ray & Tech Stack` be split into smaller, more focused modules?**
   _Cohesion score 0.06980433632998413 - nodes in this community are weakly interconnected._
-- **Why does `create_app()` connect `Outreach Scripts & Queue` to `Site X-Ray & Tech Stack`, `SQLite Persistence & Lead Scoring`, `outreach_router.py`?**
+- **Why does `create_app()` connect `Outreach Scripts & Queue` to `Site X-Ray & Tech Stack`?**
   _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Should `Google Maps Scraper Engine` be split into smaller, more focused modules?**
-  _Cohesion score 0.07804878048780488 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06914893617021277 - nodes in this community are weakly interconnected._
 - **Why does `process_and_save_lead()` connect `SQLite Persistence & Lead Scoring` to `Site X-Ray & Tech Stack`, `Site X-Ray & Tech Stack`, `Outreach Scripts & Queue`, `maps_scraper.py`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Should `Business Discovery & RDAP` be split into smaller, more focused modules?**
-  _Cohesion score 0.06280701754385964 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06151742993848257 - nodes in this community are weakly interconnected._

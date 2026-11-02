@@ -792,7 +792,7 @@ def get_dashboard_stats(db_path: Optional[str] = None) -> Dict[str, Any]:
             "SELECT COUNT(*) FROM leads WHERE assigned_to = 'amigo'"
         ).fetchone()[0]
         contacted = conn.execute(
-            "SELECT COUNT(*) FROM leads WHERE lead_status IN ('contatado', 'respondeu', 'reuniao', 'fechado')"
+            "SELECT COUNT(*) FROM leads WHERE lead_status IN ('contatado', 'respondeu', 'reuniao', 'fechado', 'fazendo', 'vou_fazer')"
         ).fetchone()[0]
         queue_ready = conn.execute(
             "SELECT COUNT(*) FROM outreach_queue WHERE status = 'ready'"

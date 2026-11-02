@@ -47,7 +47,24 @@ function offerOf(l) {
 }
 const hasNoSite = (l) => !l.has_website || !!l.is_social_only_url;
 const waNumber = (l) => (((l.outreach_scripts || {}).automation_payload || {}).whatsapp_number || l.whatsapp_clean || "").trim();
-const isContacted = (l) => ["contatado", "respondeu", "reuniao", "fechado"].includes(l.lead_status);
+const isContacted = (l) => ["contatado", "respondeu", "reuniao", "fechado", "fazendo", "vou_fazer"].includes(l.lead_status);
+
+function normStatus(s) {
+  if (s === "vou_fazer") return "vou-fazer";
+  if (s === "fazendo" || s === "contatado" || s === "respondeu" || s === "reuniao") return "fazendo";
+  if (s === "nao_fazer" || s === "descartado") return "nao-fazer";
+  if (s === "fechado") return "fechado";
+  return "novo";
+}
+
+function labelStatus(s) {
+  const norm = normStatus(s);
+  if (norm === "vou-fazer") return "🎯 Vou fazer";
+  if (norm === "fazendo") return "⏳ Fazendo";
+  if (norm === "nao-fazer") return "❌ Não fazer";
+  if (norm === "fechado") return "✅ Fechado";
+  return "⚪ Novo";
+}
 
 function readyReportOf(l) {
   const rr = (l.outreach_scripts || {}).ready_report;
@@ -324,6 +341,7 @@ function applyFilters() {
   const niche = $("filter-niche").value;
   const owner = $("filter-owner").value;
   const status = $("filter-status").value;
+  const hideIgnored = $("filter-hide-ignored") ? $("filter-hide-ignored").checked : false;
   const onlyWpp = $("filter-whatsapp").checked;
   const onlyDomain = $("filter-domain-free").checked;
 
@@ -332,7 +350,16 @@ function applyFilters() {
       if (state.tab !== "ALL" && offerOf(l) !== state.tab) return false;
       if (niche && l.niche_slug !== niche) return false;
       if (owner && l.assigned_to !== owner) return false;
-      if (status && l.lead_status !== status) return false;
+      if (hideIgnored && (l.lead_status === "nao_fazer" || l.lead_status === "descartado")) return false;
+      if (status) {
+        const norm = normStatus(l.lead_status);
+        if (status === "novo" && norm !== "novo") return false;
+        if (status === "vou_fazer" && norm !== "vou-fazer") return false;
+        if (status === "fazendo" && norm !== "fazendo") return false;
+        if (status === "nao_fazer" && norm !== "nao-fazer") return false;
+        if (status === "fechado" && norm !== "fechado") return false;
+        if (!["novo", "vou_fazer", "fazendo", "nao_fazer", "fechado"].includes(status) && l.lead_status !== status) return false;
+      }
       if (onlyWpp && !waNumber(l)) return false;
       if (onlyDomain && !l.domain_available_br) return false;
       if (state.kpiNoSite && !hasNoSite(l)) return false;
@@ -358,8 +385,14 @@ function applyQuickTab(tab) {
   if (tab === "ALL") {
     state.kpiNoSite = false;
     state.kpiContacted = false;
-    ["filter-whatsapp", "filter-domain-free"].forEach((id) => ($(id).checked = false));
-    ["filter-niche", "filter-owner", "filter-status", "filter-search"].forEach((id) => ($(id).value = ""));
+    ["filter-whatsapp", "filter-domain-free", "filter-hide-ignored"].forEach((id) => {
+      const el = $(id);
+      if (el) el.checked = false;
+    });
+    ["filter-niche", "filter-owner", "filter-status", "filter-search"].forEach((id) => {
+      const el = $(id);
+      if (el) el.value = "";
+    });
   }
   onFilterChange();
 }
@@ -484,8 +517,9 @@ function renderRows() {
       const sel = l.id === state.selectedId;
       const rating = fmtRating(l.review_rating);
       const score = l.opportunity_score || 0;
+      const stNorm = normStatus(l.lead_status);
       return `
-      <div class="row ${sel ? "selected" : ""} ${isContacted(l) ? "contacted" : ""}" role="option" aria-selected="${sel}" tabindex="0" data-id="${l.id}"
+      <div class="row ${sel ? "selected" : ""} status-${stNorm} ${isContacted(l) ? "contacted" : ""}" role="option" aria-selected="${sel}" tabindex="0" data-id="${l.id}"
            onclick="selectLead(${l.id}, {overlay:true})" onkeydown="if(event.key==='Enter'){selectLead(${l.id}, {overlay:true})}">
         <div style="min-width:0">
           <div class="name">${esc(l.title)}</div>
@@ -494,6 +528,15 @@ function renderRows() {
         <div><span class="pill ${PILL_CLASS[offer]}">${SERVICE_LABELS[offer]}</span></div>
         <div class="cell-r num cell-note">${rating ? esc(rating) : '<span class="dash">—</span>'}</div>
         <div class="cell-r num score cell-score ${score >= 85 ? "hi" : ""}">${score}</div>
+        <div class="cell-r" onclick="event.stopPropagation()">
+          <select class="lead-status-select pill-${stNorm}" aria-label="Decisão para ${esc(l.title)}" onchange="quickUpdateLeadStatus(${l.id}, this.value)">
+            <option value="novo" ${stNorm === "novo" ? "selected" : ""}>⚪ Novo</option>
+            <option value="vou_fazer" ${stNorm === "vou-fazer" ? "selected" : ""}>🎯 Vou fazer</option>
+            <option value="fazendo" ${stNorm === "fazendo" ? "selected" : ""}>⏳ Fazendo</option>
+            <option value="nao_fazer" ${stNorm === "nao-fazer" ? "selected" : ""}>❌ Não fazer</option>
+            <option value="fechado" ${stNorm === "fechado" ? "selected" : ""}>✅ Fechado</option>
+          </select>
+        </div>
       </div>`;
     })
     .join("");
@@ -663,6 +706,8 @@ function renderDetail() {
       <div class="d-meta">${l.phone ? esc(l.phone) : "Sem telefone"}${l.emails ? " · " + esc(l.emails) : ""}</div>
     </div>
 
+    ${renderDecisionButtonsHtml(l)}
+
     <div class="d-section">
       <div class="d-label">O que vender</div>
       <div class="sell"><span class="sell-what">${esc(rr.what_to_sell)}</span><span class="sell-ticket">${esc(rr.ticket_range)}</span></div>
@@ -697,8 +742,8 @@ function renderDetail() {
             <option value="amigo" ${l.assigned_to === "amigo" ? "selected" : ""}>Meu amigo</option>
           </select></label>
         <label class="field"><span>Situação</span>
-          <select onchange="updateLeadOwnerOrStatus(${l.id}, {lead_status: this.value})">
-            ${[["novo", "Novo"], ["analisado", "Analisado"], ["contatado", "Já chamei"], ["respondeu", "Respondeu"], ["reuniao", "Reunião"], ["fechado", "Fechado"], ["descartado", "Descartado"]]
+          <select id="detail-select-status" onchange="quickUpdateLeadStatus(${l.id}, this.value)">
+            ${[["novo", "⚪ Novo"], ["vou_fazer", "🎯 Vou fazer"], ["fazendo", "⏳ Estou fazendo"], ["fechado", "✅ Fechado"], ["nao_fazer", "❌ Não vou fazer"], ["analisado", "Analisado"], ["contatado", "Já chamei"], ["respondeu", "Respondeu"], ["reuniao", "Reunião"], ["descartado", "Descartado"]]
               .map(([v, t]) => `<option value="${v}" ${l.lead_status === v ? "selected" : ""}>${t}</option>`)
               .join("")}
           </select></label>
@@ -706,37 +751,105 @@ function renderDetail() {
     </div>`;
 }
 
-function openWhatsApp(id) {
-  const l = ALL_LEADS.find((x) => x.id === id);
-  if (!l) return;
-  const msg = ($(`card-wpp-${id}`) || {}).value || "";
-  window.open(`https://wa.me/${waNumber(l)}?text=${encodeURIComponent(msg)}`, "_blank", "noopener");
-  markLeadContacted(id);
+function renderDecisionButtonsHtml(l) {
+  const stNorm = normStatus(l.lead_status);
+  return `
+  <div class="d-decision-box">
+    <div class="d-label">Minha decisão para este cliente</div>
+    <div class="decision-buttons" id="decision-buttons-box">
+      <button type="button" class="btn-decision btn-decision-vou ${stNorm === "vou-fazer" ? "active" : ""}" onclick="quickUpdateLeadStatus(${l.id}, 'vou_fazer')">
+        🎯 Vou fazer
+      </button>
+      <button type="button" class="btn-decision btn-decision-fazendo ${stNorm === "fazendo" ? "active" : ""}" onclick="quickUpdateLeadStatus(${l.id}, 'fazendo')">
+        ⏳ Estou fazendo
+      </button>
+      <button type="button" class="btn-decision btn-decision-nao ${stNorm === "nao-fazer" ? "active" : ""}" onclick="quickUpdateLeadStatus(${l.id}, 'nao_fazer')">
+        ❌ Não vou fazer
+      </button>
+      <button type="button" class="btn-decision btn-decision-fechado ${stNorm === "fechado" ? "active" : ""}" onclick="quickUpdateLeadStatus(${l.id}, 'fechado')">
+        ✅ Fechado
+      </button>
+    </div>
+  </div>`;
 }
 
-function copyCardMessage(id) {
-  const el = $(`card-wpp-${id}`);
-  if (!el) return;
-  navigator.clipboard.writeText(el.value).then(() => {
-    const fb = $(`copied-${id}`);
-    if (fb) {
-      fb.textContent = "Copiado";
-      setTimeout(() => (fb.textContent = ""), 2000);
+function renderDecisionButtons(currentStatus, leadId) {
+  const box = $("decision-buttons-box");
+  if (!box) return;
+  const stNorm = normStatus(currentStatus);
+  box.innerHTML = `
+    <button type="button" class="btn-decision btn-decision-vou ${stNorm === "vou-fazer" ? "active" : ""}" onclick="quickUpdateLeadStatus(${leadId}, 'vou_fazer')">
+      🎯 Vou fazer
+    </button>
+    <button type="button" class="btn-decision btn-decision-fazendo ${stNorm === "fazendo" ? "active" : ""}" onclick="quickUpdateLeadStatus(${leadId}, 'fazendo')">
+      ⏳ Estou fazendo
+    </button>
+    <button type="button" class="btn-decision btn-decision-nao ${stNorm === "nao-fazer" ? "active" : ""}" onclick="quickUpdateLeadStatus(${leadId}, 'nao_fazer')">
+      ❌ Não vou fazer
+    </button>
+    <button type="button" class="btn-decision btn-decision-fechado ${stNorm === "fechado" ? "active" : ""}" onclick="quickUpdateLeadStatus(${leadId}, 'fechado')">
+      ✅ Fechado
+    </button>`;
+}
+
+async function quickUpdateLeadStatus(leadId, newStatus) {
+  const leadAll = ALL_LEADS.find((x) => x.id === leadId);
+  if (leadAll) leadAll.lead_status = newStatus;
+  const leadCur = CURRENT_LEADS.find((x) => x.id === leadId);
+  if (leadCur) leadCur.lead_status = newStatus;
+
+  const stNorm = normStatus(newStatus);
+  const rowEl = document.querySelector(`.row[data-id="${leadId}"]`);
+  if (rowEl) {
+    rowEl.className = `row ${leadId === state.selectedId ? "selected" : ""} status-${stNorm} ${isContacted(leadCur || leadAll || {}) ? "contacted" : ""}`;
+    const sel = rowEl.querySelector(".lead-status-select");
+    if (sel) {
+      sel.value = newStatus;
+      sel.className = `lead-status-select pill-${stNorm}`;
     }
-  });
+  }
+
+  if (state.selectedId === leadId) {
+    renderDecisionButtons(newStatus, leadId);
+    const detailSel = $("detail-select-status");
+    if (detailSel) detailSel.value = newStatus;
+  }
+
+  const hideIgnored = $("filter-hide-ignored") && $("filter-hide-ignored").checked;
+  const filterStatusVal = $("filter-status") && $("filter-status").value;
+  if ((hideIgnored && stNorm === "nao-fazer") || (filterStatusVal && filterStatusVal !== newStatus)) {
+    applyFilters();
+  } else {
+    renderSummary(scopeLeads());
+  }
+
+  try {
+    await fetch(`/api/leads/${leadId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lead_status: newStatus }),
+    });
+  } catch (err) {
+    console.error("Falha ao atualizar status do lead:", err);
+  }
 }
 
 async function updateLeadOwnerOrStatus(leadId, patch) {
-  const res = await fetch(`/api/leads/${leadId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
-  });
-  if (res.ok) {
-    const l = ALL_LEADS.find((x) => x.id === leadId);
-    if (l) Object.assign(l, patch);
-    renderSummary(scopeLeads());
-    renderRows();
+  if (patch.lead_status) {
+    await quickUpdateLeadStatus(leadId, patch.lead_status);
+  }
+  if (patch.assigned_to) {
+    const res = await fetch(`/api/leads/${leadId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    });
+    if (res.ok) {
+      const l = ALL_LEADS.find((x) => x.id === leadId);
+      if (l) Object.assign(l, patch);
+      renderSummary(scopeLeads());
+      renderRows();
+    }
   }
 }
 

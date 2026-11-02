@@ -52,13 +52,22 @@ def test_run_search_job_and_filter_leads(client):
     assert len(leads) >= 6
 
     first_id = leads[0]["id"]
-    # Atribuir lead para 'amigo' e mudar status
+    # Atribuir lead para 'amigo' e mudar status para 'vou_fazer'
     r_patch = client.patch(
         f"/api/leads/{first_id}",
-        json={"assigned_to": "amigo", "lead_status": "analisado", "notes": "Excelente clínica sem site"},
+        json={"assigned_to": "amigo", "lead_status": "vou_fazer", "notes": "Excelente clínica sem site"},
     )
     assert r_patch.status_code == 200
     assert r_patch.json()["assigned_to"] == "amigo"
+    assert r_patch.json()["lead_status"] == "vou_fazer"
+
+    # Atualizar para 'nao_fazer'
+    r_patch2 = client.patch(
+        f"/api/leads/{first_id}",
+        json={"lead_status": "nao_fazer"},
+    )
+    assert r_patch2.status_code == 200
+    assert r_patch2.json()["lead_status"] == "nao_fazer"
 
 
 def test_outreach_automation_endpoints(client):

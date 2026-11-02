@@ -219,10 +219,10 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
 /* ---------- lista + detalhe ---------- */
 .split { display: grid; grid-template-columns: minmax(0, 1fr) var(--detail-width); gap: var(--gap); align-items: start; }
 .list-col { min-width: 0; }
-.rows-head, .row { display: grid; grid-template-columns: minmax(0, 1fr) 128px 64px 64px; align-items: center; column-gap: 12px; }
+.rows-head, .row { display: grid; grid-template-columns: minmax(0, 1fr) 110px 52px 52px 130px; align-items: center; column-gap: 12px; }
 .rows-head { height: 36px; padding: 0 12px; font-size: var(--fs-small); color: var(--muted); border-bottom: 1px solid var(--border); }
 .r { text-align: right; }
-.row { min-height: 56px; padding: 8px 12px; border-bottom: 1px solid var(--rule); cursor: pointer; border-radius: 0; background: var(--surface); }
+.row { min-height: 56px; padding: 8px 12px; border-bottom: 1px solid var(--rule); cursor: pointer; border-radius: 0; background: var(--surface); transition: background 120ms ease, opacity 120ms ease; }
 .row:hover { background: var(--raised); }
 .row.selected { background: var(--active); }
 .row .name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -232,6 +232,34 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
 .row .score.hi { color: var(--accent); }
 .row .dash { color: var(--faint); }
 .row.contacted .name::after { content: "contatado"; margin-left: 8px; font-size: 11px; font-weight: 400; color: var(--faint); }
+
+/* Estados visuais da linha por decisão */
+.row.status-vou-fazer { border-left: 3px solid var(--accent); }
+.row.status-fazendo { border-left: 3px solid var(--warning); }
+.row.status-nao-fazer { opacity: 0.52; }
+.row.status-nao-fazer:hover { opacity: 0.85; }
+.row.status-fechado { border-left: 3px solid var(--positive); }
+
+/* Dropdown / Pill de Decisão rápida na linha */
+.lead-status-select { height: 28px; padding: 0 8px; font-size: 11px; font-weight: 500; border-radius: 999px; border: 1px solid var(--border); background: var(--raised); color: var(--text); cursor: pointer; transition: all 140ms ease; outline: none; width: 100%; max-width: 130px; text-overflow: ellipsis; white-space: nowrap; }
+.lead-status-select:hover { border-color: var(--control); background: var(--active); }
+.lead-status-select:focus { border-color: var(--accent); }
+.lead-status-select.pill-novo { background: var(--surface); color: var(--muted); border-color: var(--border); }
+.lead-status-select.pill-vou-fazer { background: var(--pill-accent-bg); color: var(--pill-accent-ink); border-color: var(--accent); font-weight: 600; }
+.lead-status-select.pill-fazendo { background: var(--pill-warning-bg); color: var(--pill-warning-ink); border-color: var(--warning); font-weight: 600; }
+.lead-status-select.pill-nao-fazer { background: var(--pill-negative-bg); color: var(--pill-negative-ink); border-color: rgba(196, 36, 42, 0.4); }
+.lead-status-select.pill-fechado { background: var(--pill-positive-bg); color: var(--pill-positive-ink); border-color: var(--positive); font-weight: 600; }
+
+/* Painel de Decisão na Central de Contato */
+.d-decision-box { background: var(--ground); border-radius: var(--radius-card); margin: 12px 16px; padding: 12px 14px; border: 1px solid var(--border); }
+.decision-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; }
+.btn-decision { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; font-size: 12px; font-weight: 500; border-radius: var(--radius-control); border: 1px solid var(--border); background: var(--surface); color: var(--muted); cursor: pointer; transition: all 140ms ease; user-select: none; }
+.btn-decision:hover { background: var(--raised); color: var(--text); border-color: var(--control); transform: translateY(-1px); }
+.btn-decision:active { transform: translateY(0); }
+.btn-decision.active.btn-decision-vou { background: var(--pill-accent-bg); color: var(--pill-accent-ink); border-color: var(--accent); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.btn-decision.active.btn-decision-fazendo { background: var(--pill-warning-bg); color: var(--pill-warning-ink); border-color: var(--warning); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.btn-decision.active.btn-decision-nao { background: var(--pill-negative-bg); color: var(--pill-negative-ink); border-color: var(--negative); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+.btn-decision.active.btn-decision-fechado { background: var(--pill-positive-bg); color: var(--pill-positive-ink); border-color: var(--positive); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
 
 /* ---------- paginação premium ---------- */
 .pagination-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 10px 14px; margin-top: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card); }
@@ -379,5 +407,5 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
   .stage { height: auto; padding: 0; }
   .sheet { border: 0; overflow: visible; padding: 0; }
   .split { display: block; }
-  .rows-head, .row { grid-template-columns: minmax(0, 1fr) 120px 50px 50px; }
+  .rows-head, .row { grid-template-columns: minmax(0, 1fr) 110px 50px 50px 100px; }
 }
