@@ -1,42 +1,39 @@
-# Sprint Concluída: Ajuste de Densidade e Redução da Quantidade de Sites por Tela
+# Sprint Atual: Redesign Premium da Barra de Paginação & Cache Busting
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 01/11/2026 às 20:59
-- **Data de Conclusão**: 01/11/2026 às 21:01
-- **Status**: Concluído (100%)
+- **Data de Início**: 01/11/2026 às 21:06
+- **Status**: Em Andamento (10%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-Reduzir a quantidade de empresas/sites exibidos por tela na tabela de recomendações para que a visualização fique enxuta, sem exigir rolagem vertical e adaptando-se perfeitamente à altura da tela e da Central de Contato:
-1. **Redução da Quantidade Padrão**: Reduzir o padrão de 10 para 5 itens por página.
-2. **Opções Mais Enxutas**: Atualizar o seletor com as opções `5`, `8`, `10`, `15` e `20`.
-3. **Persistência de Preferência**: Salvar a preferência do usuário no `localStorage` (`painel_page_size`) para que a escolha seja lembrada nos próximos acessos.
+Substituir o layout rudimentar da paginação por um design premium, refinado e alinhado aos melhores padrões de dashboards modernos (Linear/Raycast):
+1. **Cache Busting**: Forçar atualização imediata nos navegadores dos clientes com versionamento dos assets (`/static/styles.css?v=2.1` e `/static/app.js?v=2.1`).
+2. **Design Visual Premium**: Barra elegante com borda sutil, badge com contagem em tipografia tabular mono, seletor de quantidade no estilo pill compacto e botões táteis (`‹ Anterior`, `Próxima ›` e números) com micro-interações de hover e estado ativo em alto contraste.
+3. **Carregamento Limpo**: Ocultar a barra durante o skeleton inicial para eliminar qualquer glitch visual ou placeholder cru (`—`).
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Diagnóstico do ajuste de densidade (definição do novo padrão de 5 itens por tela e opções mais enxutas 5, 8, 10, 15, 20)
-- [x] **20%** - Atualização do markup HTML do seletor em `index.html` com padrão de 5 itens
-- [x] **30%** - Atualização do `DEFAULT_PAGE_SIZE = 5` no `app.js`
-- [x] **40%** - Implementação de persistência local da preferência no `localStorage` (`painel_page_size`)
-- [x] **50%** - Ajuste fino de altura/espaçamento nas linhas da tabela para visualização compacta
-- [x] **60%** - Sincronização do seletor na inicialização (`initDashboard` recupera do `localStorage`)
-- [x] **70%** - Validação de navegação de teclado e elipses numéricas com 5 itens por página
-- [x] **80%** - Verificação de compatibilidade mobile e responsividade
-- [x] **90%** - Testes automatizados no `pytest` cobrindo o novo padrão e seletor
-- [x] **100%** - Validação no servidor ativo (`http://127.0.0.1:8090`), `graphify update .` e sincronização com GitHub
+- [x] **10%** - Diagnóstico do problema visual (cache do navegador em assets estáticos e falta de regras CSS/layout robustos)
+- [ ] **20%** - Implementação de Cache-Busting (`?v=2.1`) no `index.html` para `styles.css` e `app.js`
+- [ ] **30%** - Ocultação inicial da barra no HTML (`style="display: none;"`) para evitar exibição de placeholders crus (`—`) durante o carregamento
+- [ ] **40%** - Redesign do container da barra (`.pagination-bar`) com layout flexível, espaçamento equilibrado e bordas refinadas
+- [ ] **50%** - Redesign dos botões de navegação (`‹ Anterior` e `Próxima ›`) com micro-interações, hover e transições suaves
+- [ ] **60%** - Redesign dos botões numéricos (`.btn-page-num`) com destaque ativo de alto contraste e elipses elegantes
+- [ ] **70%** - Redesign do seletor de itens por página (`.page-size-wrap`) com visual de pill/tag integrada
+- [ ] **80%** - Adaptação responsiva refinada para telas menores (smart wrapping sem quebrar botões)
+- [ ] **90%** - Testes automatizados atualizados em `tests/test_dashboard_ui.py`
+- [ ] **100%** - Validação no navegador e servidor ativo, `graphify update .`, commit e sincronização com GitHub
 
 ---
 
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10%** | 01/11/2026 20:59 | Diagnóstico: identificado que 10 itens ainda demandam rolagem vertical; planejado novo padrão de 5 itens e opções 5, 8, 10, 15, 20 com persistência local. | `Sprint atual.md`, `task.md` |
-| **20-60%** | 01/11/2026 21:00 | Seletor atualizado para 5/8/10/15/20, DEFAULT_PAGE_SIZE alterado para 5, e preferência do usuário salva e recuperada automaticamente do `localStorage`. | `app/static/index.html`, `app/static/app.js` |
-| **70-100%** | 01/11/2026 21:01 | Testes unitários 37/37 passando, grafo atualizado com `graphify update .` e sincronizado com GitHub. | `graphify-out/*`, `Sprint atual.md` |
+| **10%** | 01/11/2026 21:06 | Diagnóstico visual completo: identificada renderização com CSS/JS antigos em cache e botões em bloco quebrados. Definidas especificações do redesign premium. | `Sprint atual.md`, `task.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
