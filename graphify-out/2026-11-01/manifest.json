@@ -12,9 +12,9 @@
     "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
   },
   "app/database.py": {
-    "mtime": 1793576982.5011132,
-    "seen": 1793576997.9114532,
-    "ast_hash": "9b6d01266d61a5c9855297cea98a5ae2",
+    "mtime": 1793579725.1913664,
+    "seen": 1793580028.6984832,
+    "ast_hash": "1f59e4dd82b678acb3c8c2473fa5a148",
     "semantic_hash": ""
   },
   "app/main.py": {
@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "app/models.py": {
-    "mtime": 1793481618.326224,
-    "seen": 1793481803.1912315,
-    "ast_hash": "0e05736de87ac5a9bbb70009d52db51d",
+    "mtime": 1793579719.2251494,
+    "seen": 1793580028.6984897,
+    "ast_hash": "922074ee4e46dc6136d7f8126d3a41ff",
     "semantic_hash": ""
   },
   "app/routers/__init__.py": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1793577628.74041,
-    "seen": 1793577652.8480368,
-    "ast_hash": "53b3c1fb146f69b21c0900ca2d1ece7e",
+    "mtime": 1793579932.7221086,
+    "seen": 1793580028.6985142,
+    "ast_hash": "c7f93c252b385525d2c4c8c13eed8801",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -108,10 +108,10 @@
     "semantic_hash": ""
   },
   "tests/test_api.py": {
-    "mtime": 1793312520.1530466,
-    "seen": 1793313149.3531592,
-    "ast_hash": "2b9ffc5e495be114252378ef38bee01a",
-    "semantic_hash": "2b9ffc5e495be114252378ef38bee01a"
+    "mtime": 1793579972.8614542,
+    "seen": 1793580028.6985204,
+    "ast_hash": "d4b6298dea0ef7481e0bf897231605e8",
+    "semantic_hash": ""
   },
   "tests/test_business_discovery.py": {
     "mtime": 1793382056.8080182,
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1793577033.1584485,
-    "seen": 1793577066.9580853,
-    "ast_hash": "88c340eb32c0b79fb4897c139be70bfe",
+    "mtime": 1793579964.0020528,
+    "seen": 1793580028.6985242,
+    "ast_hash": "4ee216c8f40aa255989b2cc00c973656",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": "f6430a003ab70c901c8a4c67670596d6"
   },
   "Sprint atual.md": {
-    "mtime": 1793578018.2495856,
-    "seen": 1793578383.252501,
-    "ast_hash": "64b2e502fcba293c672e168059d86b08",
+    "mtime": 1793579689.7800982,
+    "seen": 1793580028.698546,
+    "ast_hash": "f74a61575504356f13651f2c81550d0a",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "app/static/index.html": {
-    "mtime": 1793578089.4062839,
-    "seen": 1793578383.2525027,
-    "ast_hash": "02e8c78943c76b8c0f747cac79ed213e",
+    "mtime": 1793579754.114606,
+    "seen": 1793580028.6985476,
+    "ast_hash": "67077e616ff14e704d7f4c99718340d8",
     "semantic_hash": ""
   },
   "docker-compose.yml": {

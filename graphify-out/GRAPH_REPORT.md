@@ -1,17 +1,17 @@
 # Graph Report - Painel de Busca  (2026-11-01)
 
 ## Corpus Check
-- 35 files · ~31,856 words
+- 35 files · ~32,254 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: .bat 2, (none) 1, .css 1)
 
 ## Summary
-- 443 nodes · 1074 edges · 21 communities (14 shown, 7 thin omitted)
+- 446 nodes · 1081 edges · 20 communities (13 shown, 7 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 39 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2f7eb4a4`
+- Built from commit: `ceaa3bf1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -21,7 +21,6 @@
 - Business Discovery & RDAP
 - Site X-Ray & Tech Stack
 - SQLite Persistence & Lead Scoring
-- outreach_router.py
 - Outreach Scripts & Queue
 - maps_scraper.py
 - outreach_generator.py
@@ -60,43 +59,39 @@
 ## Import Cycles
 - None detected.
 
-## Communities (21 total, 7 thin omitted)
+## Communities (20 total, 7 thin omitted)
 
 ### Community 0 - "Site X-Ray & Tech Stack"
 Cohesion: 0.07
 Nodes (31): build_casadosdados_links(), check_registro_br_availability(), check_site_availability_and_ssl(), _default_http_get(), discover_companies_by_cnae_and_city(), extract_hostname(), format_cnpj(), is_social_or_directory_url() (+23 more)
 
 ### Community 1 - "Google Maps Scraper Engine"
-Cohesion: 0.08
-Nodes (21): Diretrizes de Commit Automático, Regra Mandatória: Commit e Sincronização Automática com GitHub, Repositório Oficial, collect_keywords(), contact_links(), enrich_emails(), work(), enrich_socials() (+13 more)
+Cohesion: 0.07
+Nodes (22): Diretrizes de Commit Automático, Regra Mandatória: Commit e Sincronização Automática com GitHub, Repositório Oficial, collect_keywords(), contact_links(), dedupe(), enrich_emails(), work() (+14 more)
 
 ### Community 2 - "Business Discovery & RDAP"
 Cohesion: 0.06
-Nodes (74): ALL_LEADS, ALL_NICHES, applyFilters(), applyQuickTab(), bindShortcuts(), buildPaginationButtons(), checkQuickDomain(), closeDetailOverlay() (+66 more)
+Nodes (77): ALL_LEADS, ALL_NICHES, applyFilters(), applyQuickTab(), bindShortcuts(), buildPaginationButtons(), checkQuickDomain(), clearAllFilters() (+69 more)
 
 ### Community 3 - "Site X-Ray & Tech Stack"
-Cohesion: 0.16
-Nodes (31): claim_next_outreach(), create_search_job(), deduplicate_existing_leads_db(), _deserialize_job(), _deserialize_lead(), _deserialize_outreach(), enqueue_outreach(), _find_existing_lead_id() (+23 more)
+Cohesion: 0.12
+Nodes (36): claim_next_outreach(), create_search_job(), deduplicate_existing_leads_db(), _deserialize_job(), _deserialize_lead(), _deserialize_outreach(), enqueue_outreach(), _find_existing_lead_id() (+28 more)
 
 ### Community 4 - "SQLite Persistence & Lead Scoring"
-Cohesion: 0.11
-Nodes (25): api_casadosdados_links(), api_check_registro_br(), api_create_manual_lead(), api_get_executive_summary(), api_get_lead(), api_health(), api_import_csv(), api_list_jobs() (+17 more)
-
-### Community 5 - "outreach_router.py"
-Cohesion: 0.16
-Nodes (10): LeadManagementUpdate, ManualLeadCreate, OutreachClaimRequest, OutreachEnqueueRequest, OutreachStatusUpdate, SearchJobRequest, api_claim_next_outreach(), api_enqueue_outreach() (+2 more)
+Cohesion: 0.09
+Nodes (29): LeadManagementUpdate, ManualLeadCreate, OutreachClaimRequest, OutreachEnqueueRequest, OutreachStatusUpdate, SearchJobRequest, api_casadosdados_links(), api_check_registro_br() (+21 more)
 
 ### Community 6 - "Outreach Scripts & Queue"
 Cohesion: 0.08
 Nodes (6): create_app(), client(), client(), client(), test_live_maps_scrape_piracicaba_utf8_safe(), test_piracicaba_search_job_no_charmap_error_and_ready_reports()
 
 ### Community 7 - "maps_scraper.py"
-Cohesion: 0.11
-Nodes (22): api_create_and_run_job(), api_export_outreach_ready(), build_keywords_for_job(), check_scraper_engine_health(), _clean_maps_address(), delete_engine_job(), generate_sample_leads_for_niches(), geocode_city_embedded() (+14 more)
+Cohesion: 0.12
+Nodes (20): api_create_and_run_job(), api_tool_maps_engine(), build_keywords_for_job(), check_scraper_engine_health(), _clean_maps_address(), delete_engine_job(), generate_sample_leads_for_niches(), geocode_city_embedded() (+12 more)
 
 ### Community 8 - "outreach_generator.py"
 Cohesion: 0.12
-Nodes (14): init_db(), score_and_classify_lead(), build_executive_summary_report(), build_ready_report_for_lead(), generate_outreach_scripts(), process_leads_batch(), _one(), db_path() (+6 more)
+Nodes (16): init_db(), score_and_classify_lead(), normalize_whatsapp_br(), build_executive_summary_report(), build_ready_report_for_lead(), generate_outreach_scripts(), process_and_save_lead(), process_leads_batch() (+8 more)
 
 ### Community 9 - "Cluster 9: app/__init__.py"
 Cohesion: 0.14
@@ -132,11 +127,11 @@ _Questions this graph is uniquely positioned to answer:_
   _2 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Site X-Ray & Tech Stack` be split into smaller, more focused modules?**
   _Cohesion score 0.06980433632998413 - nodes in this community are weakly interconnected._
-- **Why does `run_live_maps_scrape()` connect `maps_scraper.py` to `Google Maps Scraper Engine`, `SQLite Persistence & Lead Scoring`, `Outreach Scripts & Queue`?**
+- **Why does `run_live_maps_scrape()` connect `maps_scraper.py` to `outreach_generator.py`, `Google Maps Scraper Engine`, `SQLite Persistence & Lead Scoring`, `Outreach Scripts & Queue`?**
   _High betweenness centrality (0.025) - this node is a cross-community bridge._
 - **Should `Google Maps Scraper Engine` be split into smaller, more focused modules?**
-  _Cohesion score 0.07804878048780488 - nodes in this community are weakly interconnected._
-- **Why does `process_and_save_lead()` connect `SQLite Persistence & Lead Scoring` to `outreach_generator.py`, `Site X-Ray & Tech Stack`, `Site X-Ray & Tech Stack`, `maps_scraper.py`?**
+  _Cohesion score 0.07399577167019028 - nodes in this community are weakly interconnected._
+- **Why does `process_and_save_lead()` connect `outreach_generator.py` to `Site X-Ray & Tech Stack`, `Site X-Ray & Tech Stack`, `SQLite Persistence & Lead Scoring`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Should `Business Discovery & RDAP` be split into smaller, more focused modules?**
-  _Cohesion score 0.06139240506329114 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05906553041434029 - nodes in this community are weakly interconnected._

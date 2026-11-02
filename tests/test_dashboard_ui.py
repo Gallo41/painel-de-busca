@@ -88,6 +88,10 @@ def test_dashboard_decision_status_elements_present(client):
     assert "Decisão" in html
     assert "vou_fazer" in html
     assert "nao_fazer" in html
+    assert "decision-filter-strip" in html
+    assert "filter-search-inline" in html
+    assert "count-status-vou" in html
+    assert "btn-clear-filters" in html
 
     r_css = client.get("/static/styles.css")
     assert r_css.status_code == 200
@@ -95,11 +99,16 @@ def test_dashboard_decision_status_elements_present(client):
     assert ".btn-decision" in r_css.text
     assert ".status-vou-fazer" in r_css.text
     assert ".status-nao-fazer" in r_css.text
+    assert ".decision-pill-btn" in r_css.text
+    assert ".inline-search-wrap" in r_css.text
 
     r_js = client.get("/static/app.js")
     assert r_js.status_code == 200
     assert "quickUpdateLeadStatus" in r_js.text
     assert "normStatus" in r_js.text
     assert "renderDecisionButtons" in r_js.text
+    assert "setStatusFilter" in r_js.text
+    assert "clearAllFilters" in r_js.text
+    assert "onInlineSearch" in r_js.text
 
 

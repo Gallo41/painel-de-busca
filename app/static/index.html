@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=2.2" />
+  <link rel="stylesheet" href="/static/styles.css?v=2.3" />
 </head>
 <body>
   <div class="app">
@@ -142,7 +142,32 @@
             <button class="tab" role="tab" data-tab="SISTEMA_COMPLEXO" onclick="applyQuickTab('SISTEMA_COMPLEXO')">Vender sistema <span class="num" data-count="SISTEMA_COMPLEXO"></span></button>
           </div>
 
+          <!-- Barra de Decisão Rápida (Filtros de 1 clique com contadores ao vivo) -->
+          <div class="decision-filter-strip" role="group" aria-label="Filtrar por decisão">
+            <button type="button" class="decision-pill-btn active" data-status-filter="" onclick="setStatusFilter('')">
+              Todos <span class="badge-count" id="count-status-all">0</span>
+            </button>
+            <button type="button" class="decision-pill-btn pill-btn-vou" data-status-filter="vou_fazer" onclick="setStatusFilter('vou_fazer')">
+              🎯 Vou fazer <span class="badge-count" id="count-status-vou">0</span>
+            </button>
+            <button type="button" class="decision-pill-btn pill-btn-fazendo" data-status-filter="fazendo" onclick="setStatusFilter('fazendo')">
+              ⏳ Fazendo <span class="badge-count" id="count-status-fazendo">0</span>
+            </button>
+            <button type="button" class="decision-pill-btn pill-btn-novo" data-status-filter="novo" onclick="setStatusFilter('novo')">
+              ⚪ Novos <span class="badge-count" id="count-status-novo">0</span>
+            </button>
+            <button type="button" class="decision-pill-btn pill-btn-fechado" data-status-filter="fechado" onclick="setStatusFilter('fechado')">
+              ✅ Fechados <span class="badge-count" id="count-status-fechado">0</span>
+            </button>
+            <button type="button" class="decision-pill-btn pill-btn-nao" data-status-filter="nao_fazer" onclick="setStatusFilter('nao_fazer')">
+              ❌ Não vou fazer <span class="badge-count" id="count-status-nao">0</span>
+            </button>
+          </div>
+
           <div class="filters">
+            <div class="inline-search-wrap">
+              <input id="filter-search-inline" type="search" placeholder="Buscar por nome, nicho ou endereço..." oninput="onInlineSearch(this.value)" aria-label="Buscar estabelecimentos" />
+            </div>
             <select id="filter-niche" onchange="onFilterChange()" aria-label="Nicho"><option value="">Todos os nichos</option></select>
             <select id="filter-owner" onchange="onFilterChange()" aria-label="Responsável">
               <option value="">Eu e meu amigo</option>
@@ -150,7 +175,14 @@
               <option value="eu">Minha carteira</option>
               <option value="amigo">Carteira do amigo</option>
             </select>
-            <select id="filter-status" onchange="onFilterChange()" aria-label="Situação">
+            <label class="check"><input id="filter-hide-ignored" type="checkbox" onchange="onFilterChange()" /> Ocultar "Não vou fazer"</label>
+            <label class="check"><input id="filter-whatsapp" type="checkbox" onchange="onFilterChange()" /> Só com WhatsApp</label>
+            <label class="check"><input id="filter-domain-free" type="checkbox" onchange="onFilterChange()" /> Só domínio livre</label>
+            <button id="btn-clear-filters" class="btn btn-sm btn-clear-filters" type="button" onclick="clearAllFilters()" style="display: none;">Limpar filtros</button>
+            <span class="spacer"></span>
+            <span class="stamp num" id="list-total"></span>
+            <!-- select mantido para compatibilidade total com testes/código -->
+            <select id="filter-status" class="visually-hidden" aria-hidden="true" onchange="onFilterChange()">
               <option value="">Qualquer situação</option>
               <option value="novo">⚪ Novo</option>
               <option value="vou_fazer">🎯 Vou fazer</option>
@@ -158,11 +190,6 @@
               <option value="fechado">✅ Fechado</option>
               <option value="nao_fazer">❌ Não vou fazer</option>
             </select>
-            <label class="check"><input id="filter-hide-ignored" type="checkbox" onchange="onFilterChange()" /> Ocultar "Não vou fazer"</label>
-            <label class="check"><input id="filter-whatsapp" type="checkbox" onchange="onFilterChange()" /> Só com WhatsApp</label>
-            <label class="check"><input id="filter-domain-free" type="checkbox" onchange="onFilterChange()" /> Só domínio livre</label>
-            <span class="spacer"></span>
-            <span class="stamp num" id="list-total"></span>
           </div>
 
           <!-- Lista + Central de Contato -->
@@ -346,6 +373,6 @@
     </div>
   </div>
 
-  <script src="/static/app.js?v=2.2"></script>
+  <script src="/static/app.js?v=2.3"></script>
 </body>
 </html>

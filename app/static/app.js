@@ -331,19 +331,68 @@ function onFilterChange() {
   applyFilters();
 }
 
+function onInlineSearch(val) {
+  const topSearch = $("filter-search");
+  if (topSearch && topSearch.value !== val) {
+    topSearch.value = val;
+  }
+  onFilterChange();
+}
+
+function setStatusFilter(key) {
+  state.statusFilter = key;
+  const selectStatus = $("filter-status");
+  if (selectStatus) selectStatus.value = key;
+  document.querySelectorAll(".decision-pill-btn").forEach((btn) => {
+    btn.classList.toggle("active", (btn.dataset.statusFilter || "") === key);
+  });
+  onFilterChange();
+}
+
+function clearAllFilters() {
+  state.statusFilter = "";
+  state.tab = "ALL";
+  state.kpiNoSite = false;
+  state.kpiContacted = false;
+  ["filter-whatsapp", "filter-domain-free", "filter-hide-ignored"].forEach((id) => {
+    const el = $(id);
+    if (el) el.checked = false;
+  });
+  ["filter-niche", "filter-owner", "filter-status", "filter-search", "filter-search-inline"].forEach((id) => {
+    const el = $(id);
+    if (el) el.value = "";
+  });
+  document.querySelectorAll(".decision-pill-btn").forEach((btn) => {
+    btn.classList.toggle("active", (btn.dataset.statusFilter || "") === "");
+  });
+  onFilterChange();
+}
+
 function scopeLeads() {
   return ALL_LEADS.filter((l) => !SCOPE_CITY || (l.city || "").toLowerCase() === SCOPE_CITY.toLowerCase());
 }
 
 function applyFilters() {
   const scope = scopeLeads();
-  const q = ($("filter-search").value || "").trim().toLowerCase();
+  const topSearch = $("filter-search");
+  const inlineSearch = $("filter-search-inline");
+  const q = ((inlineSearch ? inlineSearch.value : "") || (topSearch ? topSearch.value : "")).trim().toLowerCase();
+  if (topSearch && inlineSearch && topSearch.value !== inlineSearch.value) {
+    if (document.activeElement === inlineSearch) topSearch.value = inlineSearch.value;
+    else if (document.activeElement === topSearch) inlineSearch.value = topSearch.value;
+  }
   const niche = $("filter-niche").value;
   const owner = $("filter-owner").value;
-  const status = $("filter-status").value;
+  const status = state.statusFilter !== undefined && state.statusFilter !== "" ? state.statusFilter : $("filter-status").value;
   const hideIgnored = $("filter-hide-ignored") ? $("filter-hide-ignored").checked : false;
   const onlyWpp = $("filter-whatsapp").checked;
   const onlyDomain = $("filter-domain-free").checked;
+
+  const hasActiveFilters = Boolean(
+    q || niche || owner || status || onlyWpp || onlyDomain || hideIgnored || state.tab !== "ALL" || state.kpiNoSite || state.kpiContacted
+  );
+  const btnClear = $("btn-clear-filters");
+  if (btnClear) btnClear.style.display = hasActiveFilters ? "inline-flex" : "none";
 
   CURRENT_LEADS = scope
     .filter((l) => {
@@ -436,6 +485,23 @@ function renderSummary(scope) {
   setTxt("stat-site-down", fmtInt(siteDown));
   setTxt("stat-complex", fmtInt(complex));
   setTxt("stat-domain-free", fmtInt(dom));
+
+  const countVou = scope.filter((l) => normStatus(l.lead_status) === "vou-fazer").length;
+  const countFazendo = scope.filter((l) => normStatus(l.lead_status) === "fazendo").length;
+  const countNao = scope.filter((l) => normStatus(l.lead_status) === "nao-fazer").length;
+  const countFechado = scope.filter((l) => normStatus(l.lead_status) === "fechado").length;
+  const countNovo = scope.filter((l) => normStatus(l.lead_status) === "novo").length;
+
+  setTxt("count-status-all", fmtInt(total));
+  setTxt("count-status-vou", fmtInt(countVou));
+  setTxt("count-status-fazendo", fmtInt(countFazendo));
+  setTxt("count-status-nao", fmtInt(countNao));
+  setTxt("count-status-fechado", fmtInt(countFechado));
+  setTxt("count-status-novo", fmtInt(countNovo));
+
+  document.querySelectorAll(".decision-pill-btn").forEach((btn) => {
+    btn.classList.toggle("active", (btn.dataset.statusFilter || "") === (state.statusFilter || ""));
+  });
 
   document.querySelectorAll("[data-count]").forEach((el) => {
     const k = el.dataset.count;
