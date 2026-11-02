@@ -6,7 +6,8 @@ let SELECTED_NICHES = new Set(["clinicas-odontologicas", "escritorios-advocacia"
 let ALL_LEADS = [];
 let CURRENT_LEADS = [];
 let SCOPE_CITY = "";
-const DEFAULT_PAGE_SIZE = 10;
+const SAVED_PAGE_SIZE = parseInt(localStorage.getItem("painel_page_size") || "5", 10);
+const DEFAULT_PAGE_SIZE = [5, 8, 10, 15, 20].includes(SAVED_PAGE_SIZE) ? SAVED_PAGE_SIZE : 5;
 const PAGE = DEFAULT_PAGE_SIZE;
 const state = {
   tab: "ALL",
@@ -590,9 +591,13 @@ function goToPage(p) {
 }
 
 function onPageSizeChange(newSize) {
-  state.pageSize = Number(newSize) || 10;
-  state.limit = state.pageSize;
+  const val = Number(newSize) || 5;
+  state.pageSize = val;
+  state.limit = val;
   state.page = 1;
+  try {
+    localStorage.setItem("painel_page_size", String(val));
+  } catch (e) {}
   renderRows();
 
   const startIdx = 0;
