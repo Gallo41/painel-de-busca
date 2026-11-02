@@ -22,16 +22,39 @@ Integra nativamente a skill **`google-maps-scraper`** (`Mahanaicoach/google-maps
 
 ---
 
+## ⚡ Instalação Rápida em 1 Clique (Para Você e Seu Parceiro)
+
+Se você ou seu amigo acabaram de baixar/clonar o repositório, basta dar **dois cliques** em:
+```cmd
+INSTALAR_PAINEL.bat
+```
+O assistente inteligente faz todo o trabalho:
+1. Detecta o Python no Windows (se não tiver, instala automaticamente via `winget`).
+2. Cria o ambiente isolado `.venv` e instala todos os pacotes necessários.
+3. Cria um **atalho direto na Área de Trabalho** (`Painel de Busca.lnk`) com ícone personalizado.
+4. Para mais detalhes, veja o arquivo [COMO_INSTALAR.txt](file:///C:/Projetos%20Quecine/Painel%20de%20Busca/COMO_INSTALAR.txt) ou [docs/guia-instalacao-amigo.md](file:///C:/Projetos%20Quecine/Painel%20de%20Busca/docs/guia-instalacao-amigo.md).
+
+---
+
 ## 🚀 Como Usar no Dia a Dia
 
 ### 1. Iniciar o Painel Web
-Basta clicar duas vezes em **`iniciar_painel.bat`** ou rodar no terminal:
+- **Pelo Desktop**: Dê dois cliques no atalho **`Painel de Busca`** na sua Área de Trabalho.
+- **Pela Pasta**: Dê dois cliques em **`iniciar_painel.bat`** (possui **auto-cura**: se as dependências ainda não existirem, ele instala sozinho!).
+- **Pelo Terminal**:
 ```powershell
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8090 --reload
 ```
 Acesse: **`http://localhost:8090`** (Documentação interativa da API: **`http://localhost:8090/docs`**).
 
-### 2. (Opcional) Subir o Motor Docker do Google Maps Scraper
+### 2. (Opcional) Compilar em Executável Standalone (.exe)
+Se preferir rodar através de um executável independente compilado:
+```cmd
+scripts\compilar_exe.bat
+```
+Isso gera o arquivo `dist\PainelDeBusca\PainelDeBusca.exe` com o atalho `Painel de Busca (EXE)` na Área de Trabalho.
+
+### 3. (Opcional) Subir o Motor Docker do Google Maps Scraper
 Para buscas ao vivo ilimitadas no Google Maps via container local:
 ```powershell
 docker compose up -d
