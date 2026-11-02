@@ -1,0 +1,54 @@
+======================================================================
+  PAINEL DE BUSCA — GUIA RAPIDO DE INSTALACAO (1-CLIQUE)
+======================================================================
+
+Ola! Seja bem-vindo ao Painel de Busca e Prospeccao de Clientes.
+Este guia rapido explica como rodar o sistema no seu computador Windows.
+
+----------------------------------------------------------------------
+PASSO 1: INSTALACAO AUTOMATICA EM 1 CLIQUE
+----------------------------------------------------------------------
+Basta dar DOIS CLIQUES no arquivo:
+
+    ->  INSTALAR_PAINEL.bat
+
+O que ele faz sozinho por voce:
+  1. Verifica se voce tem o Python instalado (se nao tiver, tenta
+     instalar silenciosamente via Windows Package Manager).
+  2. Cria o ambiente isolado (.venv) e baixa todas as bibliotecas.
+  3. Cria pastas de dados e valida o funcionamento.
+  4. Cria um atalho "Painel de Busca" com icone na sua Area de Trabalho.
+  5. Pergunta se voce quer abrir o painel imediatamente.
+
+----------------------------------------------------------------------
+PASSO 2: COMO USAR NO DIA A DIA
+----------------------------------------------------------------------
+Depois de instalado, para usar o painel sempre que quiser:
+
+  Opcao A: De dois cliques no atalho "Painel de Busca" na Area de Trabalho.
+  Opcao B: De dois cliques no arquivo "iniciar_painel.bat" nesta pasta.
+
+O seu navegador padrao vai abrir na tela do painel:
+  http://127.0.0.1:8090
+
+(Dica: mantenha a janelinha preta aberta enquanto estiver usando.
+ Para encerrar, e so fechar a janela ou apertar Ctrl + C).
+
+----------------------------------------------------------------------
+E SE DER ALGUM PROBLEMA COM PYTHON?
+----------------------------------------------------------------------
+Se o instalador avisar que o Python nao foi encontrado:
+  1. Acesse: https://www.python.org/downloads/
+  2. Baixe e abra o instalador do Python.
+  3. MUITO IMPORTANTE: Na primeira tela do instalador, marque a caixa:
+     [X] "Add python.exe to PATH"
+  4. Clique em "Install Now".
+  5. Assim que terminar, abra novamente o "INSTALAR_PAINEL.bat".
+
+----------------------------------------------------------------------
+OPCIONAL: GERAR EXECUTAVEL STANDALONE (.EXE)
+----------------------------------------------------------------------
+Se preferir rodar como um aplicativo .exe sem scripts:
+  De dois cliques em: scripts\compilar_exe.bat
+  Ele vai gerar o executavel na pasta: dist\PainelDeBusca\PainelDeBusca.exe
+======================================================================

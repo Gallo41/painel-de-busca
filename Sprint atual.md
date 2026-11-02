@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 01/11/2026 às 22:30
-- **Status**: Em andamento (60%)
+- **Status**: Em andamento (70%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -25,7 +25,7 @@ Criar uma experiência de instalação e uso 100% à prova de falhas ("zero fric
 - [x] **40%** - Provisionamento automático do `.venv` e dependências (`requirements.txt`) no instalador
 - [x] **50%** - Mecanismo de auto-cura no `iniciar_painel.bat` (detecta ausência de ambiente e auto-instala)
 - [x] **60%** - Script opcional para compilação local de executável `.exe` (`scripts/compilar_exe.bat`) via PyInstaller
-- [ ] **70%** - Guias simplificados para o amigo (`COMO_INSTALAR.txt` e `docs/guia-instalacao-amigo.md`)
+- [x] **70%** - Guias simplificados para o amigo (`COMO_INSTALAR.txt` e `docs/guia-instalacao-amigo.md`)
 - [ ] **80%** - Atualização do `README.md` com instruções de 1-clique para parceiros
 - [ ] **90%** - Testes dos scripts de instalação e execução da suíte `pytest`
 - [ ] **100%** - Atualização do grafo Graphify (`graphify update .`), fechamento da Sprint e push final
@@ -41,6 +41,7 @@ Criar uma experiência de instalação e uso 100% à prova de falhas ("zero fric
 | **40%** | 01/11/2026 22:33 | Provisionamento do ambiente virtual `.venv`, instalação das dependências via `requirements.txt`, criação de diretórios de dados e validação de imports. | `INSTALAR_PAINEL.bat`, `Sprint atual.md` |
 | **50%** | 01/11/2026 22:35 | Implementação de rotina de auto-cura no `iniciar_painel.bat` com detecção inteligente de `.venv` e dependências com chamada automática ao instalador. | `iniciar_painel.bat` |
 | **60%** | 01/11/2026 22:36 | Script de compilação em executável standalone `scripts/compilar_exe.bat` com `launcher_exe.py` e inclusão de `dist/`, `build/` e `*.spec` no `.gitignore`. | `scripts/compilar_exe.bat`, `scripts/launcher_exe.py`, `.gitignore` |
+| **70%** | 01/11/2026 22:37 | Criação do guia direto ao ponto em texto plano `COMO_INSTALAR.txt` na raiz e documentação completa com troubleshooting em `docs/guia-instalacao-amigo.md`. | `COMO_INSTALAR.txt`, `docs/guia-instalacao-amigo.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
