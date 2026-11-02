@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/styles.css?v=2.1" />
 </head>
 <body>
   <div class="app">
@@ -174,9 +174,9 @@
               <div id="ready-reports-grid" class="rows" role="listbox" aria-label="Empresas encontradas"></div>
 
               <!-- Barra de Paginação -->
-              <nav class="pagination-bar" id="pagination-bar" aria-label="Paginação de empresas">
+              <nav class="pagination-bar" id="pagination-bar" aria-label="Paginação de empresas" style="display: none;">
                 <div class="pagination-info">
-                  <span id="page-info" class="num">—</span>
+                  <span id="page-info" class="pagination-badge">—</span>
                   <div class="page-size-wrap">
                     <label for="page-size-select">Exibir</label>
                     <select id="page-size-select" class="page-size-select" onchange="onPageSizeChange(this.value)" aria-label="Itens por página">
@@ -190,11 +190,11 @@
                   </div>
                 </div>
                 <div class="pagination-controls" id="pagination-controls">
-                  <button class="btn btn-sm btn-page" id="btn-prev-page" type="button" onclick="goToPage(state.page - 1)" aria-label="Página anterior" disabled>
+                  <button class="btn-page" id="btn-prev-page" type="button" onclick="goToPage(state.page - 1)" aria-label="Página anterior" disabled>
                     &lsaquo; Anterior
                   </button>
                   <div class="pagination-pages" id="pagination-pages"></div>
-                  <button class="btn btn-sm btn-page" id="btn-next-page" type="button" onclick="goToPage(state.page + 1)" aria-label="Próxima página">
+                  <button class="btn-page" id="btn-next-page" type="button" onclick="goToPage(state.page + 1)" aria-label="Próxima página">
                     Próxima &rsaquo;
                   </button>
                 </div>
@@ -346,6 +346,6 @@
     </div>
   </div>
 
-  <script src="/static/app.js"></script>
+  <script src="/static/app.js?v=2.1"></script>
 </body>
 </html>
