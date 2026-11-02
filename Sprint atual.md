@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 01/11/2026 às 22:30
-- **Status**: Em andamento (20%)
+- **Status**: Em andamento (30%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -21,7 +21,7 @@ Criar uma experiência de instalação e uso 100% à prova de falhas ("zero fric
 
 - [x] **10%** - Abertura da Sprint no `Sprint atual.md`, espelhamento no Operador e no `task.md`
 - [x] **20%** - Script utilitário para geração de atalho na Área de Trabalho (`scripts/criar_atalho.ps1`)
-- [ ] **30%** - Instalador principal `INSTALAR_PAINEL.bat` (detecção de Python, winget fallback e diagnósticos)
+- [x] **30%** - Instalador principal `INSTALAR_PAINEL.bat` (detecção de Python, winget fallback e diagnósticos)
 - [ ] **40%** - Provisionamento automático do `.venv` e dependências (`requirements.txt`) no instalador
 - [ ] **50%** - Mecanismo de auto-cura no `iniciar_painel.bat` (detecta ausência de ambiente e auto-instala)
 - [ ] **60%** - Script opcional para compilação local de executável `.exe` (`scripts/compilar_exe.bat`) via PyInstaller
@@ -37,6 +37,7 @@ Criar uma experiência de instalação e uso 100% à prova de falhas ("zero fric
 | :---: | :---: | :--- | :--- |
 | **10%** | 01/11/2026 22:30 | Abertura da Sprint de empacotamento amigável e instalador 1-clique para parceiros, com checklist de 10 marcos e espelhamento no Operador. | `Sprint atual.md`, `task.md` |
 | **20%** | 01/11/2026 22:31 | Criação do ícone multi-resolução `app/static/icon.ico`, vínculo no `index.html` e script PowerShell `scripts/criar_atalho.ps1` para gerar o atalho na Área de Trabalho. | `app/static/icon.ico`, `app/static/index.html`, `scripts/criar_atalho.ps1` |
+| **30%** | 01/11/2026 22:32 | Implementação do assistente `INSTALAR_PAINEL.bat` com detecção de executável Python (`python`, `py -3`, caminhos padrão) e fallback automático para instalação via `winget`. | `INSTALAR_PAINEL.bat` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
