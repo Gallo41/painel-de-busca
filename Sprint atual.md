@@ -1,49 +1,41 @@
-# Sprint Atual: Redesign e Expansão da Área Lateral (Sidebar)
+# Sprint Atual: Instalador 1-Clique e Assistente de Configuração para Novos Usuários
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 01/11/2026 às 22:06
-- **Status**: Concluído (100%)
+- **Data de Início**: 01/11/2026 às 22:30
+- **Status**: Em andamento (10%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-Expandir e transformar a barra lateral (sidebar) do Painel de Busca em uma área confortável, moderna e organizada:
-1. **Fim do Espremimento**: Aumentar a largura da sidebar de 244px para 290px, eliminando corte de textos ("todos nenhu...", "Imobiliárias e...") e permitindo leitura fluida.
-2. **Cards de Nicho Elegantes**: Substituir o scroll travado por cards de nicho com checkboxes modernos, estados ativos e tags curtas de oferta.
-3. **Formulário Espaçoso e Intuitivo**: Botões pílula para marcar todos/nenhum, inputs de cidade/UF com 36px de altura e botão principal de busca com alto contraste e presença visual.
-4. **Card de Status no Rodapé**: Aproveitar o espaço inferior para um card elegante de monitoramento do motor Docker e total de leads.
+Criar uma experiência de instalação e uso 100% à prova de falhas ("zero friction") para amigos e parceiros que forem rodar o Painel de Busca pela primeira vez no Windows:
+1. **Instalador 1-Clique (`INSTALAR_PAINEL.bat`)**: Checa se o Python está presente no sistema (com fallback para instalação silenciosa via `winget`), cria o ambiente virtual `.venv`, instala todas as bibliotecas e gera o atalho na Área de Trabalho com ícone.
+2. **Inicializador Inteligente com Auto-Cura (`iniciar_painel.bat`)**: Caso o usuário dê dois cliques direto no inicializador sem ter instalado antes, o script detecta automaticamente a ausência das dependências e realiza o setup sem quebras ou telas pretas fechando do nada.
+3. **Atalho na Área de Trabalho (`scripts/criar_atalho.ps1`)**: Criação de atalho `.lnk` no Desktop do Windows com caminho e ícone configurados.
+4. **Gerador Opcional de Executável Standalone (`scripts/compilar_exe.bat`)**: Permite compilar um executável `.exe` localmente usando PyInstaller caso queira distribuir sem expor scripts (respeitando a regra do Git de não commitar binários pesados).
+5. **Guia Rápido Amigável (`COMO_INSTALAR.txt` e `README.md`)**: Instruções visuais, claras e diretas para quem acabou de baixar ou clonar o projeto.
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Diagnóstico de layout e usabilidade da sidebar (largura 244px -> 290px, overflow de textos e scroll comprimido)
-- [x] **20%** - Expansão da largura da sidebar e variáveis de dimensão no CSS (`--sidebar-width: 290px`)
-- [x] **30%** - Redesign do bloco de navegação principal (itens com espaçamento confortável e badges alinhados)
-- [x] **40%** - Redesign do formulário de busca (campos Cidade + UF estilizados com inputs de 36px)
-- [x] **50%** - Reformulação do cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem truncamento
-- [x] **60%** - Redesign dos chips de nicho em `app.js` e `styles.css` (cards táteis com badge compacta e estado ativo)
-- [x] **70%** - Otimização de altura dinâmica e scroll fino customizado na lista de nichos
-- [x] **80%** - Redesign do botão principal "Buscar clientes reais" com destaque visual e feedback de carregamento
-- [x] **90%** - Card de status do sistema no rodapé da sidebar (motor Docker e contagem da base)
-- [x] **100%** - Testes automatizados no `pytest`, `graphify update .`, validação no navegador e push para GitHub
+- [x] **10%** - Abertura da Sprint no `Sprint atual.md`, espelhamento no Operador e no `task.md`
+- [ ] **20%** - Script utilitário para geração de atalho na Área de Trabalho (`scripts/criar_atalho.ps1`)
+- [ ] **30%** - Instalador principal `INSTALAR_PAINEL.bat` (detecção de Python, winget fallback e diagnósticos)
+- [ ] **40%** - Provisionamento automático do `.venv` e dependências (`requirements.txt`) no instalador
+- [ ] **50%** - Mecanismo de auto-cura no `iniciar_painel.bat` (detecta ausência de ambiente e auto-instala)
+- [ ] **60%** - Script opcional para compilação local de executável `.exe` (`scripts/compilar_exe.bat`) via PyInstaller
+- [ ] **70%** - Guias simplificados para o amigo (`COMO_INSTALAR.txt` e `docs/guia-instalacao-amigo.md`)
+- [ ] **80%** - Atualização do `README.md` com instruções de 1-clique para parceiros
+- [ ] **90%** - Testes dos scripts de instalação e execução da suíte `pytest`
+- [ ] **100%** - Atualização do grafo Graphify (`graphify update .`), fechamento da Sprint e push final
 
 ---
 
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10%** | 01/11/2026 22:06 | Diagnóstico visual completo da sidebar: largura insuficiente (244px) causando clipping de textos, scroll de nichos travado e espaço vazio no rodapé. | `Sprint atual.md`, `task.md` |
-| **20%** | 01/11/2026 22:09 | Expansão da largura da sidebar para 290px e adição de scroll fino com borda divisória lateral no CSS. | `app/static/styles.css` |
-| **30%** | 01/11/2026 22:10 | Redesign do logo da marca em container de ícone e navegação principal com altura de 36px, indicador ativo sutil e badge numérico. | `app/static/index.html`, `app/static/styles.css` |
-| **40%** | 01/11/2026 22:11 | Redesign dos inputs Cidade (flex) e UF (64px, centrado) com altura 36px, divisores visuais e anel de foco personalizado. | `app/static/styles.css` |
-| **50%** | 01/11/2026 22:13 | Cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem clipping ou quebra de linha. | `app/static/index.html`, `app/static/styles.css` |
-| **60%** | 01/11/2026 22:13 | Chips de nicho transformados em cards táteis com feedback de seleção (`is-selected`) e badges curtas (`Site novo`, `Reforma`, `Sistema`). | `app/static/app.js`, `app/static/styles.css` |
-| **70%** | 01/11/2026 22:13 | Otimização do container de nichos para 290px de altura com scrollbar fino integrado e contraste reforçado. | `app/static/styles.css` |
-| **80%** | 01/11/2026 22:16 | Redesign do botão 'Buscar clientes reais' com gradiente accent, ícone de busca, sombra e feedback animado. | `app/static/index.html`, `app/static/styles.css`, `app/static/app.js` |
-| **90%** | 01/11/2026 22:16 | Card elegante de status do sistema no rodapé da sidebar (Docker Maps, total de leads cadastrados e modo headless). | `app/static/index.html`, `app/static/styles.css`, `app/static/app.js` |
-| **100%** | 01/11/2026 22:17 | Validação de 38/38 testes no pytest, incremento de cache para v=2.4, atualização do grafo Graphify e sincronização remota com o GitHub. | `tests/test_dashboard_ui.py`, `graphify-out/` |
+| **10%** | 01/11/2026 22:30 | Abertura da Sprint de empacotamento amigável e instalador 1-clique para parceiros, com checklist de 10 marcos e espelhamento no Operador. | `Sprint atual.md`, `task.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
