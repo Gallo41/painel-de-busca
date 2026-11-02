@@ -43,3 +43,6 @@ tests/tmp/
 results-*.csv
 results-*.json
 data/exports/
+
+# Projetos de clientes (fora do escopo deste repositorio)
+Projetos Quecine/

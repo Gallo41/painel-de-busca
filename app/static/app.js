@@ -198,13 +198,25 @@ async function loadHealthAndStats() {
   try {
     const data = await (await fetch("/api/health")).json();
     const badge = $("engine-badge");
+    const dot = $("status-pulse-dot");
     const online = !!(data.scraper_engine && data.scraper_engine.online);
-    badge.textContent = online ? "Motor Google Maps ativo" : "Motor Google Maps desligado";
-    badge.className = "engine " + (online ? "on" : "off");
+    if (badge) {
+      badge.textContent = online ? "Motor Maps ativo" : "Motor Maps desligado";
+      badge.className = "status-title engine " + (online ? "on" : "off");
+    }
+    if (dot) dot.className = "status-pulse-dot " + (online ? "on" : "off");
+
+    const totalLeads = (data.stats || {}).total_leads ?? 0;
+    const leadsEl = $("sidebar-total-leads");
+    if (leadsEl) leadsEl.textContent = `${fmtInt(totalLeads)} empresas`;
+
     $("btn-queue-count").textContent = fmtInt((data.stats || {}).outreach_queue_ready ?? 0);
   } catch (err) {
-    $("engine-badge").textContent = "Servidor sem resposta";
-    $("engine-badge").className = "engine off";
+    if ($("engine-badge")) {
+      $("engine-badge").textContent = "Servidor offline";
+      $("engine-badge").className = "status-title engine off";
+    }
+    if ($("status-pulse-dot")) $("status-pulse-dot").className = "status-pulse-dot off";
   }
 }
 
@@ -270,7 +282,7 @@ async function runSearchJob() {
   fb.className = "job-feedback";
   const tick = () => {
     const s = Math.round((Date.now() - started) / 1000);
-    btn.textContent = `Buscando… ${s} s`;
+    btn.innerHTML = `<span>Buscando… ${s} s</span>`;
     fb.textContent = "Lendo o Google Maps e conferindo o site e o domínio de cada empresa. Pode levar cerca de 1 minuto.";
   };
   tick();
@@ -309,7 +321,7 @@ async function runSearchJob() {
   } finally {
     clearInterval(timer);
     btn.disabled = false;
-    btn.textContent = "Buscar clientes reais";
+    btn.innerHTML = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Buscar clientes reais</span>`;
   }
 }
 

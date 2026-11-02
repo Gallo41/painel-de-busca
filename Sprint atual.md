@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 01/11/2026 às 22:06
-- **Status**: Em Andamento (10%)
+- **Status**: Concluído (100%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -25,9 +25,9 @@ Expandir e transformar a barra lateral (sidebar) do Painel de Busca em uma área
 - [x] **50%** - Reformulação do cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem truncamento
 - [x] **60%** - Redesign dos chips de nicho em `app.js` e `styles.css` (cards táteis com badge compacta e estado ativo)
 - [x] **70%** - Otimização de altura dinâmica e scroll fino customizado na lista de nichos
-- [ ] **80%** - Redesign do botão principal "Buscar clientes reais" com destaque visual e feedback de carregamento
-- [ ] **90%** - Card de status do sistema no rodapé da sidebar (motor Docker e contagem da base)
-- [ ] **100%** - Testes automatizados no `pytest`, `graphify update .`, validação no navegador e push para GitHub
+- [x] **80%** - Redesign do botão principal "Buscar clientes reais" com destaque visual e feedback de carregamento
+- [x] **90%** - Card de status do sistema no rodapé da sidebar (motor Docker e contagem da base)
+- [x] **100%** - Testes automatizados no `pytest`, `graphify update .`, validação no navegador e push para GitHub
 
 ---
 
@@ -41,6 +41,9 @@ Expandir e transformar a barra lateral (sidebar) do Painel de Busca em uma área
 | **50%** | 01/11/2026 22:13 | Cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem clipping ou quebra de linha. | `app/static/index.html`, `app/static/styles.css` |
 | **60%** | 01/11/2026 22:13 | Chips de nicho transformados em cards táteis com feedback de seleção (`is-selected`) e badges curtas (`Site novo`, `Reforma`, `Sistema`). | `app/static/app.js`, `app/static/styles.css` |
 | **70%** | 01/11/2026 22:13 | Otimização do container de nichos para 290px de altura com scrollbar fino integrado e contraste reforçado. | `app/static/styles.css` |
+| **80%** | 01/11/2026 22:16 | Redesign do botão 'Buscar clientes reais' com gradiente accent, ícone de busca, sombra e feedback animado. | `app/static/index.html`, `app/static/styles.css`, `app/static/app.js` |
+| **90%** | 01/11/2026 22:16 | Card elegante de status do sistema no rodapé da sidebar (Docker Maps, total de leads cadastrados e modo headless). | `app/static/index.html`, `app/static/styles.css`, `app/static/app.js` |
+| **100%** | 01/11/2026 22:17 | Validação de 38/38 testes no pytest, incremento de cache para v=2.4, atualização do grafo Graphify e sincronização remota com o GitHub. | `tests/test_dashboard_ui.py`, `graphify-out/` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

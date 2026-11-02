@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/static/styles.css?v=2.3" />
+  <link rel="stylesheet" href="/static/styles.css?v=2.4" />
 </head>
 <body>
   <div class="app">
@@ -70,12 +70,30 @@
         <input type="hidden" id="input-source-mode" value="auto" />
         <input type="hidden" id="input-depth" value="5" />
 
-        <button id="btn-run-job" class="btn btn-block" type="submit">Buscar clientes reais</button>
+        <button id="btn-run-job" class="btn btn-block btn-search-action" type="submit">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>Buscar clientes reais</span>
+        </button>
         <div id="job-feedback" class="job-feedback" role="status" aria-live="polite"></div>
       </form>
 
       <div class="sidebar-bottom">
-        <div class="engine" id="engine-badge">Verificando motor…</div>
+        <div class="system-status-card" id="system-status-card">
+          <div class="status-card-header">
+            <span class="status-pulse-dot" id="status-pulse-dot"></span>
+            <span class="status-title" id="engine-badge">Verificando motor…</span>
+          </div>
+          <div class="status-card-details">
+            <div class="status-detail-item">
+              <span class="status-detail-label">Base de clientes</span>
+              <span class="status-detail-val" id="sidebar-total-leads">-- leads</span>
+            </div>
+            <div class="status-detail-item">
+              <span class="status-detail-label">Modo robô</span>
+              <span class="status-detail-val" id="sidebar-system-mode">Docker Headless</span>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -375,6 +393,6 @@
     </div>
   </div>
 
-  <script src="/static/app.js?v=2.3"></script>
+  <script src="/static/app.js?v=2.4"></script>
 </body>
 </html>

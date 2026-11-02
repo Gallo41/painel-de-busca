@@ -37,10 +37,16 @@ def test_dashboard_html_and_assets_served(client):
     assert "embedded-wayback-box" in html
     assert 'data-theme="dark"' in html
     assert 'id="theme-toggle"' in html
+    assert "btn-search-action" in html
+    assert "system-status-card" in html
+    assert "sidebar-total-leads" in html
 
     r_css = client.get("/static/styles.css")
     assert r_css.status_code == 200
     assert 'data-theme="dark"' in r_css.text
+    assert "--sidebar-width: 290px" in r_css.text
+    assert "btn-search-action" in r_css.text
+    assert "system-status-card" in r_css.text
 
     r_js = client.get("/static/app.js")
     assert r_js.status_code == 200
@@ -48,6 +54,7 @@ def test_dashboard_html_and_assets_served(client):
     assert "/api/outreach/enqueue" in r_js.text
     assert "toggleTheme" in r_js.text
     assert 'stat-total' in r_js.text
+    assert "sidebar-total-leads" in r_js.text
     assert 'stat-without-site' in r_js.text
     assert 'stat-site-down' in r_js.text
     assert 'stat-complex' in r_js.text
