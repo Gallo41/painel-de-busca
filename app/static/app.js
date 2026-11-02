@@ -218,18 +218,30 @@ async function loadNiches() {
 
 function renderNichesGrid() {
   $("niches-grid").innerHTML = ALL_NICHES.map((n) => {
-    const offer = SERVICE_LONG[n.recommended_service || n.recommended_offer] || "";
+    const offerKey = n.recommended_service || n.recommended_offer || "SITE_NOVO";
+    const shortLabel = SERVICE_LABELS[offerKey] || "Site novo";
+    const pillClass = PILL_CLASS[offerKey] || "site";
+    const checked = SELECTED_NICHES.has(n.slug);
     return `
-      <label class="niche-chip">
-        <input type="checkbox" value="${esc(n.slug)}" ${SELECTED_NICHES.has(n.slug) ? "checked" : ""} onchange="toggleNiche('${esc(n.slug)}', this.checked)" />
-        <span><span class="niche-name">${esc(n.name)}</span><span class="niche-offer">${esc(offer)}</span></span>
+      <label class="niche-chip ${checked ? "is-selected" : ""}" data-slug="${esc(n.slug)}">
+        <input type="checkbox" value="${esc(n.slug)}" ${checked ? "checked" : ""} onchange="toggleNiche('${esc(n.slug)}', this.checked, this)" />
+        <div class="niche-info">
+          <div class="niche-name">${esc(n.name)}</div>
+          <div class="niche-meta">
+            <span class="niche-badge badge-${pillClass}">${esc(shortLabel)}</span>
+          </div>
+        </div>
       </label>`;
   }).join("");
 }
 
-function toggleNiche(slug, on) {
+function toggleNiche(slug, on, el) {
   if (on) SELECTED_NICHES.add(slug);
   else SELECTED_NICHES.delete(slug);
+  if (el) {
+    const parent = el.closest(".niche-chip");
+    if (parent) parent.classList.toggle("is-selected", on);
+  }
 }
 
 function selectAllNiches(all) {

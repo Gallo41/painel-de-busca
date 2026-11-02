@@ -22,9 +22,9 @@ Expandir e transformar a barra lateral (sidebar) do Painel de Busca em uma área
 - [x] **20%** - Expansão da largura da sidebar e variáveis de dimensão no CSS (`--sidebar-width: 290px`)
 - [x] **30%** - Redesign do bloco de navegação principal (itens com espaçamento confortável e badges alinhados)
 - [x] **40%** - Redesign do formulário de busca (campos Cidade + UF estilizados com inputs de 36px)
-- [ ] **50%** - Reformulação do cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem truncamento
-- [ ] **60%** - Redesign dos chips de nicho em `app.js` e `styles.css` (cards táteis com badge compacta e estado ativo)
-- [ ] **70%** - Otimização de altura dinâmica e scroll fino customizado na lista de nichos
+- [x] **50%** - Reformulação do cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem truncamento
+- [x] **60%** - Redesign dos chips de nicho em `app.js` e `styles.css` (cards táteis com badge compacta e estado ativo)
+- [x] **70%** - Otimização de altura dinâmica e scroll fino customizado na lista de nichos
 - [ ] **80%** - Redesign do botão principal "Buscar clientes reais" com destaque visual e feedback de carregamento
 - [ ] **90%** - Card de status do sistema no rodapé da sidebar (motor Docker e contagem da base)
 - [ ] **100%** - Testes automatizados no `pytest`, `graphify update .`, validação no navegador e push para GitHub
@@ -38,6 +38,9 @@ Expandir e transformar a barra lateral (sidebar) do Painel de Busca em uma área
 | **20%** | 01/11/2026 22:09 | Expansão da largura da sidebar para 290px e adição de scroll fino com borda divisória lateral no CSS. | `app/static/styles.css` |
 | **30%** | 01/11/2026 22:10 | Redesign do logo da marca em container de ícone e navegação principal com altura de 36px, indicador ativo sutil e badge numérico. | `app/static/index.html`, `app/static/styles.css` |
 | **40%** | 01/11/2026 22:11 | Redesign dos inputs Cidade (flex) e UF (64px, centrado) com altura 36px, divisores visuais e anel de foco personalizado. | `app/static/styles.css` |
+| **50%** | 01/11/2026 22:13 | Cabeçalho de nichos com botões pill `[ Todos ]` e `[ Limpar ]` sem clipping ou quebra de linha. | `app/static/index.html`, `app/static/styles.css` |
+| **60%** | 01/11/2026 22:13 | Chips de nicho transformados em cards táteis com feedback de seleção (`is-selected`) e badges curtas (`Site novo`, `Reforma`, `Sistema`). | `app/static/app.js`, `app/static/styles.css` |
+| **70%** | 01/11/2026 22:13 | Otimização do container de nichos para 290px de altura com scrollbar fino integrado e contraste reforçado. | `app/static/styles.css` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
