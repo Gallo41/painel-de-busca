@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 01/11/2026 às 22:30
-- **Status**: Em andamento (80%)
+- **Status**: Em andamento (90%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -27,7 +27,7 @@ Criar uma experiência de instalação e uso 100% à prova de falhas ("zero fric
 - [x] **60%** - Script opcional para compilação local de executável `.exe` (`scripts/compilar_exe.bat`) via PyInstaller
 - [x] **70%** - Guias simplificados para o amigo (`COMO_INSTALAR.txt` e `docs/guia-instalacao-amigo.md`)
 - [x] **80%** - Atualização do `README.md` com instruções de 1-clique para parceiros
-- [ ] **90%** - Testes dos scripts de instalação e execução da suíte `pytest`
+- [x] **90%** - Testes dos scripts de instalação e execução da suíte `pytest`
 - [ ] **100%** - Atualização do grafo Graphify (`graphify update .`), fechamento da Sprint e push final
 
 ---
@@ -43,6 +43,7 @@ Criar uma experiência de instalação e uso 100% à prova de falhas ("zero fric
 | **60%** | 01/11/2026 22:36 | Script de compilação em executável standalone `scripts/compilar_exe.bat` com `launcher_exe.py` e inclusão de `dist/`, `build/` e `*.spec` no `.gitignore`. | `scripts/compilar_exe.bat`, `scripts/launcher_exe.py`, `.gitignore` |
 | **70%** | 01/11/2026 22:37 | Criação do guia direto ao ponto em texto plano `COMO_INSTALAR.txt` na raiz e documentação completa com troubleshooting em `docs/guia-instalacao-amigo.md`. | `COMO_INSTALAR.txt`, `docs/guia-instalacao-amigo.md` |
 | **80%** | 01/11/2026 22:38 | Atualização da documentação no `README.md` com seção dedicada de instalação 1-clique, modos de inicialização diária e compilação standalone. | `README.md` |
+| **90%** | 01/11/2026 22:39 | Criação do teste automatizado `tests/test_installer_integrity.py` validando integridade de todos os scripts, assets e regras do `.gitignore` (41/41 aprovados no pytest). | `tests/test_installer_integrity.py` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
