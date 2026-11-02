@@ -35,7 +35,7 @@
   --gap: 24px;
   --pad: 24px;
   --control-height: 32px;
-  --sidebar-width: 244px;
+  --sidebar-width: 290px;
   --detail-width: 420px;
 
   --font: "IBM Plex Sans", Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -132,7 +132,21 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
 :root:not([data-theme="dark"]) .theme-toggle .moon-icon { display: block; }
 
 /* ---------- sidebar ---------- */
-.sidebar { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; padding: 14px 12px 12px; overflow-y: auto; }
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 14px 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--control) transparent;
+  border-right: 1px solid var(--border);
+  background: var(--ground);
+}
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--control); border-radius: 4px; }
 .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 14px; }
 .brand-mark { width: 26px; height: 26px; color: var(--accent); flex: none; }
 .brand-name { font-weight: 600; line-height: 18px; }
