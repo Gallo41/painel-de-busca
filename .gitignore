@@ -20,6 +20,11 @@ Win32/
 *.dll
 *.dcu
 
+# Node & previews
+node_modules/
+.preview-pm/
+.npm-cache/
+
 # Python
 __pycache__/
 *.py[cod]
