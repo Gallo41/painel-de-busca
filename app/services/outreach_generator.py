@@ -210,11 +210,12 @@ def generate_outreach_scripts(
     dom_free = bool(xray_data.get("domain_available_br"))
     cms = xray_data.get("detected_cms") or "Sem Site"
 
-    social_proof = (
-        f"vi que vocês têm {reviews} avaliações (nota {rating:.1f}) no Google Maps em {city}"
-        if reviews >= 5
-        else f"encontrei a {title} aqui em {city}"
-    )
+    if reviews >= 10:
+        social_proof = f"encontrei vocês no Google aqui em {city} (vi que são super bem avaliados, com nota {rating:.1f}!)"
+    elif reviews >= 3:
+        social_proof = f"encontrei a empresa de vocês no Google Maps aqui em {city}"
+    else:
+        social_proof = f"encontrei a {title} no Google aqui em {city}"
 
     if pain == "SITE_FORA_DO_AR":
         wpp_msg = (
@@ -229,15 +230,16 @@ def generate_outreach_scripts(
         )
     elif pain in ("SEM_SITE", "DOMINIO_LIVRE"):
         dom_line = (
-            f"Inclusive consultei no Registro.br e vi que o domínio oficial *{dom}* ainda está livre hoje para registro."
+            f"Inclusive consultei no Registro.br e vi que o endereço oficial *{dom}* ainda está livre hoje para registrar no nome de vocês."
             if dom_free
-            else f"Vi que hoje vocês concentram o link apenas em {cms if xray_data.get('is_social_only_url') else 'redes sociais'}."
+            else f"Reparei também que hoje quem clica no Google cai apenas em {cms if xray_data.get('is_social_only_url') else 'redes sociais'}, sem uma página própria oficial."
         )
         wpp_msg = (
-            f"Olá, equipe da {title}! Tudo bem?\n\n"
-            f"Sou desenvolvedor de sites e sistemas e {social_proof}, mas notei que vocês ainda não têm um site próprio conectado na ficha do Google.\n\n"
+            f"Oi, tudo bem? É da {title}?\n\n"
+            f"{social_proof.capitalize()}, e reparei que vocês ainda não têm um site oficial próprio cadastrado na ficha.\n\n"
             f"{dom_line}\n\n"
-            f"Eu e meu sócio montamos uma prévia de como ficaria uma página profissional da {title} focada em trazer clientes direto pro WhatsApp. Posso te mandar o link sem compromisso?"
+            f"Eu trabalho com criação de sites e páginas rápidas focadas em atrair clientes direto pro WhatsApp. Montei um modelo de exemplo pensado pro segmento da {title}.\n\n"
+            f"Posso te mandar o link aqui para você dar uma olhada sem compromisso?"
         )
         email_subject = (
             f"Domínio {dom} disponível + Presença no Google para {title}"
@@ -245,8 +247,8 @@ def generate_outreach_scripts(
             else f"Estrutura de Site Profissional para {title} ({city})"
         )
         ig_dm = (
-            f"Oi pessoal da {title}! Vi o perfil de vocês no Google Maps ({reviews} avaliações!) e notei que o domínio {dom} está livre e vocês ainda não têm site próprio lá. "
-            f"Posso mostrar um modelo rápido que criamos pro segmento de vocês?"
+            f"Oi pessoal da {title}! Vi o perfil de vocês no Google aqui em {city} e notei que vocês ainda não têm site oficial (e o domínio {dom} tá disponível). "
+            f"Posso te mandar um modelinho de exemplo sem compromisso?"
         )
     elif pain == "OPORTUNIDADE_SISTEMA" or service == "SISTEMA_COMPLEXO":
         wpp_msg = (
