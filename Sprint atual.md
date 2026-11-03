@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 19:30
-- **Status**: Em Andamento (10%)
+- **Status**: Em Andamento (20%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -21,7 +21,7 @@
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
 - [x] **10%** - Abertura da Sprint no `Sprint atual.md`, espelhamento no Operador e no `task.md`
-- [ ] **20%** - Diagnóstico técnico detalhado da falha no botão WhatsApp e mapeamento dos pontos de quebra
+- [x] **20%** - Diagnóstico técnico detalhado da falha no botão WhatsApp e mapeamento dos pontos de quebra
 - [ ] **30%** - Implementação de `openWhatsApp(leadId)` no `app/static/app.js` com suporte a wa.me / api.whatsapp e atualização de status
 - [ ] **40%** - Implementação de `copyCardMessage(leadId)` e botão de WhatsApp no modal do lead (`openLeadModal`)
 - [ ] **50%** - Refatoração e humanização do script de abordagem para SEM_SITE e DOMINIO_LIVRE em `outreach_generator.py`
@@ -37,6 +37,7 @@
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
 | **10%** | 03/11/2026 19:30 | Abertura da Sprint de correção do botão WhatsApp e humanização dos scripts de abordagem. | `Sprint atual.md`, `task.md` |
+| **20%** | 03/11/2026 19:33 | Diagnóstico de causa-raiz: botões chamavam `openWhatsApp` e `copyCardMessage` inexistentes em `app.js` disparando ReferenceError. Mapeamento de sanitização e fluxo. | `Sprint atual.md`, `task.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
