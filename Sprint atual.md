@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 19:30
-- **Status**: Em Andamento (30%)
+- **Status**: Em Andamento (40%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -23,7 +23,7 @@
 - [x] **10%** - Abertura da Sprint no `Sprint atual.md`, espelhamento no Operador e no `task.md`
 - [x] **20%** - Diagnóstico técnico detalhado da falha no botão WhatsApp e mapeamento dos pontos de quebra
 - [x] **30%** - Implementação de `openWhatsApp(leadId)` no `app/static/app.js` com suporte a wa.me / api.whatsapp e atualização de status
-- [ ] **40%** - Implementação de `copyCardMessage(leadId)` e botão de WhatsApp no modal do lead (`openLeadModal`)
+- [x] **40%** - Implementação de `copyCardMessage(leadId)` e botão de WhatsApp no modal do lead (`openLeadModal`)
 - [ ] **50%** - Refatoração e humanização do script de abordagem para SEM_SITE e DOMINIO_LIVRE em `outreach_generator.py`
 - [ ] **60%** - Humanização dos scripts de abordagem para SITE_FORA_DO_AR, OPORTUNIDADE_SISTEMA e MELHORIA_SITE
 - [ ] **70%** - Alinhamento humanizado dos textos de E-mail e Instagram DM
@@ -39,6 +39,7 @@
 | **10%** | 03/11/2026 19:30 | Abertura da Sprint de correção do botão WhatsApp e humanização dos scripts de abordagem. | `Sprint atual.md`, `task.md` |
 | **20%** | 03/11/2026 19:33 | Diagnóstico de causa-raiz: botões chamavam `openWhatsApp` e `copyCardMessage` inexistentes em `app.js` disparando ReferenceError. Mapeamento de sanitização e fluxo. | `Sprint atual.md`, `task.md` |
 | **30%** | 03/11/2026 19:35 | Implementação de `cleanWhatsAppNumber` e `openWhatsApp(leadId, customMsg)` em `app/static/app.js`, com leitura da mensagem editada no card, abertura em nova aba e auto-status. | `app/static/app.js`, `Sprint atual.md` |
+| **40%** | 03/11/2026 19:36 | Implementação de `copyCardMessage(leadId)` com fallback para `execCommand` e inclusão do botão 'Chamar no WhatsApp' no modal completo do lead. | `app/static/app.js`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

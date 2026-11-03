@@ -1000,6 +1000,44 @@ function openWhatsApp(leadId, customMsg) {
   markLeadContacted(leadId).catch((err) => console.error("Falha ao marcar lead como contatado:", err));
 }
 
+function copyCardMessage(leadId) {
+  const cardTextarea = $(`card-wpp-${leadId}`);
+  const text = cardTextarea ? cardTextarea.value : "";
+  if (!text) return;
+
+  const setFeedback = (msg) => {
+    const fb = $(`copied-${leadId}`);
+    if (fb) {
+      fb.textContent = msg;
+      setTimeout(() => {
+        if (fb.textContent === msg) fb.textContent = "";
+      }, 2500);
+    }
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => setFeedback("Mensagem copiada!"))
+      .catch(() => {
+        try {
+          cardTextarea.select();
+          document.execCommand("copy");
+          setFeedback("Mensagem copiada!");
+        } catch (e) {
+          setFeedback("Falha ao copiar");
+        }
+      });
+  } else {
+    try {
+      cardTextarea.select();
+      document.execCommand("copy");
+      setFeedback("Mensagem copiada!");
+    } catch (e) {
+      setFeedback("Falha ao copiar");
+    }
+  }
+}
+
 /* ---------- fila do robô ---------- */
 async function enqueueSingleLead(leadId, channel) {
   const res = await fetch("/api/outreach/enqueue", {
@@ -1070,6 +1108,7 @@ async function openLeadModal(leadId) {
   const wc = rep.whatcms || {};
   const dns = rep.dns_ssl || {};
   const missing = (wc.missing_systems_opportunities || []).map((o) => `<li>${esc(o)}</li>`).join("");
+  const numModal = cleanWhatsAppNumber(waNumber(l) || l.phone || "");
 
   $("modal-lead-title").textContent = l.title;
   $("modal-lead-subtitle").textContent = `${rr.what_to_sell} · ${rr.ticket_range} · ${l.phone || "sem telefone"}`;
@@ -1093,8 +1132,13 @@ async function openLeadModal(leadId) {
       <div>
         <div class="section-bar">Mensagens prontas</div>
         <div class="tool-card" style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;margin-bottom:6px"><strong>WhatsApp</strong>
-            <button class="btn btn-sm" onclick="copyText('modal-wpp-text')">Copiar</button></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <strong>WhatsApp</strong>
+            <span style="display:flex;gap:6px">
+              <button class="btn btn-sm" type="button" onclick="copyText('modal-wpp-text')">Copiar</button>
+              ${numModal ? `<button class="btn btn-sm btn-primary" type="button" onclick="openWhatsApp(${l.id}, $('modal-wpp-text') ? $('modal-wpp-text').value : null)">Chamar no WhatsApp</button>` : ""}
+            </span>
+          </div>
           <textarea id="modal-wpp-text" rows="5">${esc(sc.whatsapp || "")}</textarea>
         </div>
         <div class="tool-card" style="margin-bottom:12px">
