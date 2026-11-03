@@ -78,9 +78,9 @@
     "semantic_hash": "8ad8a21ed16c9cd700825720b1e7fafc"
   },
   "app/services/outreach_generator.py": {
-    "mtime": 1793482889.860294,
-    "seen": 1793483630.4907262,
-    "ast_hash": "5b2fc050a2fc94886e6ba840fcf59219",
+    "mtime": 1793745603.6406286,
+    "seen": 1793745819.6096406,
+    "ast_hash": "965bf5c5f39228ccae5dc7b6ec9c1888",
     "semantic_hash": ""
   },
   "app/services/site_xray.py": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1793582154.9002244,
-    "seen": 1793582238.7267158,
-    "ast_hash": "29c63ef119a70324333ec8eccd44a0a1",
+    "mtime": 1793745377.797387,
+    "seen": 1793745819.609646,
+    "ast_hash": "f57705930ef0ab36ba34f053efc6cdb3",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1793582203.8192239,
-    "seen": 1793582238.7267396,
-    "ast_hash": "03910b83b13db4982bb11134be3acc79",
+    "mtime": 1793745689.9648325,
+    "seen": 1793745819.6096623,
+    "ast_hash": "5ab77fbcd293200b38a9e14139e61826",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
@@ -144,10 +144,10 @@
     "semantic_hash": "59a6a0749bb675325b667a27ae0f83d5"
   },
   "tests/test_outreach_generator.py": {
-    "mtime": 1793312381.6940777,
-    "seen": 1793313149.3531702,
-    "ast_hash": "e49a1e7b4451ba0e18bf154ffea62513",
-    "semantic_hash": "e49a1e7b4451ba0e18bf154ffea62513"
+    "mtime": 1793745678.1422544,
+    "seen": 1793745819.6096754,
+    "ast_hash": "1acdd9656227981c20688d914f07d1bc",
+    "semantic_hash": ""
   },
   "tests/test_site_xray.py": {
     "mtime": 1793479067.4923306,
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1793583570.1491096,
-    "seen": 1793583598.9110847,
-    "ast_hash": "8378c6a1fb721fb73ac3904ffb62cd9b",
+    "mtime": 1793745771.0468774,
+    "seen": 1793745819.6096902,
+    "ast_hash": "f36623f06b3c474a96364e78ea1cb599",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {

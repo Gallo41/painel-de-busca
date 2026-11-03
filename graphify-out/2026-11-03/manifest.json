@@ -1,0 +1,260 @@
+{
+  ".githooks/post-commit": {
+    "mtime": 1793225397.0992775,
+    "seen": 1793313149.3531141,
+    "ast_hash": "a77fe1f2909108da8858549f85bd5b7e",
+    "semantic_hash": "a77fe1f2909108da8858549f85bd5b7e"
+  },
+  "app/__init__.py": {
+    "mtime": 1793225680.4645832,
+    "seen": 1793313149.353124,
+    "ast_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf",
+    "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
+  },
+  "app/database.py": {
+    "mtime": 1793579725.1913664,
+    "seen": 1793580028.6984832,
+    "ast_hash": "1f59e4dd82b678acb3c8c2473fa5a148",
+    "semantic_hash": ""
+  },
+  "app/main.py": {
+    "mtime": 1793576982.497634,
+    "seen": 1793576997.9114563,
+    "ast_hash": "b9e87dbd790319f3e7b124a553d36ad4",
+    "semantic_hash": ""
+  },
+  "app/models.py": {
+    "mtime": 1793579719.2251494,
+    "seen": 1793580028.6984897,
+    "ast_hash": "922074ee4e46dc6136d7f8126d3a41ff",
+    "semantic_hash": ""
+  },
+  "app/routers/__init__.py": {
+    "mtime": 1793312608.7969384,
+    "seen": 1793313149.353134,
+    "ast_hash": "e7d92cac48bde5c71675b3b2351b79ca",
+    "semantic_hash": "e7d92cac48bde5c71675b3b2351b79ca"
+  },
+  "app/routers/leads_router.py": {
+    "mtime": 1793482716.3160653,
+    "seen": 1793483630.4907165,
+    "ast_hash": "367d60d3e2acd453a5fe2bc5b3a4daba",
+    "semantic_hash": ""
+  },
+  "app/routers/outreach_router.py": {
+    "mtime": 1793312613.5838223,
+    "seen": 1793313149.353138,
+    "ast_hash": "527183fe2e389816907e8db659646c25",
+    "semantic_hash": "527183fe2e389816907e8db659646c25"
+  },
+  "app/services/__init__.py": {
+    "mtime": 1793225854.8329809,
+    "seen": 1793313149.3531396,
+    "ast_hash": "a9f67e110061db3e82ca9978d6ffe8b7",
+    "semantic_hash": "a9f67e110061db3e82ca9978d6ffe8b7"
+  },
+  "app/services/business_discovery.py": {
+    "mtime": 1793382035.8595147,
+    "seen": 1793481803.191239,
+    "ast_hash": "5105682d20da4f6b240ec575158e53be",
+    "semantic_hash": ""
+  },
+  "app/services/lead_scorer.py": {
+    "mtime": 1793312286.687164,
+    "seen": 1793313149.3531432,
+    "ast_hash": "b17afa4019c28d7a6645c04fc4400ca5",
+    "semantic_hash": "b17afa4019c28d7a6645c04fc4400ca5"
+  },
+  "app/services/maps_scraper.py": {
+    "mtime": 1793482628.0610068,
+    "seen": 1793483630.4907236,
+    "ast_hash": "bbb1616e804a3ce1de8b66f7a885229f",
+    "semantic_hash": ""
+  },
+  "app/services/niches_catalog.py": {
+    "mtime": 1793225856.0294738,
+    "seen": 1793313149.3531477,
+    "ast_hash": "8ad8a21ed16c9cd700825720b1e7fafc",
+    "semantic_hash": "8ad8a21ed16c9cd700825720b1e7fafc"
+  },
+  "app/services/outreach_generator.py": {
+    "mtime": 1793482889.860294,
+    "seen": 1793483630.4907262,
+    "ast_hash": "5b2fc050a2fc94886e6ba840fcf59219",
+    "semantic_hash": ""
+  },
+  "app/services/site_xray.py": {
+    "mtime": 1793479051.3262584,
+    "seen": 1793481803.1912458,
+    "ast_hash": "fe0f099824bb756e033f39f558ea8c27",
+    "semantic_hash": ""
+  },
+  "app/static/app.js": {
+    "mtime": 1793582154.9002244,
+    "seen": 1793582238.7267158,
+    "ast_hash": "29c63ef119a70324333ec8eccd44a0a1",
+    "semantic_hash": ""
+  },
+  "scripts/git-auto-sync.ps1": {
+    "mtime": 1793225399.0218902,
+    "seen": 1793313149.3531554,
+    "ast_hash": "4d8e32f4dd083930779777b207b30e86",
+    "semantic_hash": "4d8e32f4dd083930779777b207b30e86"
+  },
+  "scripts/scrape.py": {
+    "mtime": 1793480507.6696022,
+    "seen": 1793481803.1912496,
+    "ast_hash": "c29152211280c5935e43d8f5c93fc5d9",
+    "semantic_hash": ""
+  },
+  "tests/test_api.py": {
+    "mtime": 1793579972.8614542,
+    "seen": 1793580028.6985204,
+    "ast_hash": "d4b6298dea0ef7481e0bf897231605e8",
+    "semantic_hash": ""
+  },
+  "tests/test_business_discovery.py": {
+    "mtime": 1793382056.8080182,
+    "seen": 1793481803.1912522,
+    "ast_hash": "a32a9e0ce9bb4aec24f50ce0899cbde5",
+    "semantic_hash": ""
+  },
+  "tests/test_dashboard_ui.py": {
+    "mtime": 1793582203.8192239,
+    "seen": 1793582238.7267396,
+    "ast_hash": "03910b83b13db4982bb11134be3acc79",
+    "semantic_hash": ""
+  },
+  "tests/test_database.py": {
+    "mtime": 1793484927.071338,
+    "seen": 1793485003.8853943,
+    "ast_hash": "48c3c2eb225fa32b44fad6d5cfb5f178",
+    "semantic_hash": ""
+  },
+  "tests/test_lead_scorer.py": {
+    "mtime": 1793226220.8088813,
+    "seen": 1793313149.3531666,
+    "ast_hash": "96a6614a009a73993018bd7b32dd1a3a",
+    "semantic_hash": "96a6614a009a73993018bd7b32dd1a3a"
+  },
+  "tests/test_maps_scraper.py": {
+    "mtime": 1793225779.190405,
+    "seen": 1793313149.3531685,
+    "ast_hash": "59a6a0749bb675325b667a27ae0f83d5",
+    "semantic_hash": "59a6a0749bb675325b667a27ae0f83d5"
+  },
+  "tests/test_outreach_generator.py": {
+    "mtime": 1793312381.6940777,
+    "seen": 1793313149.3531702,
+    "ast_hash": "e49a1e7b4451ba0e18bf154ffea62513",
+    "semantic_hash": "e49a1e7b4451ba0e18bf154ffea62513"
+  },
+  "tests/test_site_xray.py": {
+    "mtime": 1793479067.4923306,
+    "seen": 1793481803.1912634,
+    "ast_hash": "39447f0789d8769afca5d28aeeb2b737",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793583473.6891687,
+    "seen": 1793583598.911082,
+    "ast_hash": "4fe6f8d4cc61f43cdbe31d31d8b1e0d2",
+    "semantic_hash": ""
+  },
+  "Sprint atual.md": {
+    "mtime": 1793583570.1491096,
+    "seen": 1793583598.9110847,
+    "ast_hash": "8378c6a1fb721fb73ac3904ffb62cd9b",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
+    "mtime": 1793225460.2799022,
+    "seen": 1793313149.3531775,
+    "ast_hash": "78d3a8c469497363bbdb2fefceb4053f",
+    "semantic_hash": "78d3a8c469497363bbdb2fefceb4053f"
+  },
+  "docs/superpowers/specs/2026-10-28-painel-de-busca-design.md": {
+    "mtime": 1793225459.3191564,
+    "seen": 1793313149.3531797,
+    "ast_hash": "9d38d38e679fda07c6c602712014d9c2",
+    "semantic_hash": "9d38d38e679fda07c6c602712014d9c2"
+  },
+  "tests/test_embedded_tools.py": {
+    "mtime": 1793479197.721545,
+    "seen": 1793481803.1912563,
+    "ast_hash": "145d8319ab101a18f9be0cae5f7d59f6",
+    "semantic_hash": ""
+  },
+  "tests/test_ready_reports.py": {
+    "mtime": 1793481670.7118425,
+    "seen": 1793481803.1912622,
+    "ast_hash": "ac874635ee174072f6a5d38d725f12db",
+    "semantic_hash": ""
+  },
+  ".agents/rules/git-auto-commit.md": {
+    "mtime": 1793225385.884795,
+    "seen": 1793481803.1912646,
+    "ast_hash": "c73654509222d1bb10227979d55154c2",
+    "semantic_hash": ""
+  },
+  ".agents/rules/sprint-checkpoint.md": {
+    "mtime": 1793225394.2292795,
+    "seen": 1793481803.1912658,
+    "ast_hash": "8facb6cfeb1d25f1dc485b532a07b352",
+    "semantic_hash": ""
+  },
+  "app/static/index.html": {
+    "mtime": 1793583031.8148735,
+    "seen": 1793583598.911087,
+    "ast_hash": "bb1c4b1db9f17c011f3bf31ed6b5dfec",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1793224560.1069796,
+    "seen": 1793481803.19127,
+    "ast_hash": "b0ef8e92d696c428fd5887c01c125475",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1793312983.7097487,
+    "seen": 1793481803.1912737,
+    "ast_hash": "8d0b4582cb2eefdd79cd52f1e82a4aa9",
+    "semantic_hash": ""
+  },
+  ".taste-skill/direction.json": {
+    "mtime": 1793482361.210717,
+    "seen": 1793483630.4907005,
+    "ast_hash": "7cf629259bc086638871818881a813eb",
+    "semantic_hash": ""
+  },
+  "scripts/criar_atalho.ps1": {
+    "mtime": 1793583023.237925,
+    "seen": 1793583598.911026,
+    "ast_hash": "737f34353d4d8131688ab8529ce13d90",
+    "semantic_hash": ""
+  },
+  "scripts/launcher_exe.py": {
+    "mtime": 1793583341.9711995,
+    "seen": 1793583598.9110324,
+    "ast_hash": "6dda46a7cece95b4f1dabc2ee780f0f4",
+    "semantic_hash": ""
+  },
+  "tests/test_installer_integrity.py": {
+    "mtime": 1793583526.2885103,
+    "seen": 1793583598.9110525,
+    "ast_hash": "14ad2f665512b2122c6f3e69b71e1d8f",
+    "semantic_hash": ""
+  },
+  "COMO_INSTALAR.txt": {
+    "mtime": 1793583411.9702754,
+    "seen": 1793583598.9110794,
+    "ast_hash": "44852b5f5b30ca8ec4e60550d5a72d35",
+    "semantic_hash": ""
+  },
+  "docs/guia-instalacao-amigo.md": {
+    "mtime": 1793583421.575665,
+    "seen": 1793583598.9110923,
+    "ast_hash": "2b674b99bbafaa57138b0cb3a6aac4aa",
+    "semantic_hash": ""
+  }
+}
