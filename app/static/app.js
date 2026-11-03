@@ -951,6 +951,55 @@ async function markLeadContacted(leadId) {
   }
 }
 
+/* ---------- WhatsApp & Ações de Contato ---------- */
+function cleanWhatsAppNumber(raw) {
+  if (!raw) return "";
+  let digits = String(raw).replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("0")) digits = digits.substring(1);
+  if (digits.length === 10 || digits.length === 11) {
+    digits = "55" + digits;
+  }
+  return digits;
+}
+
+function openWhatsApp(leadId, customMsg) {
+  const l = ALL_LEADS.find((x) => x.id === leadId) || CURRENT_LEADS.find((x) => x.id === leadId);
+  if (!l) return;
+
+  const rawNum = waNumber(l) || l.phone || "";
+  const phone = cleanWhatsAppNumber(rawNum);
+  if (!phone) {
+    alert("Esta empresa não possui um telefone ou WhatsApp cadastrado com DDD.");
+    return;
+  }
+
+  let text = customMsg;
+  if (text == null) {
+    const cardTextarea = $(`card-wpp-${leadId}`);
+    if (cardTextarea && cardTextarea.value.trim()) {
+      text = cardTextarea.value.trim();
+    } else {
+      text = ((l.outreach_scripts || {}).whatsapp || "").trim();
+    }
+  }
+
+  const encoded = encodeURIComponent(text || "");
+  const url = `https://api.whatsapp.com/send?phone=${phone}${encoded ? `&text=${encoded}` : ""}`;
+
+  const fb = $(`copied-${leadId}`);
+  if (fb) {
+    fb.textContent = "Abrindo WhatsApp...";
+    setTimeout(() => {
+      if (fb.textContent === "Abrindo WhatsApp...") fb.textContent = "";
+    }, 2500);
+  }
+
+  window.open(url, "_blank", "noopener,noreferrer");
+
+  markLeadContacted(leadId).catch((err) => console.error("Falha ao marcar lead como contatado:", err));
+}
+
 /* ---------- fila do robô ---------- */
 async function enqueueSingleLead(leadId, channel) {
   const res = await fetch("/api/outreach/enqueue", {
