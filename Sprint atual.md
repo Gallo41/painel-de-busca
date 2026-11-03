@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 19:30
-- **Status**: Em Andamento (50%)
+- **Status**: Em Andamento (60%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -25,7 +25,7 @@
 - [x] **30%** - Implementação de `openWhatsApp(leadId)` no `app/static/app.js` com suporte a wa.me / api.whatsapp e atualização de status
 - [x] **40%** - Implementação de `copyCardMessage(leadId)` e botão de WhatsApp no modal do lead (`openLeadModal`)
 - [x] **50%** - Refatoração e humanização do script de abordagem para SEM_SITE e DOMINIO_LIVRE em `outreach_generator.py`
-- [ ] **60%** - Humanização dos scripts de abordagem para SITE_FORA_DO_AR, OPORTUNIDADE_SISTEMA e MELHORIA_SITE
+- [x] **60%** - Humanização dos scripts de abordagem para SITE_FORA_DO_AR, OPORTUNIDADE_SISTEMA e MELHORIA_SITE
 - [ ] **70%** - Alinhamento humanizado dos textos de E-mail e Instagram DM
 - [ ] **80%** - Criação de testes unitários para os novos scripts humanizados e validação de scripts UI
 - [ ] **90%** - Execução da suíte completa de testes (`pytest`) sem regressões
@@ -41,6 +41,7 @@
 | **30%** | 03/11/2026 19:35 | Implementação de `cleanWhatsAppNumber` e `openWhatsApp(leadId, customMsg)` em `app/static/app.js`, com leitura da mensagem editada no card, abertura em nova aba e auto-status. | `app/static/app.js`, `Sprint atual.md` |
 | **40%** | 03/11/2026 19:36 | Implementação de `copyCardMessage(leadId)` com fallback para `execCommand` e inclusão do botão 'Chamar no WhatsApp' no modal completo do lead. | `app/static/app.js`, `Sprint atual.md` |
 | **50%** | 03/11/2026 19:37 | Humanização completa do script de WhatsApp para empresas SEM_SITE e DOMINIO_LIVRE, substituindo saudações frias por tom natural e respeitoso. | `app/services/outreach_generator.py`, `Sprint atual.md` |
+| **60%** | 03/11/2026 19:38 | Humanização dos scripts para SITE_FORA_DO_AR (aviso amigável), OPORTUNIDADE_SISTEMA (automações reais) e MELHORIA_SITE (dicas práticas no celular). | `app/services/outreach_generator.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

@@ -219,14 +219,15 @@ def generate_outreach_scripts(
 
     if pain == "SITE_FORA_DO_AR":
         wpp_msg = (
-            f"Olá, pessoal da {title}! Tudo bem?\n\n"
-            f"Sou desenvolvedor web e {social_proof}. Tentei acessar o site de vocês cadastrado no Maps agora há pouco e notei que ele está fora do ar (dando erro de conexão para quem clica).\n\n"
-            f"Vocês já estão sabendo dessa queda? Se quiserem, consigo ajudar vocês a colocar um site novo/moderno no ar rapidinho para não perderem os clientes que vêm pelo Google."
+            f"Oi, tudo bem? Falo com alguém da {title}?\n\n"
+            f"Passei aqui só pra dar um toque rápido: fui abrir o site de vocês cadastrado no Google Maps e notei que a página não está abrindo (está dando erro fora do ar).\n\n"
+            f"Como muita gente procura por vocês no Google aqui em {city}, achei importante avisar pra vocês não perderem vendas e clientes. Vocês já estão sabendo dessa queda?\n\n"
+            f"Se precisarem de ajuda para restabelecer ou colocar uma página nova no ar rapidinho, me coloco à disposição!"
         )
         email_subject = f"Aviso rápido: Site da {title} no Google Maps está fora do ar"
         ig_dm = (
-            f"Olá pessoal da {title}! Vi vocês no Google Maps em {city} e notei que o link do site de vocês lá está fora do ar. "
-            f"Trabalho com desenvolvimento de sites e sistemas — posso mandar uma ideia rápida de como resolver?"
+            f"Olá pessoal da {title}! Vi a ficha de vocês no Google em {city} e reparei que o link do site lá está fora do ar. "
+            f"Achei legal avisar! Se precisarem de ajuda pra reativar ou subir uma página rápida, estou à disposição."
         )
     elif pain in ("SEM_SITE", "DOMINIO_LIVRE"):
         dom_line = (
@@ -252,26 +253,28 @@ def generate_outreach_scripts(
         )
     elif pain == "OPORTUNIDADE_SISTEMA" or service == "SISTEMA_COMPLEXO":
         wpp_msg = (
-            f"Olá, equipe da {title}! Tudo bem?\n\n"
-            f"Eu e meu sócio trabalhamos com desenvolvimento de sistemas web e sites sob medida. {social_proof.capitalize()} e analisamos a presença digital atual de vocês.\n\n"
-            f"Pelo porte da {title}, notamos uma oportunidade grande de automatizar o atendimento/captação com um sistema integrado (como agendamento online, área de cliente ou catálogo inteligente) conectado direto ao WhatsApp.\n\n"
-            f"Faz sentido conversarmos 5 minutinhos para eu mostrar como aplicamos isso no setor de vocês?"
+            f"Oi, tudo bem? É da {title}?\n\n"
+            f"{social_proof.capitalize()}, e acompanho o destaque e o trabalho bacana de vocês aqui na região!\n\n"
+            f"Trabalho com desenvolvimento de sistemas e automações sob medida (como agendamento online, triagem e pedidos integrados direto no WhatsApp).\n\n"
+            f"Pelo porte e movimento da {title}, vi que daria pra economizar bastante tempo da equipe no atendimento do dia a dia.\n\n"
+            f"Com quem eu conseguiria bater um papo rápido de 5 minutos sobre isso?"
         )
         email_subject = f"Modernização Digital & Sistema Sob Medida para {title}"
         ig_dm = (
-            f"Olá equipe da {title}! Acompanhei o destaque de vocês em {city} ({reviews} avaliações no Maps) e desenvolvemos sistemas sob medida e portais modernos para o segmento de vocês. "
-            f"Com quem consigo falar sobre parcerias/tecnologia?"
+            f"Olá equipe da {title}! Acompanhei o destaque de vocês em {city} ({reviews} avaliações no Maps) e desenvolvemos sistemas sob medida e automações para o segmento de vocês. "
+            f"Com quem consigo falar sobre parcerias e tecnologia?"
         )
     else:
         wpp_msg = (
-            f"Olá, equipe da {title}! Tudo bem?\n\n"
-            f"Sou desenvolvedor web e {social_proof}. Fizemos um raio-x técnico rápido no site atual de vocês ({dom}) e notamos alguns pontos que estão travando conversões no celular ({score_data.get('pain_summary', 'layout e velocidade')}).\n\n"
-            f"Posso te enviar um resumo gratuito em 3 tópicos do que dá pra melhorar nele?"
+            f"Oi, tudo bem? É da {title}?\n\n"
+            f"{social_proof.capitalize()}, e dei uma olhadinha no site de vocês ({dom}).\n\n"
+            f"Notei 2 ou 3 detalhezinhos na navegação pelo celular que podem estar dificultando clientes de chamarem vocês no WhatsApp ({score_data.get('pain_summary', 'layout e velocidade')}).\n\n"
+            f"Separei umas dicas práticas e bem simples que vocês mesmos podem ajustar. Posso te mandar por aqui?"
         )
         email_subject = f"Raio-X Técnico do site {dom} ({title})"
         ig_dm = (
-            f"Oi equipe da {title}! Fizemos uma análise rápida do site {dom} e encontramos melhorias importantes de conversão mobile e segurança. "
-            f"Posso mandar o diagnóstico rápido por aqui ou no WhatsApp?"
+            f"Oi pessoal da {title}! Dei uma olhada rápida no site {dom} e encontrei melhorias importantes de conversão mobile e botão de contato. "
+            f"Posso mandar as dicas rápidas por aqui?"
         )
 
     email_body = wpp_msg + "\n\nAtenciosamente,\nConsultoria de Desenvolvimento Web & Sistemas"
