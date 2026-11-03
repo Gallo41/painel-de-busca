@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 19:30
-- **Status**: Em Andamento (70%)
+- **Status**: Em Andamento (80%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -27,7 +27,7 @@
 - [x] **50%** - Refatoração e humanização do script de abordagem para SEM_SITE e DOMINIO_LIVRE em `outreach_generator.py`
 - [x] **60%** - Humanização dos scripts de abordagem para SITE_FORA_DO_AR, OPORTUNIDADE_SISTEMA e MELHORIA_SITE
 - [x] **70%** - Alinhamento humanizado dos textos de E-mail e Instagram DM
-- [ ] **80%** - Criação de testes unitários para os novos scripts humanizados e validação de scripts UI
+- [x] **80%** - Criação de testes unitários para os novos scripts humanizados e validação de scripts UI
 - [ ] **90%** - Execução da suíte completa de testes (`pytest`) sem regressões
 - [ ] **100%** - Atualização do grafo Graphify (`graphify update .`), fechamento da Sprint e auto-sync Git
 
@@ -43,6 +43,7 @@
 | **50%** | 03/11/2026 19:37 | Humanização completa do script de WhatsApp para empresas SEM_SITE e DOMINIO_LIVRE, substituindo saudações frias por tom natural e respeitoso. | `app/services/outreach_generator.py`, `Sprint atual.md` |
 | **60%** | 03/11/2026 19:38 | Humanização dos scripts para SITE_FORA_DO_AR (aviso amigável), OPORTUNIDADE_SISTEMA (automações reais) e MELHORIA_SITE (dicas práticas no celular). | `app/services/outreach_generator.py`, `Sprint atual.md` |
 | **70%** | 03/11/2026 19:40 | Alinhamento de linguagem e tom para mensagens multicanal (corpo de E-mail sem jargão e Directs humanizados para Instagram). | `app/services/outreach_generator.py`, `Sprint atual.md` |
+| **80%** | 03/11/2026 19:41 | Criação de testes automatizados para scripts humanizados (`test_outreach_generator.py`) e validação de rotinas no frontend (`test_dashboard_ui.py`). | `tests/test_outreach_generator.py`, `tests/test_dashboard_ui.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

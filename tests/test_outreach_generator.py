@@ -67,6 +67,43 @@ def test_generate_outreach_scripts_for_complex_system():
     assert scripts["automation_payload"]["recommended_service"] == "SISTEMA_COMPLEXO"
 
 
+def test_generate_outreach_scripts_humanized_tone_all_scenarios():
+    base_lead = {
+        "title": "Oficina do João",
+        "city": "Piracicaba",
+        "phone": "(19) 98765-4321",
+        "whatsapp_clean": "5519987654321",
+        "emails": "contato@oficinadojoao.com.br",
+        "review_rating": 4.8,
+        "review_count": 45,
+    }
+
+    # 1. Site fora do ar
+    xray_down = {"has_website": True, "site_in_air": False, "suggested_domain": "oficinadojoao.com.br"}
+    score_down = {"primary_pain": "SITE_FORA_DO_AR", "recommended_service": "RECUPERAR_SITE"}
+    sc_down = generate_outreach_scripts(base_lead, xray_down, score_down)
+    assert "Oi, tudo bem? Falo com alguém da Oficina do João?" in sc_down["whatsapp"]
+    assert "fora do ar" in sc_down["whatsapp"]
+    assert "Olá, equipe da" not in sc_down["whatsapp"]  # Garante ausência de tom robótico
+
+    # 2. Sem site com domínio livre
+    xray_nosite = {"has_website": False, "domain_available_br": True, "suggested_domain": "oficinadojoao.com.br"}
+    score_nosite = {"primary_pain": "SEM_SITE", "recommended_service": "SITE_NOVO"}
+    sc_nosite = generate_outreach_scripts(base_lead, xray_nosite, score_nosite)
+    assert "Oi, tudo bem? É da Oficina do João?" in sc_nosite["whatsapp"]
+    assert "oficinadojoao.com.br" in sc_nosite["whatsapp"]
+    assert "Posso te mandar o link aqui para você dar uma olhada sem compromisso?" in sc_nosite["whatsapp"]
+    assert "Olá, equipe da" not in sc_nosite["whatsapp"]
+
+    # 3. Melhoria de site mobile
+    xray_slow = {"has_website": True, "site_in_air": True, "suggested_domain": "oficinadojoao.com.br"}
+    score_slow = {"primary_pain": "SITE_LENTO", "recommended_service": "OTIMIZACAO_SITE", "pain_summary": "lento no 4G"}
+    sc_slow = generate_outreach_scripts(base_lead, xray_slow, score_slow)
+    assert "Oi, tudo bem? É da Oficina do João?" in sc_slow["whatsapp"]
+    assert "Posso te mandar por aqui?" in sc_slow["whatsapp"]
+    assert "Olá, equipe da" not in sc_slow["whatsapp"]
+
+
 def test_process_and_save_lead_pipeline(tmp_path):
     db_path = str(tmp_path / "test_pipeline.db")
     init_db(db_path)
