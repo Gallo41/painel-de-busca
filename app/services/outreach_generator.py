@@ -259,10 +259,10 @@ def generate_outreach_scripts(
             f"Pelo porte e movimento da {title}, vi que daria pra economizar bastante tempo da equipe no atendimento do dia a dia.\n\n"
             f"Com quem eu conseguiria bater um papo rápido de 5 minutos sobre isso?"
         )
-        email_subject = f"Modernização Digital & Sistema Sob Medida para {title}"
+        email_subject = f"Ideia de Automação & Sistema Sob Medida para {title}"
         ig_dm = (
-            f"Olá equipe da {title}! Acompanhei o destaque de vocês em {city} ({reviews} avaliações no Maps) e desenvolvemos sistemas sob medida e automações para o segmento de vocês. "
-            f"Com quem consigo falar sobre parcerias e tecnologia?"
+            f"Oi pessoal da {title}! Acompanhei o destaque de vocês em {city} ({reviews} avaliações no Maps). Desenvolvemos sistemas e automações sob medida — "
+            f"com quem consigo falar sobre tecnologia e processos?"
         )
     else:
         wpp_msg = (
@@ -271,13 +271,16 @@ def generate_outreach_scripts(
             f"Notei 2 ou 3 detalhezinhos na navegação pelo celular que podem estar dificultando clientes de chamarem vocês no WhatsApp ({score_data.get('pain_summary', 'layout e velocidade')}).\n\n"
             f"Separei umas dicas práticas e bem simples que vocês mesmos podem ajustar. Posso te mandar por aqui?"
         )
-        email_subject = f"Raio-X Técnico do site {dom} ({title})"
+        email_subject = f"Dicas práticas para o site {dom} ({title})"
         ig_dm = (
-            f"Oi pessoal da {title}! Dei uma olhada rápida no site {dom} e encontrei melhorias importantes de conversão mobile e botão de contato. "
+            f"Oi pessoal da {title}! Dei uma olhada rápida no site {dom} e encontrei 2 ou 3 melhorias importantes de conversão mobile e botão de contato. "
             f"Posso mandar as dicas rápidas por aqui?"
         )
 
-    email_body = wpp_msg + "\n\nAtenciosamente,\nConsultoria de Desenvolvimento Web & Sistemas"
+    email_body = (
+        wpp_msg
+        + "\n\nSe preferir, pode responder diretamente a este e-mail ou me chamar no WhatsApp.\n\nAtenciosamente,\nDesenvolvimento Web & Tecnologia"
+    )
 
     wpp_url = (
         f"https://wa.me/{wpp_num}?text={urllib.parse.quote(wpp_msg)}"
