@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 21:40
-- **Status**: Em Andamento (20%)
+- **Status**: Em Andamento (30%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -19,7 +19,7 @@ Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao co
 
 - [x] **10%** - Diagnóstico e abertura da Sprint no `Sprint atual.md`, Operador e `task.md`
 - [x] **20%** - Implementação de `migrate_humanized_scripts_db` em `app/database.py` e migração da base SQLite
-- [ ] **30%** - Integração automática de `migrate_humanized_scripts_db` na inicialização do servidor em `app/main.py`
+- [x] **30%** - Integração automática de `migrate_humanized_scripts_db` na inicialização do servidor em `app/main.py`
 - [ ] **40%** - Headers HTTP anti-cache (`no-cache, no-store, must-revalidate`) no endpoint raiz em `app/main.py`
 - [ ] **50%** - Cache-busting e meta-tags anti-cache em `app/static/index.html` (`v=2.5.2`)
 - [ ] **60%** - Fallback de `waNumber(l)` aceitando `l.phone` e abertura com elemento âncora DOM em `app/static/app.js`
@@ -35,6 +35,7 @@ Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao co
 | :---: | :---: | :--- | :--- |
 | **10%** | 03/11/2026 21:40 | Diagnóstico das causas-raiz: cache em disco do navegador de app.js?v=2.4 e 227 leads pré-salvos com JSON antigo no SQLite. | `Sprint atual.md`, `task.md` |
 | **20%** | 03/11/2026 21:42 | Implementação de `migrate_humanized_scripts_db` em `app/database.py` com migração dos 227 leads existentes no banco de produção. | `app/database.py`, `Sprint atual.md` |
+| **30%** | 03/11/2026 21:43 | Chamada automática de `migrate_humanized_scripts_db(db_path)` no startup do FastAPI em `app/main.py`. | `app/main.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

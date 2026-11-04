@@ -1,4 +1,4 @@
-﻿import os
+import os
 import sys
 from typing import Optional
 
@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from app.database import (
     deduplicate_existing_leads_db,
     init_db,
+    migrate_humanized_scripts_db,
     purge_simulated_leads,
     upsert_niches,
 )
@@ -30,6 +31,7 @@ def create_app(db_path: Optional[str] = None) -> FastAPI:
 
     init_db(db_path)
     upsert_niches(DEFAULT_NICHES, db_path=db_path)
+    migrate_humanized_scripts_db(db_path=db_path)
     if not db_path:
         # Banco real do usuário: expurga simulados e consolida duplicatas automaticamente
         purge_simulated_leads()
