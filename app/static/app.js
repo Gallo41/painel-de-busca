@@ -46,7 +46,7 @@ function offerOf(l) {
   return "SITE_NOVO";
 }
 const hasNoSite = (l) => !l.has_website || !!l.is_social_only_url;
-const waNumber = (l) => (((l.outreach_scripts || {}).automation_payload || {}).whatsapp_number || l.whatsapp_clean || "").trim();
+const waNumber = (l) => (((l.outreach_scripts || {}).automation_payload || {}).whatsapp_number || l.whatsapp_clean || l.phone || "").trim();
 const isContacted = (l) => ["contatado", "respondeu", "reuniao", "fechado", "fazendo", "vou_fazer"].includes(l.lead_status);
 
 function normStatus(s) {
@@ -995,7 +995,27 @@ function openWhatsApp(leadId, customMsg) {
     }, 2500);
   }
 
-  window.open(url, "_blank", "noopener,noreferrer");
+  // Abertura com fallback anti-bloqueador de pop-ups (window.open + click em âncora)
+  try {
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+    if (!win || win.closed || typeof win.closed === "undefined") {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 300);
+    }
+  } catch (err) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => a.remove(), 300);
+  }
 
   markLeadContacted(leadId).catch((err) => console.error("Falha ao marcar lead como contatado:", err));
 }
@@ -1037,6 +1057,12 @@ function copyCardMessage(leadId) {
     }
   }
 }
+
+// Vinculação explícita ao escopo global (window) para eventos inline onclick
+window.openWhatsApp = openWhatsApp;
+window.copyCardMessage = copyCardMessage;
+window.cleanWhatsAppNumber = cleanWhatsAppNumber;
+window.markLeadContacted = markLeadContacted;
 
 /* ---------- fila do robô ---------- */
 async function enqueueSingleLead(leadId, channel) {
