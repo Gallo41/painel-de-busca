@@ -1,51 +1,39 @@
-# Sprint Atual: Correção do Botão WhatsApp e Humanização dos Scripts de Abordagem
+# Sprint Atual: Correção de Cache do Navegador, Migração de Base Existente e Resiliência do Botão WhatsApp
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
-- **Data de Início**: 03/11/2026 às 19:30
-- **Status**: Concluído (100%)
+- **Data de Início**: 03/11/2026 às 21:40
+- **Status**: Em Andamento (10%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
 
 ## 🎯 Objetivo da Sprint
-1. **Corrigir o botão "Chamar no WhatsApp"**:
-   - Diagnosticar e resolver a ausência da função `openWhatsApp(leadId)` no JavaScript do painel.
-   - Implementar `openWhatsApp` e `copyCardMessage` com sanitização inteligente de número telefônico brasileiro (prefixo 55 + DDD), abertura em nova aba e atualização automática de status para "Já chamei" (`contatado`).
-   - Disponibilizar atalho direto de WhatsApp também dentro do modal de detalhes técnicos do lead.
-2. **Humanizar as mensagens de abordagem**:
-   - Substituir mensagens robóticas e genéricas ("Olá, equipe da...") por abordagens naturais, conversacionais e respeitosas que parecem enviadas por um humano real, aumentando taxa de resposta no WhatsApp.
-   - Adaptar para cada situação: sem site próprio (com domínio livre), site fora do ar, sistemas sob medida e melhoria de site lento/mobile.
+Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao comportamento anterior (*"não foi aqui comigo, tá igual antes"*):
+1. **Causa 1 - Cache Persistente do Navegador (`app.js?v=2.4` e `index.html`)**: O navegador armazenou o JavaScript em cache local, impedindo o download das funções `openWhatsApp` e `copyCardMessage`. Bumper de versão para `v=2.5.2` e inclusão de headers HTTP anti-cache (`no-cache, no-store, must-revalidate`).
+2. **Causa 2 - Leads já Gravados no SQLite com Texto Antigo**: Os 227 leads já existentes no banco `painel_busca.db` continham o JSON antigo pré-gerado. Criação de rotina de migração automática (`migrate_humanized_scripts_db`) para atualizar todos os registros existentes.
+3. **Causa 3 - Bloqueador de Pop-ups e Reconhecimento de Telefone**: Garantir abertura com elemento âncora programático (fallback anti-popup) e expandir `waNumber` para ler `l.phone` caso `whatsapp_clean` falte.
 
 ---
 
 ## 📋 Checklist de Progresso Obrigatório (Regra dos 10%)
 
-- [x] **10%** - Abertura da Sprint no `Sprint atual.md`, espelhamento no Operador e no `task.md`
-- [x] **20%** - Diagnóstico técnico detalhado da falha no botão WhatsApp e mapeamento dos pontos de quebra
-- [x] **30%** - Implementação de `openWhatsApp(leadId)` no `app/static/app.js` com suporte a wa.me / api.whatsapp e atualização de status
-- [x] **40%** - Implementação de `copyCardMessage(leadId)` e botão de WhatsApp no modal do lead (`openLeadModal`)
-- [x] **50%** - Refatoração e humanização do script de abordagem para SEM_SITE e DOMINIO_LIVRE em `outreach_generator.py`
-- [x] **60%** - Humanização dos scripts de abordagem para SITE_FORA_DO_AR, OPORTUNIDADE_SISTEMA e MELHORIA_SITE
-- [x] **70%** - Alinhamento humanizado dos textos de E-mail e Instagram DM
-- [x] **80%** - Criação de testes unitários para os novos scripts humanizados e validação de scripts UI
-- [x] **90%** - Execução da suíte completa de testes (`pytest`) sem regressões
-- [x] **100%** - Atualização do grafo Graphify (`graphify update .`), fechamento da Sprint e auto-sync Git
+- [x] **10%** - Diagnóstico e abertura da Sprint no `Sprint atual.md`, Operador e `task.md`
+- [ ] **20%** - Implementação de `migrate_humanized_scripts_db` em `app/database.py` e migração da base SQLite
+- [ ] **30%** - Integração automática de `migrate_humanized_scripts_db` na inicialização do servidor em `app/main.py`
+- [ ] **40%** - Headers HTTP anti-cache (`no-cache, no-store, must-revalidate`) no endpoint raiz em `app/main.py`
+- [ ] **50%** - Cache-busting e meta-tags anti-cache em `app/static/index.html` (`v=2.5.2`)
+- [ ] **60%** - Fallback de `waNumber(l)` aceitando `l.phone` e abertura com elemento âncora DOM em `app/static/app.js`
+- [ ] **70%** - Vinculação explícita de `window.openWhatsApp` e `window.copyCardMessage` no escopo global
+- [ ] **80%** - Criação de testes unitários para a migração de banco e validação de headers anti-cache
+- [ ] **90%** - Execução da suíte completa de testes (`pytest`) sem regressões
+- [ ] **100%** - Atualização do grafo Graphify, finalização da sprint e commit/push Git
 
 ---
 
 ## 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%)
 | % Concluído | Data / Hora | Descrição do Progresso / Entrega Parcial | Arquivos Modificados |
 | :---: | :---: | :--- | :--- |
-| **10%** | 03/11/2026 19:30 | Abertura da Sprint de correção do botão WhatsApp e humanização dos scripts de abordagem. | `Sprint atual.md`, `task.md` |
-| **20%** | 03/11/2026 19:33 | Diagnóstico de causa-raiz: botões chamavam `openWhatsApp` e `copyCardMessage` inexistentes em `app.js` disparando ReferenceError. Mapeamento de sanitização e fluxo. | `Sprint atual.md`, `task.md` |
-| **30%** | 03/11/2026 19:35 | Implementação de `cleanWhatsAppNumber` e `openWhatsApp(leadId, customMsg)` em `app/static/app.js`, com leitura da mensagem editada no card, abertura em nova aba e auto-status. | `app/static/app.js`, `Sprint atual.md` |
-| **40%** | 03/11/2026 19:36 | Implementação de `copyCardMessage(leadId)` com fallback para `execCommand` e inclusão do botão 'Chamar no WhatsApp' no modal completo do lead. | `app/static/app.js`, `Sprint atual.md` |
-| **50%** | 03/11/2026 19:37 | Humanização completa do script de WhatsApp para empresas SEM_SITE e DOMINIO_LIVRE, substituindo saudações frias por tom natural e respeitoso. | `app/services/outreach_generator.py`, `Sprint atual.md` |
-| **60%** | 03/11/2026 19:38 | Humanização dos scripts para SITE_FORA_DO_AR (aviso amigável), OPORTUNIDADE_SISTEMA (automações reais) e MELHORIA_SITE (dicas práticas no celular). | `app/services/outreach_generator.py`, `Sprint atual.md` |
-| **70%** | 03/11/2026 19:40 | Alinhamento de linguagem e tom para mensagens multicanal (corpo de E-mail sem jargão e Directs humanizados para Instagram). | `app/services/outreach_generator.py`, `Sprint atual.md` |
-| **80%** | 03/11/2026 19:41 | Criação de testes automatizados para scripts humanizados (`test_outreach_generator.py`) e validação de rotinas no frontend (`test_dashboard_ui.py`). | `tests/test_outreach_generator.py`, `tests/test_dashboard_ui.py`, `Sprint atual.md` |
-| **90%** | 03/11/2026 19:42 | Execução bem-sucedida de toda a suíte de testes (42/42 aprovados no pytest) sem qualquer regressão. | `Sprint atual.md`, `task.md` |
-| **100%** | 03/11/2026 19:43 | Atualização do grafo Graphify (473 nós e 1123 arestas), finalização da sprint e sincronização com GitHub. | `graphify-out/`, `Sprint atual.md` |
+| **10%** | 03/11/2026 21:40 | Diagnóstico das causas-raiz: cache em disco do navegador de app.js?v=2.4 e 227 leads pré-salvos com JSON antigo no SQLite. | `Sprint atual.md`, `task.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
