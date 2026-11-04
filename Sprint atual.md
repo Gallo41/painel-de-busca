@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 21:40
-- **Status**: Em Andamento (40%)
+- **Status**: Em Andamento (50%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -21,7 +21,7 @@ Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao co
 - [x] **20%** - Implementação de `migrate_humanized_scripts_db` em `app/database.py` e migração da base SQLite
 - [x] **30%** - Integração automática de `migrate_humanized_scripts_db` na inicialização do servidor em `app/main.py`
 - [x] **40%** - Headers HTTP anti-cache (`no-cache, no-store, must-revalidate`) no endpoint raiz em `app/main.py`
-- [ ] **50%** - Cache-busting e meta-tags anti-cache em `app/static/index.html` (`v=2.5.2`)
+- [x] **50%** - Cache-busting e meta-tags anti-cache em `app/static/index.html` (`v=2.5.2`)
 - [ ] **60%** - Fallback de `waNumber(l)` aceitando `l.phone` e abertura com elemento âncora DOM em `app/static/app.js`
 - [ ] **70%** - Vinculação explícita de `window.openWhatsApp` e `window.copyCardMessage` no escopo global
 - [ ] **80%** - Criação de testes unitários para a migração de banco e validação de headers anti-cache
@@ -37,6 +37,7 @@ Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao co
 | **20%** | 03/11/2026 21:42 | Implementação de `migrate_humanized_scripts_db` em `app/database.py` com migração dos 227 leads existentes no banco de produção. | `app/database.py`, `Sprint atual.md` |
 | **30%** | 03/11/2026 21:43 | Chamada automática de `migrate_humanized_scripts_db(db_path)` no startup do FastAPI em `app/main.py`. | `app/main.py`, `Sprint atual.md` |
 | **40%** | 03/11/2026 21:44 | Inclusão de cabeçalhos HTTP anti-cache (`Cache-Control: no-cache, no-store, must-revalidate`) no `serve_dashboard()`. | `app/main.py`, `Sprint atual.md` |
+| **50%** | 03/11/2026 21:46 | Adição de meta tags anti-cache no `<head>` e bump para `v=2.5.2` em `index.html` forçando recarga imediata de JS e CSS. | `app/static/index.html`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
