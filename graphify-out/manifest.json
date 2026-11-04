@@ -12,15 +12,15 @@
     "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
   },
   "app/database.py": {
-    "mtime": 1793579725.1913664,
-    "seen": 1793580028.6984832,
-    "ast_hash": "1f59e4dd82b678acb3c8c2473fa5a148",
+    "mtime": 1793752940.176952,
+    "seen": 1793753714.7563653,
+    "ast_hash": "e859099fe526aac0e25db9022aa9e6e5",
     "semantic_hash": ""
   },
   "app/main.py": {
-    "mtime": 1793576982.497634,
-    "seen": 1793576997.9114563,
-    "ast_hash": "b9e87dbd790319f3e7b124a553d36ad4",
+    "mtime": 1793753090.4859972,
+    "seen": 1793753714.756368,
+    "ast_hash": "b31ddedc43990397175fd61e07224dcf",
     "semantic_hash": ""
   },
   "app/models.py": {
@@ -66,9 +66,9 @@
     "semantic_hash": "b17afa4019c28d7a6645c04fc4400ca5"
   },
   "app/services/maps_scraper.py": {
-    "mtime": 1793482628.0610068,
-    "seen": 1793483630.4907236,
-    "ast_hash": "bbb1616e804a3ce1de8b66f7a885229f",
+    "mtime": 1793753621.2654536,
+    "seen": 1793753714.7563834,
+    "ast_hash": "274b76b60b881b262d0ee0f04e7e9d89",
     "semantic_hash": ""
   },
   "app/services/niches_catalog.py": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1793745377.797387,
-    "seen": 1793745819.609646,
-    "ast_hash": "f57705930ef0ab36ba34f053efc6cdb3",
+    "mtime": 1793753254.8951354,
+    "seen": 1793753714.7563903,
+    "ast_hash": "97972b58972154f8606c29aa23236955",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -120,15 +120,15 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1793745689.9648325,
-    "seen": 1793745819.6096623,
-    "ast_hash": "5ab77fbcd293200b38a9e14139e61826",
+    "mtime": 1793753397.4096832,
+    "seen": 1793753714.7564023,
+    "ast_hash": "40f479130a724c404521754e2e6a3cea",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
-    "mtime": 1793484927.071338,
-    "seen": 1793485003.8853943,
-    "ast_hash": "48c3c2eb225fa32b44fad6d5cfb5f178",
+    "mtime": 1793753367.1716678,
+    "seen": 1793753714.7564037,
+    "ast_hash": "0b1943bb507060ccf404ded30f350495",
     "semantic_hash": ""
   },
   "tests/test_lead_scorer.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1793745771.0468774,
-    "seen": 1793745819.6096902,
-    "ast_hash": "f36623f06b3c474a96364e78ea1cb599",
+    "mtime": 1793753659.5623474,
+    "seen": 1793753714.7564406,
+    "ast_hash": "0ac61a86d8813768a56cfad7bc846a63",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "app/static/index.html": {
-    "mtime": 1793583031.8148735,
-    "seen": 1793583598.911087,
-    "ast_hash": "bb1c4b1db9f17c011f3bf31ed6b5dfec",
+    "mtime": 1793753170.252262,
+    "seen": 1793753714.7564418,
+    "ast_hash": "adfaabb21b3b78de73a158aecf28e760",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
@@ -255,6 +255,96 @@
     "mtime": 1793583421.575665,
     "seen": 1793583598.9110923,
     "ast_hash": "2b674b99bbafaa57138b0cb3a6aac4aa",
+    "semantic_hash": ""
+  },
+  ".claude/agents/analista.md": {
+    "mtime": 1793753449.5721667,
+    "seen": 1793753714.7564206,
+    "ast_hash": "d02eb6b3de2b736f944c95b7038f7946",
+    "semantic_hash": ""
+  },
+  ".claude/agents/atendente.md": {
+    "mtime": 1793753449.5741727,
+    "seen": 1793753714.756422,
+    "ast_hash": "25515a7baef95c2b1de55c63d1d84af9",
+    "semantic_hash": ""
+  },
+  ".claude/agents/contador.md": {
+    "mtime": 1793753449.5721667,
+    "seen": 1793753714.7564237,
+    "ast_hash": "e10585c9bb026a24d38d049eb02eae1e",
+    "semantic_hash": ""
+  },
+  ".claude/agents/copywriter.md": {
+    "mtime": 1793753449.5708504,
+    "seen": 1793753714.756425,
+    "ast_hash": "3dcfd03540384e62dc03c442515b1e7a",
+    "semantic_hash": ""
+  },
+  ".claude/agents/desenvolvedor.md": {
+    "mtime": 1793753449.56882,
+    "seen": 1793753714.756426,
+    "ast_hash": "c8763aef300992786b621f9564bdd86c",
+    "semantic_hash": ""
+  },
+  ".claude/agents/dev-seguranca.md": {
+    "mtime": 1793753449.573176,
+    "seen": 1793753714.7564273,
+    "ast_hash": "66fc5939190337c5dcae0c04c005972f",
+    "semantic_hash": ""
+  },
+  ".claude/agents/gerente-geral.md": {
+    "mtime": 1793753449.5663066,
+    "seen": 1793753714.7564285,
+    "ast_hash": "d1aae195ee252a766ba9f100c3350c34",
+    "semantic_hash": ""
+  },
+  ".claude/agents/gestor-de-trafego.md": {
+    "mtime": 1793753449.5708504,
+    "seen": 1793753714.75643,
+    "ast_hash": "2803ec6c46ee05e3705c06ab40c79f0c",
+    "semantic_hash": ""
+  },
+  ".claude/agents/pesquisador.md": {
+    "mtime": 1793753449.5678124,
+    "seen": 1793753714.756431,
+    "ast_hash": "7c127ba27f7d8e256dbed4eec00e3761",
+    "semantic_hash": ""
+  },
+  ".claude/agents/testador.md": {
+    "mtime": 1793753449.573176,
+    "seen": 1793753714.756432,
+    "ast_hash": "7f92b1c825537c8d99cc7962fbaee064",
+    "semantic_hash": ""
+  },
+  ".claude/agents/vendedor.md": {
+    "mtime": 1793753449.5708504,
+    "seen": 1793753714.7564335,
+    "ast_hash": "b6dc162fd5ec1ea8001fec6c81d39053",
+    "semantic_hash": ""
+  },
+  ".claude/agents/web-designer.md": {
+    "mtime": 1793753449.56882,
+    "seen": 1793753714.7564347,
+    "ast_hash": "acab7d98a77183a95c4bfebb3ddd8bbb",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1793753520.9511986,
+    "seen": 1793753714.7564356,
+    "ast_hash": "cd22f9c999cd557004a3ad7bd56d6571",
+    "semantic_hash": ""
+  },
+  "docs/EMPRESA_DE_AGENTES.md": {
+    "mtime": 1793753520.9511986,
+    "seen": 1793753714.7564452,
+    "ast_hash": "0cf768712c915008d9584dbb74ee36e3",
+    "semantic_hash": ""
+  },
+  "docs/ESTRUTURA_DO_PROJETO.md": {
+    "mtime": 1793753520.9542086,
+    "seen": 1793753714.7564464,
+    "ast_hash": "2917c7aae48e3aa22206e5c9e9e03a2b",
     "semantic_hash": ""
   }
 }
