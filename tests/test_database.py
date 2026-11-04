@@ -20,6 +20,9 @@ from app.database import (
     list_outreach_queue,
     claim_next_outreach,
     update_outreach_status,
+    deduplicate_existing_leads_db,
+    migrate_humanized_scripts_db,
+    get_connection,
 )
 
 
@@ -294,3 +297,27 @@ def test_multicriteria_deduplication_and_enrichment(db_path):
     with get_connection(db_path) as conn:
         count = conn.execute("SELECT COUNT(*) FROM leads WHERE title LIKE '%Ello%'").fetchone()[0]
         assert count == 1
+
+
+def test_migrate_humanized_scripts_db(db_path):
+    lid = upsert_lead(
+        {
+            "title": "Clínica Antiga SP",
+            "city": "Piracicaba",
+            "phone": "(19) 99888-7766",
+            "whatsapp_clean": "551998887766",
+        },
+        db_path=db_path,
+    )
+    # Grava script no formato robótico antigo
+    old_script_json = '{"whatsapp": "Olá, equipe da Clínica Antiga SP! Tudo bem? Sou desenvolvedor web..."}'
+    with get_connection(db_path) as conn:
+        conn.execute("UPDATE leads SET outreach_scripts_json = ? WHERE id = ?", (old_script_json, lid))
+
+    migrated_count = migrate_humanized_scripts_db(db_path=db_path)
+    assert migrated_count >= 1
+
+    updated = get_lead(lid, db_path=db_path)
+    sc = updated["outreach_scripts"]
+    assert "Oi, tudo bem? É da Clínica Antiga SP?" in sc["whatsapp"]
+    assert "Olá, equipe da" not in sc["whatsapp"]

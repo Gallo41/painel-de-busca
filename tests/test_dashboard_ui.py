@@ -16,7 +16,9 @@ def client(tmp_path, monkeypatch):
 def test_dashboard_html_and_assets_served(client):
     r_index = client.get("/")
     assert r_index.status_code == 200
+    assert "no-cache" in r_index.headers.get("Cache-Control", "")
     html = r_index.text
+    assert "app.js?v=2.5.2" in html
     assert "Selecionar Nichos" in html
     assert "achar o negócio" in html.lower()
     assert "raio x do site atual" in html.lower()
@@ -54,6 +56,7 @@ def test_dashboard_html_and_assets_served(client):
     assert "/api/outreach/enqueue" in r_js.text
     assert "toggleTheme" in r_js.text
     assert "openWhatsApp" in r_js.text
+    assert "window.openWhatsApp = openWhatsApp" in r_js.text
     assert "copyCardMessage" in r_js.text
     assert "cleanWhatsAppNumber" in r_js.text
     assert 'stat-total' in r_js.text

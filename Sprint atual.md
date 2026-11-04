@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 03/11/2026 às 21:40
-- **Status**: Em Andamento (70%)
+- **Status**: Em Andamento (80%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -24,7 +24,7 @@ Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao co
 - [x] **50%** - Cache-busting e meta-tags anti-cache em `app/static/index.html` (`v=2.5.2`)
 - [x] **60%** - Fallback de `waNumber(l)` aceitando `l.phone` e abertura com elemento âncora DOM em `app/static/app.js`
 - [x] **70%** - Vinculação explícita de `window.openWhatsApp` e `window.copyCardMessage` no escopo global
-- [ ] **80%** - Criação de testes unitários para a migração de banco e validação de headers anti-cache
+- [x] **80%** - Criação de testes unitários para a migração de banco e validação de headers anti-cache
 - [ ] **90%** - Execução da suíte completa de testes (`pytest`) sem regressões
 - [ ] **100%** - Atualização do grafo Graphify, finalização da sprint e commit/push Git
 
@@ -40,6 +40,7 @@ Resolver o cenário onde o usuário abriu o painel e tudo permaneceu igual ao co
 | **50%** | 03/11/2026 21:46 | Adição de meta tags anti-cache no `<head>` e bump para `v=2.5.2` em `index.html` forçando recarga imediata de JS e CSS. | `app/static/index.html`, `Sprint atual.md` |
 | **60%** | 03/11/2026 21:47 | Atualização de `waNumber(l)` para aceitar `l.phone` como fallback e rotina anti-bloqueador de popup com âncora programática. | `app/static/app.js`, `Sprint atual.md` |
 | **70%** | 03/11/2026 21:48 | Vinculação direta de `openWhatsApp`, `copyCardMessage` e `cleanWhatsAppNumber` ao `window` para total compatibilidade inline. | `app/static/app.js`, `Sprint atual.md` |
+| **80%** | 03/11/2026 21:50 | Novos testes em `test_database.py` e `test_dashboard_ui.py` validando migração de scripts e cabeçalhos anti-cache. | `tests/test_database.py`, `tests/test_dashboard_ui.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
