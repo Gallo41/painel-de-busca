@@ -520,6 +520,7 @@ def generate_sample_leads_for_niches(
         base_term = (niche.get("search_terms") or [niche["name"]])[0].title()
         for t in templates[:3] if len(selected) > 2 else templates:
             title = f"{base_term} {t['suffix']}"
+            phone_unique = t["phone"][:-2] + f"{idx:02d}"
             leads.append(
                 {
                     "job_id": job_id,
@@ -527,8 +528,8 @@ def generate_sample_leads_for_niches(
                     "niche_slug": niche["slug"],
                     "title": title,
                     "category": base_term,
-                    "phone": t["phone"],
-                    "whatsapp_clean": normalize_whatsapp_br(t["phone"]),
+                    "phone": phone_unique,
+                    "whatsapp_clean": normalize_whatsapp_br(phone_unique),
                     "emails": t["emails"],
                     "website": t["website"],
                     "address": f"Av. Principal, {100 + idx * 15} - Centro, {city_clean} - {state_clean}",
