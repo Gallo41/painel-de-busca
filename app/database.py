@@ -770,6 +770,53 @@ def deduplicate_existing_leads_db(db_path: Optional[str] = None) -> int:
         return deleted_count
 
 
+def migrate_humanized_scripts_db(db_path: Optional[str] = None) -> int:
+    """
+    Atualiza scripts de leads existentes que ainda usam formato antigo de mensagem (ex: 'Olá, equipe da...').
+    Regenera de forma segura usando o diagnóstico técnico já gravado no banco, sem chamadas de rede.
+    """
+    from app.services.outreach_generator import generate_outreach_scripts
+
+    updated = 0
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM leads 
+            WHERE outreach_scripts_json LIKE '%Olá, equipe da%' 
+               OR outreach_scripts_json LIKE '%Consultoria de Desenvolvimento Web%'
+               OR outreach_scripts_json IS NULL
+               OR outreach_scripts_json = ''
+            """
+        ).fetchall()
+        for r in rows:
+            lead = _deserialize_lead(r)
+            if not lead:
+                continue
+            lid = lead["id"]
+            xray = lead.get("xray_raw") or {
+                "has_website": lead.get("has_website", False),
+                "is_social_only_url": lead.get("is_social_only_url", False),
+                "site_in_air": lead.get("site_in_air", False),
+                "suggested_domain": lead.get("suggested_domain", ""),
+                "domain_available_br": lead.get("domain_available_br", False),
+                "detected_cms": lead.get("detected_cms", "Sem Site"),
+            }
+            score = {
+                "opportunity_score": lead.get("opportunity_score", 0),
+                "primary_pain": lead.get("primary_pain", "SEM_SITE"),
+                "recommended_service": lead.get("recommended_service", "SITE_NOVO"),
+                "pain_summary": lead.get("pain_summary", ""),
+            }
+            new_scripts = generate_outreach_scripts(lead, xray, score)
+            conn.execute(
+                "UPDATE leads SET outreach_scripts_json = ? WHERE id = ?",
+                (json.dumps(new_scripts, ensure_ascii=False), lid),
+            )
+            updated += 1
+
+    return updated
+
+
 def get_dashboard_stats(db_path: Optional[str] = None) -> Dict[str, Any]:
     with get_connection(db_path) as conn:
         total = conn.execute("SELECT COUNT(*) FROM leads").fetchone()[0]
