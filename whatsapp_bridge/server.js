@@ -24,6 +24,20 @@ const {
   fetchLatestBaileysVersion,
 } = require("@whiskeysockets/baileys");
 
+// Suprime ruído interno do libsignal referente a mensagens antigas de sincronização (Bad MAC)
+const origConsoleError = console.error;
+console.error = function (...args) {
+  const msg = String(args[0] || "");
+  if (
+    msg.includes("Failed to decrypt message with any known session") ||
+    msg.includes("Bad MAC") ||
+    msg.includes("Session error:")
+  ) {
+    return;
+  }
+  origConsoleError.apply(console, args);
+};
+
 const PORT = Number(process.env.BRIDGE_PORT || 3100);
 const FASTAPI_WEBHOOK_URL =
   process.env.FASTAPI_WEBHOOK_URL || "http://127.0.0.1:8090/api/agent/webhook";
@@ -43,6 +57,7 @@ const sentByApiIds = new Set();
 function digitsOnly(val) {
   return String(val || "")
     .split("@")[0]
+    .split(":")[0]
     .replace(/\D/g, "");
 }
 
@@ -78,6 +93,14 @@ async function startWhatsApp() {
     logger: pino({ level: "silent" }),
     printQRInTerminal: false,
     browser: ["Painel de Busca", "Chrome", "1.0.0"],
+    syncFullHistory: false,
+    shouldSyncHistoryMessage: () => false,
+    shouldIgnoreJid: (jid) =>
+      !jid ||
+      jid.endsWith("@broadcast") ||
+      jid.endsWith("@newsletter") ||
+      jid === "status@broadcast",
+    getMessage: async () => undefined,
   });
 
   sock.ev.on("creds.update", saveCreds);
@@ -104,9 +127,14 @@ async function startWhatsApp() {
       const shouldReconnect = code !== DisconnectReason.loggedOut;
       connectionStatus = shouldReconnect ? "reconnecting" : "logged_out";
       qrDataUrl = null;
-      console.warn(`[bridge] Conexao encerrada (code=${code}). Reconectar=${shouldReconnect}`);
-      if (shouldReconnect) {
-        setTimeout(startWhatsApp, 3000);
+      if (code === 515) {
+        console.log("[bridge] Sincronização pós-pareamento concluída (code 515), reconectando socket...");
+        setTimeout(startWhatsApp, 1500);
+      } else {
+        console.warn(`[bridge] Conexao encerrada (code=${code}). Reconectar=${shouldReconnect}`);
+        if (shouldReconnect) {
+          setTimeout(startWhatsApp, 3000);
+        }
       }
     }
   });

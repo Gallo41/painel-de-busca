@@ -1,9 +1,9 @@
 # Graph Report - Painel de Busca  (2026-11-09)
 
 ## Corpus Check
-- 62 files · ~55,287 words
+- 62 files · ~55,619 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 7 file(s) not represented in the graph (top: .bat 4, (none) 1, .ico 1)
+- Unclassified: 8 file(s) not represented in the graph (top: .bat 5, (none) 1, .ico 1)
 
 ## Summary
 - 733 nodes · 1760 edges · 53 communities (43 shown, 10 thin omitted)
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1c84f01e`
+- Built from commit: `68b09f58`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 

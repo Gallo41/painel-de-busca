@@ -78,9 +78,9 @@
     "semantic_hash": "8ad8a21ed16c9cd700825720b1e7fafc"
   },
   "app/services/outreach_generator.py": {
-    "mtime": 1793745603.6406286,
-    "seen": 1793745819.6096406,
-    "ast_hash": "965bf5c5f39228ccae5dc7b6ec9c1888",
+    "mtime": 1794272810.064971,
+    "seen": 1794272964.3050232,
+    "ast_hash": "ff805f099dd8a7a5cd098c4ad61eb6d9",
     "semantic_hash": ""
   },
   "app/services/site_xray.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1794271650.1668274,
-    "seen": 1794272268.68893,
-    "ast_hash": "d338b3b122eaba041b096143e4ec4d15",
+    "mtime": 1794272279.0466592,
+    "seen": 1794272964.3051572,
+    "ast_hash": "88811f6ebff803c2b8fd2195bd41603b",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "app/services/whatsapp_agent.py": {
-    "mtime": 1794271411.5644183,
-    "seen": 1794271572.9716878,
-    "ast_hash": "cc96073866af8feb7387d25e30719590",
+    "mtime": 1794272833.3676302,
+    "seen": 1794272964.3050315,
+    "ast_hash": "cd513724dec61097759a9704e36ab5e8",
     "semantic_hash": ""
   },
   "tests/test_whatsapp_agent.py": {
