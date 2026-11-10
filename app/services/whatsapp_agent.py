@@ -503,6 +503,10 @@ def build_agent_system_prompt(
     reqs = conv.get("collected_requirements") or {}
     approved_price = conv.get("approved_price_text") or ""
 
+    from app.services.deal_ranker import suggest_price
+
+    price_hint = suggest_price(lead)
+
     return f"""1. QUEM VOCÊ É
 Você é {attendant}, um jovem de 19 anos, empreendedor e desenvolvedor em {city}. Você é educado, muito desenrolado, simpático e conversa de forma natural e descontraída no WhatsApp, como uma pessoa real digitando do celular.
 Seu foco NUNCA é vender "site" ou "código", mas sim VENDER O RESULTADO REAL:
@@ -521,6 +525,7 @@ Em 90% dos casos, quando o cliente estiver interessado ou for fechar os detalhes
 - Sugestão de domínio verificada: {suggested_domain or 'consultar conforme preferência'}
 - Requisitos já levantados na conversa: {json.dumps(reqs, ensure_ascii=False)}
 - Proposta/Preço aprovado pelo Chefe até agora: {approved_price or 'Ainda em avaliação'}
+- Faixa de referência para ESTE cliente ({price_hint['scope_name']}): {price_hint['faixa_text']} (só informe se ele perguntar; nunca revele o piso interno)
 
 4. COMO VOCÊ ESCREVE (TOM DESCONTRAÍDO DE JOVEM DE 19 ANOS NO WHATSAPP)
 - Linguagem descontraída, calorosa, educada e jovem. Nada de "Prezado", "Venho por meio desta", "Fico à disposição", "Prezado cliente".
@@ -571,8 +576,21 @@ Regra de ouro: UMA PERGUNTA POR VEZ. Nunca junte duas perguntas na mesma mensage
 # ---------------------------------------------------------------------------
 
 
-def calculate_suggested_price(scope_type: str, client_text: str) -> Tuple[int, str, Dict[str, Any]]:
+def calculate_suggested_price(
+    scope_type: str,
+    client_text: str,
+    lead: Optional[Dict[str, Any]] = None,
+) -> Tuple[int, str, Dict[str, Any]]:
     sol = CATALOGO_SOLUCOES.get(scope_type) or CATALOGO_SOLUCOES["LANDING_PAGE"]
+    if lead:
+        # Preço por lead (segmento + porte), sempre dentro da faixa oficial do escopo.
+        from app.services.deal_ranker import suggest_price
+
+        complex_request = bool(
+            re.search(r"\b(agendamento|cat[aá]logo|painel|login|integra[cç][aã]o)\b", client_text or "", re.IGNORECASE)
+        )
+        price = suggest_price(lead, scope_type=sol["codigo"], complex_request=complex_request)
+        return price["alvo_cents"], price["faixa_text"], sol
     base_cents = int(sol["preco_sugerido_cents"])
     # Pequeno ajuste inteligente conforme complexidade pedida
     if re.search(r"\b(agendamento|cat[aá]logo|painel|login|integra[cç][aã]o)\b", client_text or "", re.IGNORECASE):
@@ -596,7 +614,7 @@ def trigger_boss_price_consultation(
     """
     settings = get_agent_settings(db_path)
     boss_phone = normalize_phone_digits(settings.get("boss_phone") or "551999958516")
-    suggested_cents, faixa_str, sol = calculate_suggested_price(scope_type, client_text)
+    suggested_cents, faixa_str, sol = calculate_suggested_price(scope_type, client_text, lead=lead)
     sugestao_fmt = moeda_br(suggested_cents)
 
     consultation = create_price_consultation(

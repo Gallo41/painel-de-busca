@@ -9,11 +9,18 @@ from app.database import (
     get_search_job,
     list_leads,
     list_niches,
+    list_outreach_queue,
     list_search_jobs,
     update_lead_management,
     update_search_job,
 )
 from app.models import LeadManagementUpdate, ManualLeadCreate, SearchJobRequest
+from app.services.deal_ranker import (
+    build_outreach_plan,
+    compact_item,
+    group_by_segment,
+    rank_leads,
+)
 from app.services.business_discovery import (
     build_casadosdados_links,
     check_registro_br_availability,
@@ -377,6 +384,47 @@ def api_list_leads(
         limit=limit,
     )
     return [_ensure_ready_report(r) for r in rows]
+
+
+@router.get("/leads/ranking")
+def api_leads_ranking(
+    segment: Optional[str] = Query(None, description="Slug do segmento real (ex.: odontologia)"),
+    tier: Optional[str] = Query(None, description="A, B, C, D ou EXCLUIDO"),
+    only_ready: bool = Query(False, description="Somente leads prontos para disparo no WhatsApp"),
+    per_day: int = Query(20, ge=1, le=200),
+    limit: int = Query(1000, ge=1, le=5000),
+) -> Dict[str, Any]:
+    """Ranking de chance de fechar + preço sugerido, agrupado por nicho real. Somente leitura."""
+    ranked = rank_leads(
+        list_leads(limit=limit),
+        contacted_lead_ids={q["lead_id"] for q in list_outreach_queue(limit=100000)},
+    )
+    groups = group_by_segment(ranked)
+    plan = build_outreach_plan(ranked, per_day=per_day)
+
+    selected = [
+        it for it in ranked
+        if (not segment or it["segment"]["slug"] == segment)
+        and (not tier or it["close_chance"]["tier"] == tier.upper())
+        and (not only_ready or it["outreach_ready"])
+    ]
+    valid = [r for r in ranked if r["close_chance"]["tier"] != "EXCLUIDO"]
+    return {
+        "summary": {
+            "total": len(ranked),
+            "ready": sum(1 for r in ranked if r["outreach_ready"]),
+            "excluded": len(ranked) - len(valid),
+            "tiers": {t: sum(1 for r in valid if r["close_chance"]["tier"] == t) for t in "ABCD"},
+        },
+        "groups": [
+            {k: g[k] for k in ("slug", "label", "total", "ready", "tier_a", "avg_score")} for g in groups
+        ],
+        "plan": [
+            {"day": d["day"], "date": d["date"], "count": len(d["leads"]), "lead_ids": [x["lead"]["id"] for x in d["leads"]]}
+            for d in plan
+        ],
+        "ranking": [compact_item(it) for it in selected],
+    }
 
 
 @router.get("/leads/{lead_id}")
