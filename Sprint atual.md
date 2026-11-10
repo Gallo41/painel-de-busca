@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 09/11/2026 às 21:16
-- **Status**: Em andamento (30%)
+- **Status**: Em andamento (50%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -21,8 +21,8 @@ Implementar o ecossistema completo de negociação ativa via WhatsApp baseado na
 - [x] **10%** - Especificação arquitetural (`docs/superpowers/specs/`), abertura da Sprint no `Sprint atual.md`, Operador e `task.md`
 - [x] **20%** - Evolução do banco SQLite (`app/database.py` e `app/models.py`): tabelas de configurações, conversas, consultas de preço e protótipos
 - [x] **30%** - Provedor Multi-IA (`app/services/ai_provider.py`) lendo `C:\Projetos Soft\Painel\chave.env` (OpenRouter, NVIDIA NIM e Gemini) com fallback resiliente
-- [ ] **40%** - Motor do Agente WhatsApp (`app/services/whatsapp_agent.py`): port das 7 cicatrizes da skill `agente-barbearia`, trava anti-fiscal e handoff humano
-- [ ] **50%** - Ponte de Consulta de Preço em Tempo Real com o Chefe (`+551999958516`) e processamento da resposta do Chefe
+- [x] **40%** - Motor do Agente WhatsApp (`app/services/whatsapp_agent.py`): port das 7 cicatrizes da skill `agente-barbearia`, trava anti-fiscal e handoff humano
+- [x] **50%** - Ponte de Consulta de Preço em Tempo Real com o Chefe (`+551999958516`) e processamento da resposta do Chefe
 - [ ] **60%** - Fábrica Automática de Protótipos via IA (`app/services/prototype_generator.py`) ao fechar negócio + aviso no `+551999958516`
 - [ ] **70%** - Rotas de API (`app/routers/agent_router.py` e `app/routers/outreach_router.py`): confirmação na fila, webhook, handoff e preview de protótipo
 - [ ] **80%** - Micro-Bridge Node.js WhatsApp QR Code (`whatsapp_bridge/`) + Central do Agente e Fila interativa no Painel (`index.html`, `app.js`, `styles.css`)
@@ -37,6 +37,8 @@ Implementar o ecossistema completo de negociação ativa via WhatsApp baseado na
 | **10%** | 09/11/2026 21:16 | Especificação arquitetural criada e abertura da Sprint em 10 marcos sincronizada com Operador e `task.md`. | `docs/superpowers/specs/2026-11-09-whatsapp-agent-prototype-design.md`, `Sprint atual.md`, `task.md` |
 | **20%** | 09/11/2026 21:20 | Criação das tabelas `agent_settings` (com `551999958516` e `5519996109028`), `agent_conversations`, `agent_messages`, `price_consultations` e `lead_prototypes` + CRUD e modelos Pydantic. | `app/database.py`, `app/models.py`, `Sprint atual.md` |
 | **30%** | 09/11/2026 21:22 | Implementação do provedor Multi-IA (`app/services/ai_provider.py`) integrado ao arquivo `C:\Projetos Soft\Painel\chave.env` (OpenRouter, NVIDIA NIM e Gemini). | `app/services/ai_provider.py`, `Sprint atual.md` |
+| **40%** | 09/11/2026 21:26 | Motor do Agente WhatsApp (`app/services/whatsapp_agent.py`) com as 7 cicatrizes da skill `agente-barbearia`, trava anti-fiscal e pausa por handoff humano. | `app/services/whatsapp_agent.py`, `Sprint atual.md` |
+| **50%** | 09/11/2026 21:27 | Ponte de consulta de preço em tempo real com o Chefe (`+551999958516`) e repasse automático da proposta aprovada ao cliente. | `app/services/whatsapp_agent.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*
