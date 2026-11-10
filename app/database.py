@@ -146,6 +146,102 @@ def init_db(db_path: Optional[str] = None) -> None:
             );
 
             CREATE INDEX IF NOT EXISTS idx_outreach_status_channel ON outreach_queue(status, channel);
+
+            CREATE TABLE IF NOT EXISTS agent_settings (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                test_mode INTEGER NOT NULL DEFAULT 1,
+                auto_send_enabled INTEGER NOT NULL DEFAULT 0,
+                boss_phone TEXT NOT NULL DEFAULT '551999958516',
+                test_client_phone TEXT NOT NULL DEFAULT '5519996109028',
+                attendant_name TEXT NOT NULL DEFAULT 'Léo',
+                company_name TEXT NOT NULL DEFAULT 'Estúdio Digital',
+                bridge_url TEXT NOT NULL DEFAULT 'http://127.0.0.1:3100',
+                uazapi_url TEXT NOT NULL DEFAULT '',
+                uazapi_token TEXT NOT NULL DEFAULT '',
+                debounce_seconds REAL NOT NULL DEFAULT 6.0,
+                pause_minutes_on_human INTEGER NOT NULL DEFAULT 60,
+                updated_at TEXT NOT NULL DEFAULT ''
+            );
+
+            INSERT OR IGNORE INTO agent_settings (
+                id, test_mode, auto_send_enabled, boss_phone, test_client_phone,
+                attendant_name, company_name, bridge_url, debounce_seconds,
+                pause_minutes_on_human, updated_at
+            ) VALUES (
+                1, 1, 0, '551999958516', '5519996109028',
+                'Léo', 'Estúdio Digital', 'http://127.0.0.1:3100', 6.0,
+                60, datetime('now')
+            );
+
+            CREATE TABLE IF NOT EXISTS agent_conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id INTEGER NOT NULL,
+                queue_id INTEGER,
+                chatid TEXT NOT NULL,
+                real_lead_phone TEXT NOT NULL DEFAULT '',
+                is_test_session INTEGER NOT NULL DEFAULT 1,
+                status TEXT NOT NULL DEFAULT 'active',
+                paused_until TEXT,
+                pause_reason TEXT NOT NULL DEFAULT '',
+                collected_requirements_json TEXT NOT NULL DEFAULT '{}',
+                suggested_price_cents INTEGER NOT NULL DEFAULT 0,
+                approved_price_text TEXT NOT NULL DEFAULT '',
+                turn_version INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(lead_id) REFERENCES leads(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_agent_conv_chatid ON agent_conversations(chatid, status);
+            CREATE INDEX IF NOT EXISTS idx_agent_conv_lead ON agent_conversations(lead_id);
+
+            CREATE TABLE IF NOT EXISTS agent_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER NOT NULL,
+                role TEXT NOT NULL,
+                direction TEXT NOT NULL DEFAULT 'inbound',
+                content TEXT NOT NULL DEFAULT '',
+                external_message_id TEXT NOT NULL DEFAULT '',
+                tool_calls_json TEXT NOT NULL DEFAULT '[]',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(conversation_id) REFERENCES agent_conversations(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_agent_msg_conv ON agent_messages(conversation_id, id ASC);
+
+            CREATE TABLE IF NOT EXISTS price_consultations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER NOT NULL,
+                lead_id INTEGER NOT NULL,
+                client_summary TEXT NOT NULL DEFAULT '',
+                scope_type TEXT NOT NULL DEFAULT 'LANDING_PAGE',
+                suggested_price_cents INTEGER NOT NULL DEFAULT 0,
+                price_range_text TEXT NOT NULL DEFAULT '',
+                boss_reply_text TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TEXT NOT NULL,
+                responded_at TEXT,
+                FOREIGN KEY(conversation_id) REFERENCES agent_conversations(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_price_consult_status ON price_consultations(status, id DESC);
+
+            CREATE TABLE IF NOT EXISTS lead_prototypes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                lead_id INTEGER NOT NULL,
+                conversation_id INTEGER,
+                scope_type TEXT NOT NULL DEFAULT 'LANDING_PAGE',
+                briefing_json TEXT NOT NULL DEFAULT '{}',
+                html_content TEXT NOT NULL DEFAULT '',
+                output_path TEXT NOT NULL DEFAULT '',
+                ai_provider_used TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'ready',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(lead_id) REFERENCES leads(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_prototypes_lead ON lead_prototypes(lead_id, id DESC);
             """
         )
 
@@ -1029,3 +1125,607 @@ def update_outreach_status(
             )
         row = conn.execute("SELECT * FROM outreach_queue WHERE id = ?", (queue_id,)).fetchone()
     return _deserialize_outreach(row)
+
+
+# ---------------------------------------------------------------------------
+# Agente WhatsApp, Consultas de Preço e Protótipos IA
+# ---------------------------------------------------------------------------
+
+
+def normalize_phone_digits(phone: str) -> str:
+    """
+    Extrai somente dígitos de um telefone ou chatid ('5519996109028@s.whatsapp.net' -> '5519996109028').
+    Adiciona prefixo 55 caso venha apenas DDD + número (10 ou 11 dígitos).
+    """
+    base = (phone or "").split("@")[0]
+    digits = re.sub(r"\D", "", base)
+    if not digits:
+        return ""
+    if len(digits) in (10, 11) and not digits.startswith("55"):
+        digits = "55" + digits
+    return digits
+
+
+def br_phone_variants(phone: str) -> List[str]:
+    """
+    Gera variantes com e sem o 9º dígito para números brasileiros (ex: 551999958516 <-> 5519999958516),
+    pois o WhatsApp JID às vezes omite ou inclui o 9º dígito após o DDD.
+    """
+    d = normalize_phone_digits(phone)
+    if not d:
+        return []
+    variants = [d]
+    if d.startswith("55") and len(d) == 12:
+        # 55 + DD (2) + 8 dígitos -> adiciona '9' após o DDD
+        with_nine = d[:4] + "9" + d[4:]
+        if with_nine not in variants:
+            variants.append(with_nine)
+    elif d.startswith("55") and len(d) == 13 and d[4] == "9":
+        # 55 + DD (2) + 9 + 8 dígitos -> versão de 8 dígitos
+        without_nine = d[:4] + d[5:]
+        if without_nine not in variants:
+            variants.append(without_nine)
+    return variants
+
+
+def phones_match_br(phone_a: str, phone_b: str) -> bool:
+    va = set(br_phone_variants(phone_a))
+    vb = set(br_phone_variants(phone_b))
+    return bool(va and vb and va.intersection(vb))
+
+
+def get_agent_settings(db_path: Optional[str] = None) -> Dict[str, Any]:
+    with get_connection(db_path) as conn:
+        row = conn.execute("SELECT * FROM agent_settings WHERE id = 1").fetchone()
+        if not row:
+            now = _now_iso()
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO agent_settings (
+                    id, test_mode, auto_send_enabled, boss_phone, test_client_phone,
+                    attendant_name, company_name, bridge_url, debounce_seconds,
+                    pause_minutes_on_human, updated_at
+                ) VALUES (1, 1, 0, '551999958516', '5519996109028', 'Léo', 'Estúdio Digital', 'http://127.0.0.1:3100', 6.0, 60, ?)
+                """,
+                (now,),
+            )
+            row = conn.execute("SELECT * FROM agent_settings WHERE id = 1").fetchone()
+    d = dict(row)
+    d["test_mode"] = bool(d.get("test_mode", 1))
+    d["auto_send_enabled"] = bool(d.get("auto_send_enabled", 0))
+    return d
+
+
+def update_agent_settings(updates: Dict[str, Any], db_path: Optional[str] = None) -> Dict[str, Any]:
+    current = get_agent_settings(db_path)
+    now = _now_iso()
+    test_mode = 1 if updates.get("test_mode", current["test_mode"]) else 0
+    auto_send = 1 if updates.get("auto_send_enabled", current["auto_send_enabled"]) else 0
+    boss_phone = normalize_phone_digits(updates.get("boss_phone") or current["boss_phone"]) or "551999958516"
+    test_client_phone = (
+        normalize_phone_digits(updates.get("test_client_phone") or current["test_client_phone"]) or "5519996109028"
+    )
+    attendant_name = (updates.get("attendant_name") or current["attendant_name"] or "Léo").strip()
+    company_name = (updates.get("company_name") or current["company_name"] or "Estúdio Digital").strip()
+    bridge_url = (updates.get("bridge_url") if updates.get("bridge_url") is not None else current["bridge_url"]).strip()
+    uazapi_url = (updates.get("uazapi_url") if updates.get("uazapi_url") is not None else current["uazapi_url"]).strip()
+    uazapi_token = (
+        updates.get("uazapi_token") if updates.get("uazapi_token") is not None else current["uazapi_token"]
+    ).strip()
+    debounce_seconds = float(
+        updates["debounce_seconds"] if updates.get("debounce_seconds") is not None else current["debounce_seconds"]
+    )
+    pause_minutes = int(
+        updates["pause_minutes_on_human"]
+        if updates.get("pause_minutes_on_human") is not None
+        else current["pause_minutes_on_human"]
+    )
+
+    with get_connection(db_path) as conn:
+        conn.execute(
+            """
+            UPDATE agent_settings SET
+                test_mode = ?,
+                auto_send_enabled = ?,
+                boss_phone = ?,
+                test_client_phone = ?,
+                attendant_name = ?,
+                company_name = ?,
+                bridge_url = ?,
+                uazapi_url = ?,
+                uazapi_token = ?,
+                debounce_seconds = ?,
+                pause_minutes_on_human = ?,
+                updated_at = ?
+            WHERE id = 1
+            """,
+            (
+                test_mode,
+                auto_send,
+                boss_phone,
+                test_client_phone,
+                attendant_name,
+                company_name,
+                bridge_url,
+                uazapi_url,
+                uazapi_token,
+                debounce_seconds,
+                pause_minutes,
+                now,
+            ),
+        )
+    return get_agent_settings(db_path)
+
+
+def _deserialize_conversation(row: Optional[sqlite3.Row]) -> Optional[Dict[str, Any]]:
+    if not row:
+        return None
+    d = dict(row)
+    d["is_test_session"] = bool(d.get("is_test_session", 1))
+    d["collected_requirements"] = json.loads(d.pop("collected_requirements_json", "{}") or "{}")
+    return d
+
+
+def create_or_activate_agent_conversation(
+    lead_id: int,
+    chatid: str,
+    real_lead_phone: str = "",
+    queue_id: Optional[int] = None,
+    is_test_session: bool = True,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    now = _now_iso()
+    clean_chat = normalize_phone_digits(chatid)
+    clean_real = normalize_phone_digits(real_lead_phone)
+
+    with get_connection(db_path) as conn:
+        # Se for sessão de teste e já houver outra conversa ativa no mesmo número de teste para outro lead,
+        # arquiva as anteriores para que a resposta do número de teste vá para o lead recém-confirmado.
+        if is_test_session:
+            variants = br_phone_variants(clean_chat)
+            if variants:
+                ph = ",".join("?" for _ in variants)
+                conn.execute(
+                    f"""
+                    UPDATE agent_conversations
+                    SET status = 'superseded', updated_at = ?
+                    WHERE chatid IN ({ph}) AND lead_id != ? AND status IN ('active', 'waiting_boss_price')
+                    """,
+                    [now, *variants, lead_id],
+                )
+
+        existing = conn.execute(
+            """
+            SELECT * FROM agent_conversations
+            WHERE lead_id = ? AND chatid = ?
+            ORDER BY id DESC LIMIT 1
+            """,
+            (lead_id, clean_chat),
+        ).fetchone()
+
+        if existing:
+            cid = int(existing["id"])
+            conn.execute(
+                """
+                UPDATE agent_conversations SET
+                    queue_id = COALESCE(?, queue_id),
+                    real_lead_phone = COALESCE(NULLIF(?, ''), real_lead_phone),
+                    is_test_session = ?,
+                    status = 'active',
+                    paused_until = NULL,
+                    pause_reason = '',
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (queue_id, clean_real, 1 if is_test_session else 0, now, cid),
+            )
+        else:
+            cur = conn.execute(
+                """
+                INSERT INTO agent_conversations (
+                    lead_id, queue_id, chatid, real_lead_phone, is_test_session,
+                    status, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, 'active', ?, ?)
+                """,
+                (lead_id, queue_id, clean_chat, clean_real, 1 if is_test_session else 0, now, now),
+            )
+            cid = int(cur.lastrowid)
+
+        row = conn.execute(
+            """
+            SELECT c.*, l.title AS lead_title, l.city AS lead_city, l.niche_slug AS lead_niche,
+                   l.primary_pain AS lead_pain, l.recommended_service AS lead_service
+            FROM agent_conversations c
+            LEFT JOIN leads l ON l.id = c.lead_id
+            WHERE c.id = ?
+            """,
+            (cid,),
+        ).fetchone()
+    return _deserialize_conversation(row) or {}
+
+
+def get_agent_conversation(conversation_id: int, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT c.*, l.title AS lead_title, l.city AS lead_city, l.niche_slug AS lead_niche,
+                   l.primary_pain AS lead_pain, l.recommended_service AS lead_service
+            FROM agent_conversations c
+            LEFT JOIN leads l ON l.id = c.lead_id
+            WHERE c.id = ?
+            """,
+            (conversation_id,),
+        ).fetchone()
+    return _deserialize_conversation(row)
+
+
+def get_active_conversation_by_chatid(chatid: str, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    variants = br_phone_variants(chatid)
+    if not variants:
+        return None
+    ph = ",".join("?" for _ in variants)
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            f"""
+            SELECT c.*, l.title AS lead_title, l.city AS lead_city, l.niche_slug AS lead_niche,
+                   l.primary_pain AS lead_pain, l.recommended_service AS lead_service
+            FROM agent_conversations c
+            LEFT JOIN leads l ON l.id = c.lead_id
+            WHERE c.chatid IN ({ph})
+              AND c.status != 'superseded'
+            ORDER BY c.updated_at DESC, c.id DESC
+            LIMIT 1
+            """,
+            variants,
+        ).fetchone()
+    return _deserialize_conversation(row)
+
+
+def list_agent_conversations(limit: int = 50, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT c.*, l.title AS lead_title, l.city AS lead_city, l.niche_slug AS lead_niche,
+                   l.primary_pain AS lead_pain, l.recommended_service AS lead_service
+            FROM agent_conversations c
+            LEFT JOIN leads l ON l.id = c.lead_id
+            ORDER BY c.updated_at DESC, c.id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [_deserialize_conversation(r) for r in rows if r]
+
+
+def update_agent_conversation(
+    conversation_id: int,
+    status: Optional[str] = None,
+    paused_until: Optional[str] = "__KEEP__",
+    pause_reason: Optional[str] = None,
+    collected_requirements: Optional[Dict[str, Any]] = None,
+    suggested_price_cents: Optional[int] = None,
+    approved_price_text: Optional[str] = None,
+    increment_turn: bool = False,
+    db_path: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    current = get_agent_conversation(conversation_id, db_path)
+    if not current:
+        return None
+    now = _now_iso()
+    merged_reqs = dict(current.get("collected_requirements") or {})
+    if collected_requirements:
+        for k, v in collected_requirements.items():
+            if v is not None and str(v).strip() != "":
+                merged_reqs[k] = v
+
+    new_status = status if status is not None else current["status"]
+    new_paused_until = current.get("paused_until") if paused_until == "__KEEP__" else paused_until
+    new_pause_reason = pause_reason if pause_reason is not None else current.get("pause_reason", "")
+    new_price = (
+        suggested_price_cents if suggested_price_cents is not None else current.get("suggested_price_cents", 0)
+    )
+    new_approved = (
+        approved_price_text if approved_price_text is not None else current.get("approved_price_text", "")
+    )
+    new_turn = int(current.get("turn_version", 0)) + (1 if increment_turn else 0)
+
+    with get_connection(db_path) as conn:
+        conn.execute(
+            """
+            UPDATE agent_conversations SET
+                status = ?,
+                paused_until = ?,
+                pause_reason = ?,
+                collected_requirements_json = ?,
+                suggested_price_cents = ?,
+                approved_price_text = ?,
+                turn_version = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                new_status,
+                new_paused_until,
+                new_pause_reason,
+                json.dumps(merged_reqs, ensure_ascii=False),
+                new_price,
+                new_approved,
+                new_turn,
+                now,
+                conversation_id,
+            ),
+        )
+    return get_agent_conversation(conversation_id, db_path)
+
+
+def append_agent_message(
+    conversation_id: int,
+    role: str,
+    content: str,
+    direction: str = "inbound",
+    external_message_id: str = "",
+    tool_calls: Optional[List[Dict[str, Any]]] = None,
+    db_path: Optional[str] = None,
+) -> int:
+    now = _now_iso()
+    with get_connection(db_path) as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO agent_messages (
+                conversation_id, role, direction, content,
+                external_message_id, tool_calls_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                conversation_id,
+                role,
+                direction,
+                content,
+                external_message_id or "",
+                json.dumps(tool_calls or [], ensure_ascii=False),
+                now,
+            ),
+        )
+        conn.execute(
+            "UPDATE agent_conversations SET updated_at = ? WHERE id = ?",
+            (now, conversation_id),
+        )
+        return int(cur.lastrowid)
+
+
+def list_agent_messages(conversation_id: int, limit: int = 100, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT * FROM agent_messages
+            WHERE conversation_id = ?
+            ORDER BY id ASC
+            LIMIT ?
+            """,
+            (conversation_id, limit),
+        ).fetchall()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["tool_calls"] = json.loads(d.pop("tool_calls_json", "[]") or "[]")
+        result.append(d)
+    return result
+
+
+def delete_agent_messages_after(conversation_id: int, max_message_id: int, db_path: Optional[str] = None) -> int:
+    """Usado por desfazerTurno (anti-resposta-velha) para apagar mensagens geradas em um turno descartado."""
+    with get_connection(db_path) as conn:
+        cur = conn.execute(
+            "DELETE FROM agent_messages WHERE conversation_id = ? AND id > ?",
+            (conversation_id, max_message_id),
+        )
+        return int(cur.rowcount)
+
+
+def create_price_consultation(
+    conversation_id: int,
+    lead_id: int,
+    client_summary: str,
+    scope_type: str,
+    suggested_price_cents: int,
+    price_range_text: str,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    now = _now_iso()
+    with get_connection(db_path) as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO price_consultations (
+                conversation_id, lead_id, client_summary, scope_type,
+                suggested_price_cents, price_range_text, status, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)
+            """,
+            (conversation_id, lead_id, client_summary, scope_type, suggested_price_cents, price_range_text, now),
+        )
+        cid = int(cur.lastrowid)
+        row = conn.execute(
+            """
+            SELECT p.*, l.title AS lead_title, l.city AS lead_city
+            FROM price_consultations p
+            LEFT JOIN leads l ON l.id = p.lead_id
+            WHERE p.id = ?
+            """,
+            (cid,),
+        ).fetchone()
+    return dict(row) if row else {}
+
+
+def get_pending_price_consultation(
+    consultation_id: Optional[int] = None,
+    lead_id: Optional[int] = None,
+    db_path: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        if consultation_id is not None:
+            row = conn.execute(
+                """
+                SELECT p.*, l.title AS lead_title, l.city AS lead_city
+                FROM price_consultations p
+                LEFT JOIN leads l ON l.id = p.lead_id
+                WHERE p.id = ?
+                """,
+                (consultation_id,),
+            ).fetchone()
+            if row:
+                return dict(row)
+        if lead_id is not None:
+            row = conn.execute(
+                """
+                SELECT p.*, l.title AS lead_title, l.city AS lead_city
+                FROM price_consultations p
+                LEFT JOIN leads l ON l.id = p.lead_id
+                WHERE p.lead_id = ? AND p.status = 'pending'
+                ORDER BY p.id DESC LIMIT 1
+                """,
+                (lead_id,),
+            ).fetchone()
+            if row:
+                return dict(row)
+        row = conn.execute(
+            """
+            SELECT p.*, l.title AS lead_title, l.city AS lead_city
+            FROM price_consultations p
+            LEFT JOIN leads l ON l.id = p.lead_id
+            WHERE p.status = 'pending'
+            ORDER BY p.id DESC LIMIT 1
+            """
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def resolve_price_consultation(
+    consultation_id: int,
+    boss_reply_text: str,
+    db_path: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    now = _now_iso()
+    with get_connection(db_path) as conn:
+        conn.execute(
+            """
+            UPDATE price_consultations
+            SET status = 'approved', boss_reply_text = ?, responded_at = ?
+            WHERE id = ?
+            """,
+            (boss_reply_text.strip(), now, consultation_id),
+        )
+        row = conn.execute(
+            """
+            SELECT p.*, l.title AS lead_title, l.city AS lead_city
+            FROM price_consultations p
+            LEFT JOIN leads l ON l.id = p.lead_id
+            WHERE p.id = ?
+            """,
+            (consultation_id,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
+def list_price_consultations(limit: int = 30, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT p.*, l.title AS lead_title, l.city AS lead_city
+            FROM price_consultations p
+            LEFT JOIN leads l ON l.id = p.lead_id
+            ORDER BY p.id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [dict(r) for r in rows if r]
+
+
+def save_lead_prototype(
+    lead_id: int,
+    scope_type: str,
+    briefing: Dict[str, Any],
+    html_content: str,
+    output_path: str,
+    ai_provider_used: str,
+    conversation_id: Optional[int] = None,
+    status: str = "ready",
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    now = _now_iso()
+    with get_connection(db_path) as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO lead_prototypes (
+                lead_id, conversation_id, scope_type, briefing_json,
+                html_content, output_path, ai_provider_used, status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                lead_id,
+                conversation_id,
+                scope_type,
+                json.dumps(briefing or {}, ensure_ascii=False),
+                html_content,
+                output_path,
+                ai_provider_used,
+                status,
+                now,
+                now,
+            ),
+        )
+        pid = int(cur.lastrowid)
+        row = conn.execute(
+            """
+            SELECT pr.*, l.title AS lead_title, l.city AS lead_city
+            FROM lead_prototypes pr
+            LEFT JOIN leads l ON l.id = pr.lead_id
+            WHERE pr.id = ?
+            """,
+            (pid,),
+        ).fetchone()
+    d = dict(row) if row else {}
+    if d:
+        d["briefing"] = json.loads(d.pop("briefing_json", "{}") or "{}")
+    return d
+
+
+def get_latest_lead_prototype(lead_id: int, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        row = conn.execute(
+            """
+            SELECT pr.*, l.title AS lead_title, l.city AS lead_city
+            FROM lead_prototypes pr
+            LEFT JOIN leads l ON l.id = pr.lead_id
+            WHERE pr.lead_id = ?
+            ORDER BY pr.id DESC LIMIT 1
+            """,
+            (lead_id,),
+        ).fetchone()
+    if not row:
+        return None
+    d = dict(row)
+    d["briefing"] = json.loads(d.pop("briefing_json", "{}") or "{}")
+    return d
+
+
+def list_lead_prototypes(limit: int = 30, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
+    with get_connection(db_path) as conn:
+        rows = conn.execute(
+            """
+            SELECT pr.id, pr.lead_id, pr.conversation_id, pr.scope_type, pr.briefing_json,
+                   pr.output_path, pr.ai_provider_used, pr.status, pr.created_at, pr.updated_at,
+                   l.title AS lead_title, l.city AS lead_city
+            FROM lead_prototypes pr
+            LEFT JOIN leads l ON l.id = pr.lead_id
+            ORDER BY pr.id DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["briefing"] = json.loads(d.pop("briefing_json", "{}") or "{}")
+        result.append(d)
+    return result
+

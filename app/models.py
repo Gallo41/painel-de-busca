@@ -57,3 +57,42 @@ class OutreachStatusUpdate(BaseModel):
     status: str = Field(..., description="'ready', 'sending', 'sent', 'replied', 'failed'")
     external_message_id: Optional[str] = None
     webhook_response: Optional[Dict[str, Any]] = None
+
+
+class AgentSettingsUpdate(BaseModel):
+    test_mode: Optional[bool] = None
+    auto_send_enabled: Optional[bool] = None
+    boss_phone: Optional[str] = None
+    test_client_phone: Optional[str] = None
+    attendant_name: Optional[str] = None
+    company_name: Optional[str] = None
+    bridge_url: Optional[str] = None
+    uazapi_url: Optional[str] = None
+    uazapi_token: Optional[str] = None
+    debounce_seconds: Optional[float] = Field(None, ge=0.0, le=30.0)
+    pause_minutes_on_human: Optional[int] = Field(None, ge=1, le=10080)
+
+
+class QueueConfirmSendRequest(BaseModel):
+    custom_message: Optional[str] = None
+
+
+class AgentWebhookPayload(BaseModel):
+    EventType: Optional[str] = "messages"
+    instanceName: Optional[str] = None
+    message: Optional[Dict[str, Any]] = None
+
+
+class ConversationControlRequest(BaseModel):
+    reason: Optional[str] = "intervencao_manual_painel"
+    pause_minutes: Optional[int] = None
+
+
+class BossManualReplyRequest(BaseModel):
+    reply_text: str
+
+
+class PrototypeGenerateRequest(BaseModel):
+    custom_instructions: Optional[str] = None
+    scope_override: Optional[str] = None
+
