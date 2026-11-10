@@ -9,6 +9,12 @@ echo   Pasta: %CD%
 echo ======================================================================
 echo.
 
+:: Libera a porta 3100 se ja estiver em uso por outra instancia
+for /f "tokens=5" %%a in ('netstat -aon 2^>nul ^| findstr :3100 ^| findstr LISTENING') do (
+    echo [INFO] Finalizando processo anterior (PID %%a) na porta 3100...
+    taskkill /f /pid %%a >nul 2>&1
+)
+
 if not exist "node_modules" (
     echo [INFO] Instalando dependencias do conector WhatsApp...
     call npm.cmd install

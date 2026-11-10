@@ -81,9 +81,35 @@ function extractMessageText(m) {
   ).trim();
 }
 
+const messageStore = new Map();
+
+async function getMessage(key) {
+  const id = key && key.id;
+  if (id && messageStore.has(id)) {
+    return messageStore.get(id);
+  }
+  return undefined;
+}
+
 function toWhatsappJid(number) {
-  const d = digitsOnly(number);
+  let d = digitsOnly(number);
   if (!d) throw new Error(`Numero invalido: ${number}`);
+  // Normalização automática do 9º dígito para celulares do Brasil (DDD 11 a 99)
+  if (d.startsWith("55") && d.length === 12) {
+    const firstNum = d.substring(4, 5);
+    if (["6", "7", "8", "9"].includes(firstNum)) {
+      d = d.substring(0, 4) + "9" + d.substring(4);
+    }
+  } else if (!d.startsWith("55") && d.length === 10) {
+    const firstNum = d.substring(2, 3);
+    if (["6", "7", "8", "9"].includes(firstNum)) {
+      d = "55" + d.substring(0, 2) + "9" + d.substring(2);
+    } else {
+      d = "55" + d;
+    }
+  } else if (!d.startsWith("55") && d.length === 11) {
+    d = "55" + d;
+  }
   return `${d}@s.whatsapp.net`;
 }
 
@@ -120,7 +146,7 @@ async function startWhatsApp() {
       jid.endsWith("@broadcast") ||
       jid.endsWith("@newsletter") ||
       jid === "status@broadcast",
-    getMessage: async () => undefined,
+    getMessage,
   });
 
   sock.ev.on("creds.update", saveCreds);
@@ -244,6 +270,15 @@ app.post("/send/text", async (req, res) => {
       console.log(`[bridge] Mapeado LID ${sentRemoteJid} <-> Telefone ${d}`);
     }
     if (msgId) {
+      if (sent && sent.message) {
+        messageStore.set(msgId, sent.message);
+      } else {
+        messageStore.set(msgId, { conversation: String(text || "") });
+      }
+      if (messageStore.size > 1000) {
+        const first = messageStore.keys().next().value;
+        messageStore.delete(first);
+      }
       sentByApiIds.add(msgId);
       setTimeout(() => sentByApiIds.delete(msgId), 60000);
     }
