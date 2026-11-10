@@ -820,6 +820,7 @@ function renderDetail() {
       </div>
       <div class="d-actions">
         <button class="btn btn-sm" type="button" onclick="openLeadModal(${l.id})">E-mail, Instagram e raio-x completo</button>
+        <button class="btn btn-sm" type="button" onclick="generatePrototypeFromCard(${l.id})">🎨 Gerar / Ver Protótipo IA</button>
       </div>
     </div>
 
@@ -1098,27 +1099,279 @@ async function enqueueSelectedLeads(channel) {
 }
 
 async function openQueueModal() {
-  const items = await (await fetch("/api/outreach/queue")).json();
   const body = $("queue-modal-body");
-  if (!items.length) {
-    body.innerHTML = `<div class="empty"><strong>A fila está vazia.</strong>Use “Guardar na fila do robô” na Central de Contato de uma empresa.</div>`;
-  } else {
-    body.innerHTML = `
-      <table class="table-leads">
-        <thead><tr><th>Empresa</th><th>Canal</th><th>Situação</th><th>Mensagem</th></tr></thead>
-        <tbody>${items
-          .map(
-            (it) => `<tr>
-              <td><strong>${esc(it.lead_title || "Empresa #" + it.lead_id)}</strong><br/><span class="meta">${esc(it.lead_city || "")}</span></td>
-              <td>${esc(it.channel)}<br/><span class="meta">${esc(it.recipient)}</span></td>
-              <td><span class="pain-tag">${esc(it.status)}</span></td>
-              <td style="white-space:pre-wrap;max-width:420px">${esc(it.message_body)}</td></tr>`
-          )
-          .join("")}</tbody>
-      </table>`;
-  }
+  body.innerHTML = `<div class="empty">Carregando fila, configurações do Agente e conversas…</div>`;
   $("queue-modal").classList.add("open");
+  await renderQueueModalContent();
 }
+
+async function renderQueueModalContent() {
+  const body = $("queue-modal-body");
+  if (!body) return;
+  const [settingsBundle, items, convs, consultations] = await Promise.all([
+    fetch("/api/agent/settings").then((r) => r.json()).catch(() => ({})),
+    fetch("/api/outreach/queue").then((r) => r.json()).catch(() => []),
+    fetch("/api/agent/conversations").then((r) => r.json()).catch(() => []),
+    fetch("/api/agent/price-consultations").then((r) => r.json()).catch(() => []),
+  ]);
+
+  const st = settingsBundle.settings || {
+    test_mode: true,
+    boss_phone: "551999958516",
+    test_client_phone: "5519996109028",
+  };
+  const ai = settingsBundle.ai_status || {};
+  const bridge = settingsBundle.bridge || {};
+  const readyCount = (items || []).filter((i) => i.status === "ready").length;
+
+  const qrBlock = bridge.qr_data_url
+    ? `<div class="agent-qr-box">
+         <div><strong>Escaneie o QR Code com o WhatsApp do Agente:</strong></div>
+         <img src="${esc(bridge.qr_data_url)}" alt="QR Code WhatsApp" style="width:170px;height:170px;border-radius:8px;margin-top:6px;background:#fff;padding:6px;" />
+       </div>`
+    : `<div class="meta">Bridge WhatsApp: <strong>${bridge.connected ? "🟢 Conectado (" + esc(bridge.phone || "Online") + ")" : "⚪ Aguardando conexão QR (`cd whatsapp_bridge && npm start`)"}</strong> · IA (chave.env): <strong>${esc((ai.active_providers || ["Pronto"]).join(", "))}</strong></div>`;
+
+  const queueRowsHtml = (items || []).length
+    ? `<table class="table-leads">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Destino Efetivo</th>
+            <th>Situação</th>
+            <th>1ª Mensagem</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody>${items
+          .map((it) => {
+            const destLabel = st.test_mode
+              ? `🧪 Teste: ${esc(st.test_client_phone)} (Lead: ${esc(it.recipient)})`
+              : `🚀 Real: ${esc(it.recipient)}`;
+            const canSend = it.status === "ready" || it.status === "failed";
+            return `<tr>
+              <td><strong>${esc(it.lead_title || "Empresa #" + it.lead_id)}</strong><br/><span class="meta">${esc(it.lead_city || "")}</span></td>
+              <td>${esc(it.channel)}<br/><span class="meta">${destLabel}</span></td>
+              <td><span class="pain-tag">${esc(it.status)}</span></td>
+              <td style="white-space:pre-wrap;max-width:340px;font-size:12px">${esc(it.message_body)}</td>
+              <td>
+                <button class="btn btn-sm ${canSend ? "btn-primary" : ""}" type="button" onclick="confirmAndSendQueueItem(${it.id})">
+                  ${it.status === "sent" ? "Reenviar 1ª Msg" : "✅ Confirmar e Iniciar"}
+                </button>
+              </td>
+            </tr>`;
+          })
+          .join("")}</tbody>
+      </table>`
+    : `<div class="empty"><strong>A fila está vazia.</strong>Use “Guardar na fila do robô” na Central de Contato de uma empresa para preparar o disparo.</div>`;
+
+  const convRowsHtml = (convs || []).length
+    ? `<div class="agent-conv-list">
+        ${convs
+          .map((c) => {
+            const isPaused = c.status === "paused_by_human";
+            return `<div class="agent-conv-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+                <div>
+                  <strong>#${c.id} · ${esc(c.lead_title || "Lead #" + c.lead_id)}</strong>
+                  <span class="meta">(${esc(c.chatid)} · ${c.is_test_session ? "🧪 Sessão de Teste" : "🚀 Cliente Real"})</span>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                  <span class="pain-tag">${esc(c.status)}</span>
+                  ${
+                    c.approved_price_text
+                      ? `<span class="embedded-pill ok">Preço aprovado: ${esc(c.approved_price_text)}</span>`
+                      : ""
+                  }
+                  ${
+                    isPaused
+                      ? `<button class="btn btn-sm" type="button" onclick="toggleConversationPause(${c.id}, false)">▶️ Retomar Agente</button>`
+                      : `<button class="btn btn-sm" type="button" onclick="toggleConversationPause(${c.id}, true)">⏸️ Assumir / Pausar</button>`
+                  }
+                  <button class="btn btn-sm" type="button" onclick="generatePrototypeFromCard(${c.lead_id})">🎨 Protótipo IA</button>
+                  ${
+                    c.has_prototype
+                      ? `<a class="btn btn-sm btn-primary" href="/api/agent/prototypes/${c.lead_id}/preview" target="_blank">Abrir Preview</a>`
+                      : ""
+                  }
+                </div>
+              </div>
+              <div class="agent-sim-row" style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+                <input id="sim-client-msg-${c.id}" type="text" placeholder="Simular resposta do cliente (ex: Quanto custa uma LP? / Fechado, pode montar)..." style="flex:1;min-width:220px;" />
+                <button class="btn btn-sm" type="button" onclick="simulateWebhookMessage('${esc(c.chatid)}', 'sim-client-msg-${c.id}')">Enviar como Cliente</button>
+              </div>
+            </div>`;
+          })
+          .join("")}
+      </div>`
+    : `<div class="meta" style="padding:8px 0">Nenhuma conversa ativa ainda. Confirme um item na fila acima para disparar a 1ª mensagem e iniciar a negociação!</div>`;
+
+  const pendingConsultsHtml = (consultations || []).length
+    ? `<div style="margin-top:12px">
+        <div class="d-label">Consultas de Preço enviadas para seu WhatsApp (+${esc(st.boss_phone)})</div>
+        ${consultations
+          .slice(0, 5)
+          .map(
+            (p) => `<div class="agent-conv-card" style="margin-top:6px">
+              <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+                <div><strong>Consulta #${p.id} · ${esc(p.lead_title || "Lead #" + p.lead_id)}</strong> — Pedido: <em>"${esc(p.client_summary)}"</em></div>
+                <span class="pain-tag">${esc(p.status)}</span>
+              </div>
+              <div class="meta" style="margin-top:4px">Faixa: ${esc(p.price_range_text)} · Sugestão do Agente: <strong>R$ ${Math.round((p.suggested_price_cents || 0) / 100)}</strong> ${p.boss_reply_text ? "· Aprovado: <strong>" + esc(p.boss_reply_text) + "</strong>" : ""}</div>
+              <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+                <input id="boss-reply-${p.id}" type="text" placeholder="Responder preço como Chefe (ex: R$ 1.350 em 3x)..." style="flex:1;min-width:200px;" />
+                <button class="btn btn-sm btn-primary" type="button" onclick="approvePriceFromModal(${p.id})">Aprovar e Enviar Proposta ao Cliente</button>
+              </div>
+            </div>`
+          )
+          .join("")}
+      </div>`
+    : "";
+
+  body.innerHTML = `
+    <div class="agent-control-box" style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+        <div>
+          <strong>Modo Atual de Disparo:</strong>
+          <span class="embedded-pill ${st.test_mode ? "warn" : "ok"}" style="margin-left:6px">
+            ${st.test_mode ? "🧪 MODO TESTE (Envia só para +" + esc(st.test_client_phone) + ")" : "🚀 MODO PRODUÇÃO (Envia para o WhatsApp real dos clientes)"}
+          </span>
+        </div>
+        <button class="btn btn-sm ${st.test_mode ? "btn-primary" : ""}" type="button" onclick="toggleAgentTestMode(${!st.test_mode})">
+          ${st.test_mode ? "✅ Aprovar e Virar para Produção (Clientes Reais)" : "Voltar para Modo Teste"}
+        </button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;align-items:end;margin-bottom:8px;">
+        <label class="field"><span>Seu WhatsApp Chefe (Preços/Avisos)</span>
+          <input id="cfg-boss-phone" type="text" value="${esc(st.boss_phone || "551999958516")}" />
+        </label>
+        <label class="field"><span>WhatsApp Cliente de Teste (2º Número)</span>
+          <input id="cfg-test-phone" type="text" value="${esc(st.test_client_phone || "5519996109028")}" />
+        </label>
+        <button class="btn btn-sm" type="button" onclick="saveAgentPhonesConfig()">Salvar Números</button>
+      </div>
+      ${qrBlock}
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <div class="d-label" style="margin:0">1. Fila de Aprovação (${items.length} na fila · ${readyCount} prontos)</div>
+      ${
+        readyCount > 0
+          ? `<button class="btn btn-sm btn-primary" type="button" onclick="confirmAndSendAllReady()">🚀 Confirmar e Disparar Todos Prontos (${readyCount})</button>`
+          : ""
+      }
+    </div>
+    ${queueRowsHtml}
+
+    <div style="margin-top:18px">
+      <div class="d-label">2. Conversas em Negociação &amp; Handoff Humano (90%)</div>
+      ${convRowsHtml}
+      ${pendingConsultsHtml}
+    </div>
+  `;
+}
+
+async function toggleAgentTestMode(newTestMode) {
+  await fetch("/api/agent/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ test_mode: Boolean(newTestMode) }),
+  });
+  await renderQueueModalContent();
+}
+
+async function saveAgentPhonesConfig() {
+  const bossPhone = ($("cfg-boss-phone") && $("cfg-boss-phone").value) || "551999958516";
+  const testPhone = ($("cfg-test-phone") && $("cfg-test-phone").value) || "5519996109028";
+  await fetch("/api/agent/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ boss_phone: bossPhone, test_client_phone: testPhone }),
+  });
+  await renderQueueModalContent();
+}
+
+async function confirmAndSendQueueItem(queueId) {
+  const res = await fetch(`/api/outreach/${queueId}/confirm-send`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    alert(data.detail || "Erro ao confirmar disparo.");
+    return;
+  }
+  await loadHealthAndStats();
+  await renderQueueModalContent();
+}
+
+async function confirmAndSendAllReady() {
+  await fetch("/api/outreach/confirm-send-all", { method: "POST" });
+  await loadHealthAndStats();
+  await renderQueueModalContent();
+}
+
+async function toggleConversationPause(convId, shouldPause) {
+  const endpoint = shouldPause ? "pause" : "resume";
+  await fetch(`/api/agent/conversations/${convId}/${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason: "intervencao_manual_painel" }),
+  });
+  await renderQueueModalContent();
+}
+
+async function simulateWebhookMessage(chatid, inputId) {
+  const el = $(inputId);
+  const text = (el && el.value || "").trim();
+  if (!text) return;
+  await fetch("/api/agent/webhook?immediate=true", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      EventType: "messages",
+      message: {
+        fromMe: false,
+        isGroup: false,
+        type: "text",
+        chatid: chatid,
+        text: text,
+      },
+    }),
+  });
+  if (el) el.value = "";
+  await renderQueueModalContent();
+}
+
+async function approvePriceFromModal(consultationId) {
+  const el = $(`boss-reply-${consultationId}`);
+  const replyText = (el && el.value || "").trim() || "R$ 1.390 em até 3x";
+  await fetch(`/api/agent/price-consultations/${consultationId}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reply_text: replyText }),
+  });
+  await renderQueueModalContent();
+}
+
+async function generatePrototypeFromCard(leadId) {
+  const fb = $(`copied-${leadId}`);
+  if (fb) fb.textContent = "Gerando protótipo IA…";
+  const res = await fetch(`/api/agent/leads/${leadId}/generate-prototype`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (fb) setTimeout(() => (fb.textContent = ""), 3000);
+  if (data && data.prototype && data.prototype.preview_url) {
+    window.open(data.prototype.preview_url, "_blank", "noopener,noreferrer");
+  }
+  if ($("queue-modal") && $("queue-modal").classList.contains("open")) {
+    await renderQueueModalContent();
+  }
+}
+
 function closeQueueModal() {
   $("queue-modal").classList.remove("open");
 }
@@ -1421,5 +1674,14 @@ function populateEmbeddedToolsFromLead(lead) {
   renderSiteHealthBox({ has_website: lead.has_website, site_in_air: lead.site_in_air, http_status: lead.http_status, has_ssl: lead.has_ssl, response_time_ms: lead.response_time_ms, ...(reports.dns_ssl || {}) });
   renderAll4RightColumnScanners(reports, lead, lead.title);
 }
+
+window.confirmAndSendQueueItem = confirmAndSendQueueItem;
+window.confirmAndSendAllReady = confirmAndSendAllReady;
+window.toggleAgentTestMode = toggleAgentTestMode;
+window.saveAgentPhonesConfig = saveAgentPhonesConfig;
+window.toggleConversationPause = toggleConversationPause;
+window.simulateWebhookMessage = simulateWebhookMessage;
+window.approvePriceFromModal = approvePriceFromModal;
+window.generatePrototypeFromCard = generatePrototypeFromCard;
 
 window.addEventListener("DOMContentLoaded", initDashboard);

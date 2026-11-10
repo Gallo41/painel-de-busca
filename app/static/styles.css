@@ -517,3 +517,27 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
   .split { display: block; }
   .rows-head, .row { grid-template-columns: minmax(0, 1fr) 110px 50px 50px 100px; }
 }
+
+
+/* ---------- Central do Agente WhatsApp & Protótipos IA ---------- */
+.agent-control-box {
+  background: var(--surface-2, rgba(255, 255, 255, 0.03));
+}
+.agent-conv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.agent-conv-card {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2, rgba(255, 255, 255, 0.02));
+}
+.agent-qr-box {
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
