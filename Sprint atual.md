@@ -46,6 +46,7 @@ Implementar o ecossistema completo de negociação ativa via WhatsApp baseado na
 | **100%** | 09/11/2026 21:47 | Grafo AST atualizado via `graphify update .` (730 nós, 1754 arestas), validação final de testes e fechamento da Sprint em 100%. | `graphify-out/`, `Sprint atual.md`, `task.md` |
 | **Ajuste UX** | 09/11/2026 21:58 | Visualização em 1 clique: aba direta no menu lateral (`#agente`), faixa informativa de status no topo de Clientes e botão de envio rápido p/ fila do agente no card do lead. | `app/static/index.html`, `app/static/app.js`, `app/static/styles.css` |
 | **Fix WhatsApp** | 10/11/2026 07:20 | Correção de `@lid` (`senderPn`/`onWhatsApp`/`lid_map.json`), bloqueio de syncs `fromMe` vazios, isolamento anti-sequestro de outros chats, suporte ao self-chat do Chefe, ajuste LLM (`openrouter/free` + fallback 19 anos focado em resultado) e `50 passed` no `pytest`. | `whatsapp_bridge/server.js`, `app/services/whatsapp_agent.py`, `app/services/ai_provider.py`, `tests/test_whatsapp_agent.py`, `graphify-out/` |
+| **Fix Replay & LLM 2s** | 10/11/2026 07:52 | Bloqueio de replay antigo/offline após reconexão (`code=408`) via `processed_ids.json` + timestamp (`type==='notify'`), retry 3x em `503` no `send_whatsapp_text`, e `reasoning: {effort: 'none'}` no OpenRouter (`nemotron-3.5-lightning:free` em ~2s). | `whatsapp_bridge/server.js`, `app/services/whatsapp_agent.py`, `app/services/ai_provider.py`, `graphify-out/` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

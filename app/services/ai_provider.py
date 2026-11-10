@@ -94,13 +94,16 @@ def _call_openai_compatible(
     temperature: float,
     max_tokens: int,
     timeout_sec: float,
+    extra_fields: Optional[Dict[str, Any]] = None,
 ) -> Optional[str]:
-    payload = {
+    payload: Dict[str, Any] = {
         "model": model,
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
+    if extra_fields:
+        payload.update(extra_fields)
     data = json.dumps(payload).encode("utf-8")
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -195,13 +198,14 @@ def call_llm_chat(
         except Exception:
             continue
 
-    # 2. OpenRouter (roteamento gratuito validado)
-    or_models = [
-        "openrouter/free",
-        "google/gemma-4-26b-a4b-it:free",
+    # 2. OpenRouter (modelos gratuitos validados em PT-BR com baixa latencia)
+    or_candidates: List[Tuple[str, Optional[Dict[str, Any]]]] = [
+        ("nvidia/nemotron-3.5-lightning:free", {"reasoning": {"effort": "none"}}),
+        ("dots-studio/dots-3-note-preview:free", None),
+        ("openrouter/free", {"reasoning": {"effort": "none"}}),
     ]
     for or_key in keys["openrouter_keys"][:1]:
-        for model in or_models:
+        for model, extra in or_candidates:
             try:
                 res = _call_openai_compatible(
                     "https://openrouter.ai/api/v1/chat/completions",
@@ -209,15 +213,16 @@ def call_llm_chat(
                     model,
                     full_messages,
                     temperature,
-                    max_tokens,
-                    max(timeout_sec, 14.0),
+                    max(max_tokens, 600),
+                    min(max(timeout_sec, 8.0), 10.0),
+                    extra_fields=extra,
                 )
                 if res:
                     return res, f"openrouter:{model}"
             except Exception:
                 continue
 
-    # 3. NVIDIA NIM API (modelos conversacionais validados)
+    # 3. NVIDIA NIM API (backup conversacional validado)
     nv_models = [
         "meta/llama-3.2-90b-vision-instruct",
     ]
@@ -230,8 +235,8 @@ def call_llm_chat(
                     model,
                     full_messages,
                     temperature,
-                    max_tokens,
-                    max(timeout_sec, 14.0),
+                    max(max_tokens, 900),
+                    min(max(timeout_sec, 8.0), 12.0),
                 )
                 if res:
                     return res, f"nvidia:{model}"

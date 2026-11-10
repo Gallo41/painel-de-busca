@@ -47,6 +47,7 @@ const FASTAPI_WEBHOOK_URL =
   process.env.FASTAPI_WEBHOOK_URL || "http://127.0.0.1:8090/api/agent/webhook";
 const AUTH_DIR = path.join(__dirname, "auth_info");
 const LID_MAP_FILE = path.join(AUTH_DIR, "lid_map.json");
+const PROCESSED_IDS_FILE = path.join(AUTH_DIR, "processed_ids.json");
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
@@ -62,6 +63,34 @@ const sentByApiIds = new Set();
 const recentApiSignatures = new Map(); // sig -> expiresAtMs
 const lidToPhoneMap = new Map(); // normalizedLid (e.g. 1667...@lid) -> phone digits (5519...)
 const phoneToLidMap = new Map(); // phone digits -> normalizedLid
+const processedMsgIds = new Set(); // evita replay de mensagens antigas após reconexão (code=408)
+
+function loadProcessedIds() {
+  try {
+    if (!fs.existsSync(PROCESSED_IDS_FILE)) return;
+    const raw = JSON.parse(fs.readFileSync(PROCESSED_IDS_FILE, "utf8"));
+    if (Array.isArray(raw)) {
+      for (const id of raw.slice(-800)) {
+        if (id) processedMsgIds.add(String(id));
+      }
+    }
+  } catch (_) {}
+}
+
+function recordProcessedId(msgId) {
+  if (!msgId) return;
+  processedMsgIds.add(msgId);
+  while (processedMsgIds.size > 1000) {
+    const first = processedMsgIds.values().next().value;
+    processedMsgIds.delete(first);
+  }
+  try {
+    fs.mkdirSync(AUTH_DIR, { recursive: true });
+    fs.writeFileSync(PROCESSED_IDS_FILE, JSON.stringify(Array.from(processedMsgIds).slice(-800)), "utf8");
+  } catch (_) {}
+}
+
+loadProcessedIds();
 
 function digitsOnly(val) {
   return String(val || "")
@@ -239,6 +268,9 @@ async function startWhatsApp() {
     logger: pino({ level: "silent" }),
     printQRInTerminal: false,
     browser: ["Painel de Busca", "Chrome", "1.0.0"],
+    keepAliveIntervalMs: 20000,
+    connectTimeoutMs: 30000,
+    retryRequestDelayMs: 500,
     syncFullHistory: false,
     shouldSyncHistoryMessage: () => false,
     shouldIgnoreJid: (jid) =>
@@ -319,6 +351,10 @@ async function startWhatsApp() {
         }
       }
 
+      if (msgId && processedMsgIds.has(msgId)) {
+        continue;
+      }
+
       // Captura mapeamentos LID <-> Telefone presentes nos atributos do envelope Baileys 6.7+
       if (remoteJid.endsWith("@s.whatsapp.net") && m.key && m.key.senderLid) {
         recordLidMapping(m.key.senderLid, remoteJid);
@@ -329,6 +365,15 @@ async function startWhatsApp() {
 
       // Se não há texto real, descarta imediatamente (ignora syncs internos do Baileys, recibos e pacotes vazios)
       if (!text || text.trim().length === 0) continue;
+
+      const rawTs = m.messageTimestamp;
+      const msgTs =
+        typeof rawTs === "number"
+          ? rawTs
+          : rawTs && typeof rawTs.toNumber === "function"
+          ? rawTs.toNumber()
+          : Number(rawTs || 0);
+      const ageSec = msgTs > 0 ? Math.floor(Date.now() / 1000) - msgTs : 0;
 
       // Resolve chatid telefônico real caso venha como @lid
       let effectiveChatid = remoteJid;
@@ -360,8 +405,24 @@ async function startWhatsApp() {
         sentByApiIds.delete(msgId);
       }
 
+      // Bloqueia replay de mensagens antigas / offline após reconexão (ex: code=408)
+      if (ageSec > 180) {
+        if (msgId) recordProcessedId(msgId);
+        console.log(`[bridge] Ignorando replay antigo (${ageSec}s, type=${type}): "${text.substring(0, 40)}"`);
+        continue;
+      }
+      if (fromMe && !wasSentByApi && (type !== "notify" || ageSec > 45)) {
+        if (msgId) recordProcessedId(msgId);
+        console.log(`[bridge] Ignorando replay fromMe offline/append (type=${type}, age=${ageSec}s): "${text.substring(0, 40)}"`);
+        continue;
+      }
+
+      if (msgId) {
+        recordProcessedId(msgId);
+      }
+
       console.log(
-        `[bridge] Mensagem recebida [fromMe=${fromMe}, wasSentByApi=${wasSentByApi}]: ` +
+        `[bridge] Mensagem recebida [type=${type}, fromMe=${fromMe}, wasSentByApi=${wasSentByApi}]: ` +
         `remoteJid=${remoteJid} -> effectiveChatid=${effectiveChatid} | texto="${text}"`
       );
 

@@ -2,6 +2,7 @@ import json
 import os
 import re
 import threading
+import time
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -242,21 +243,35 @@ def send_whatsapp_text(
     error_detail = ""
 
     if os.environ.get("PAINEL_AI_OFFLINE") != "1":
-        try:
-            req = urllib.request.Request(
-                f"{base_url}/send/text",
-                data=json.dumps(payload).encode("utf-8"),
-                headers=headers,
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=12.0) as resp:
-                raw = resp.read().decode("utf-8", errors="ignore")
-                body = json.loads(raw) if raw.strip().startswith("{") else {}
-                delivered_live = True
-                external_id = str(body.get("messageid") or body.get("id") or external_id)
-        except Exception as e:
-            error_detail = str(e)
-            print(f"[agent] Erro ao enviar WhatsApp para {numero}: {error_detail}")
+        for attempt in range(3):
+            try:
+                req = urllib.request.Request(
+                    f"{base_url}/send/text",
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers=headers,
+                    method="POST",
+                )
+                with urllib.request.urlopen(req, timeout=12.0) as resp:
+                    raw = resp.read().decode("utf-8", errors="ignore")
+                    body = json.loads(raw) if raw.strip().startswith("{") else {}
+                    delivered_live = True
+                    external_id = str(body.get("messageid") or body.get("id") or external_id)
+                    error_detail = ""
+                    break
+            except urllib.error.HTTPError as e:
+                error_detail = str(e)
+                if e.code == 503 and attempt < 2:
+                    time.sleep(2.0)
+                    continue
+                print(f"[agent] Erro ao enviar WhatsApp para {numero}: {error_detail}")
+                break
+            except Exception as e:
+                error_detail = str(e)
+                if attempt < 2:
+                    time.sleep(2.0)
+                    continue
+                print(f"[agent] Erro ao enviar WhatsApp para {numero}: {error_detail}")
+                break
 
     entry = {
         "number": numero,
@@ -918,7 +933,7 @@ def generate_agent_reply(
         llm_messages.append({"role": "user", "content": client_text})
 
     sys_prompt = build_agent_system_prompt(lead, conv, settings)
-    llm_reply, provider = call_llm_chat(sys_prompt, llm_messages, temperature=0.5, max_tokens=260, timeout_sec=15.0)
+    llm_reply, provider = call_llm_chat(sys_prompt, llm_messages, temperature=0.5, max_tokens=900, timeout_sec=10.0)
 
     if llm_reply:
         cleaned = limpar_texto_whatsapp(llm_reply)
