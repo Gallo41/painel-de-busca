@@ -264,3 +264,107 @@ def test_close_deal_triggers_ai_prototype_and_notifies_boss(agent_client: TestCl
     outbox = agent_client.get("/api/agent/outbox").json()
     proto_boss_msgs = [m for m in outbox if m["number"] == "551999958516" and "Protótipo IA Pronto" in m["text"]]
     assert len(proto_boss_msgs) >= 1
+
+
+def test_empty_sync_and_unrelated_chats_never_pause_and_boss_selfchat_works(agent_client: TestClient):
+    lead_id = _create_sample_lead(agent_client)
+    queue_id = agent_client.post(
+        "/api/outreach/enqueue", json={"lead_ids": [lead_id], "channels": ["whatsapp"]}
+    ).json()["queue_ids"][0]
+    conf = agent_client.post(f"/api/outreach/{queue_id}/confirm-send", json={}).json()
+    conv_id = conf["conversation"]["id"]
+
+    # 1. Sync vazio do Baileys (fromMe=True, wasSentByApi=False, text="") com @lid não pode pausar a conversa
+    r_sync = agent_client.post(
+        "/api/agent/webhook?immediate=true",
+        json={
+            "EventType": "messages",
+            "message": {
+                "fromMe": True,
+                "wasSentByApi": False,
+                "isGroup": False,
+                "type": "other",
+                "chatid": "16673281208408@lid",
+                "text": "",
+            },
+        },
+    )
+    assert r_sync.status_code == 200
+    assert r_sync.json()["ignored"] is True
+    assert r_sync.json()["reason"] == "empty_from_me_sync"
+
+    # 2. Mensagem para ou de outro contato aleatório não relacionado não pode sequestrar test_client_phone
+    r_other_out = agent_client.post(
+        "/api/agent/webhook?immediate=true",
+        json={
+            "EventType": "messages",
+            "message": {
+                "fromMe": True,
+                "wasSentByApi": False,
+                "isGroup": False,
+                "type": "text",
+                "chatid": "5519988881111@s.whatsapp.net",
+                "text": "Oi mãe, cheguei!",
+            },
+        },
+    )
+    assert r_other_out.status_code == 200
+    assert r_other_out.json()["ignored"] is True
+    assert r_other_out.json()["reason"] == "from_me_non_lead_chat"
+
+    r_other_in = agent_client.post(
+        "/api/agent/webhook?immediate=true",
+        json={
+            "EventType": "messages",
+            "message": {
+                "fromMe": False,
+                "isGroup": False,
+                "type": "text",
+                "chatid": "5519988881111@s.whatsapp.net",
+                "text": "Beleza filho!",
+            },
+        },
+    )
+    assert r_other_in.status_code == 200
+    assert r_other_in.json()["ignored"] is True
+    assert r_other_in.json()["reason"] == "no_authorized_conversation"
+
+    # 3. Conversa continua ACTIVE e cliente de teste é respondido normalmente
+    conv_detail = agent_client.get(f"/api/agent/conversations/{conv_id}").json()
+    assert conv_detail["conversation"]["status"] == "active"
+
+    r_client = agent_client.post(
+        "/api/agent/webhook?immediate=true",
+        json={
+            "EventType": "messages",
+            "message": {
+                "fromMe": False,
+                "isGroup": False,
+                "type": "text",
+                "chatid": "5519996109028@s.whatsapp.net",
+                "text": "Quanto fica pra fazer uma página?",
+            },
+        },
+    )
+    assert r_client.status_code == 200
+    assert r_client.json()["ok"] is True
+    cid = r_client.json()["price_consultation"]["id"]
+
+    # 4. Chefe aprova preço digitando no próprio aparelho/self-chat (fromMe=True)
+    r_boss_self = agent_client.post(
+        "/api/agent/webhook?immediate=true",
+        json={
+            "EventType": "messages",
+            "message": {
+                "fromMe": True,
+                "wasSentByApi": False,
+                "isGroup": False,
+                "type": "text",
+                "chatid": "551999958516@s.whatsapp.net",
+                "text": f"#{cid} 1150",
+            },
+        },
+    )
+    assert r_boss_self.status_code == 200
+    assert r_boss_self.json()["from_boss"] is True
+    assert r_boss_self.json()["action"] == "price_forwarded_to_client"

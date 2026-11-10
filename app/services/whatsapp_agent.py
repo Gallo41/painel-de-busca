@@ -91,7 +91,7 @@ FISCAL_KEYWORDS_REGEX = re.compile(
 
 PRICE_INQUIRY_REGEX = re.compile(
     r"\b(quanto\s+custa|qual\s+o\s+valor|qual\s+o\s+pre[cç]o|pre[cç]o|valor|valores|or[cç]amento|"
-    r"investimento|fica\s+quanto|sai\s+quanto|cobram\s+quanto|parcela|condi[cç][aã]o)\b",
+    r"investimento|fica\s+quanto|quanto\s+fica|sai\s+quanto|quanto\s+sai|cobram\s+quanto|parcela|condi[cç][aã]o)\b",
     re.IGNORECASE,
 )
 
@@ -249,13 +249,14 @@ def send_whatsapp_text(
                 headers=headers,
                 method="POST",
             )
-            with urllib.request.urlopen(req, timeout=2.5) as resp:
+            with urllib.request.urlopen(req, timeout=12.0) as resp:
                 raw = resp.read().decode("utf-8", errors="ignore")
                 body = json.loads(raw) if raw.strip().startswith("{") else {}
                 delivered_live = True
                 external_id = str(body.get("messageid") or body.get("id") or external_id)
         except Exception as e:
             error_detail = str(e)
+            print(f"[agent] Erro ao enviar WhatsApp para {numero}: {error_detail}")
 
     entry = {
         "number": numero,
@@ -762,41 +763,46 @@ def _specialist_commercial_reply(
     has_fiscal: bool,
     price_info: Optional[Dict[str, Any]] = None,
 ) -> str:
-    title = lead.get("title") or "sua empresa"
-    city = lead.get("city") or "sua região"
+    title = lead.get("title") or "vocês"
+    city = lead.get("city") or "sua cidade"
     sol = CATALOGO_SOLUCOES.get(scope_type) or CATALOGO_SOLUCOES["LANDING_PAGE"]
 
     if has_fiscal:
         return (
-            f"A parte de emissão de nota fiscal e impostos nós não fazemos pra não assumir responsabilidade tributária, "
-            f"mas toda a parte comercial, captação de clientes e {sol['nome'].lower()} a gente entrega redonda. "
-            f"Hoje o foco maior da {title} é receber mais clientes no WhatsApp ou organizar agendamentos e pedidos?"
+            f"Opa! A parte de nota fiscal e imposto nós não fazemos pra não assumir bucha tributária com a Receita, beleza? "
+            f"Mas toda a parte de atrair cliente no Google, organizar agendamento e jogar direto pro seu WhatsApp a gente deixa redondinho. "
+            f"Hoje o foco maior aí na {title} é lotar mais a agenda ou organizar os atendimentos?"
         )
 
     if price_info:
         faixa = price_info["price_range"]
         return (
-            f"Para o padrão da {title}, uma {sol['nome']} costuma ficar na faixa de {faixa} dependendo dos recursos que incluirmos. "
-            f"Já acionei meu sócio aqui pra liberar uma condição especial fechada pro caso de vocês, você prefere focar só na captação pro WhatsApp ou incluir catálogo e agendamento?"
+            f"Boa! Pra estrutura da {title} gerar cliente particular direto no Whats, geralmente fica na faixa de {faixa} dependendo do que você quiser colocar. "
+            f"Já chamei meu sócio aqui no privado pra liberar uma condição massa pra vocês — você prefere focar só em atrair clientes pro Whats ou quer agendamento automático também?"
         )
 
     if scope_type == "SISTEMA_SOB_MEDIDA":
         return (
-            f"Perfeito, além da página de alta conversão a gente consegue montar esse painel comercial sob medida pra {title} "
-            f"organizar os atendimentos e pedidos sem complicação (sem parte fiscal). "
-            f"Quais são as 2 principais funções que mais ajudariam seu dia a dia hoje?"
+            f"Show! Além de trazer mais gente do Google pro seu WhatsApp, dá pra montar um painel sob medida pra {title} "
+            f"desafogar a recepção e organizar agendamentos e pedidos (sem parte fiscal). "
+            f"O que mais consome tempo da equipe no atendimento hoje?"
         )
 
     if re.search(r"\b(instagram|insta|rede\s+social|j[aá]\s+tenho)\b", client_text or "", re.IGNORECASE):
         return (
-            f"O Instagram ajuda muito com quem já conhece a {title}, mas quem pesquisa pelo serviço no Google em {city} "
-            f"com intenção imediata de compra precisa cair numa Landing Page rápida que já leva direto pro seu WhatsApp. "
-            f"Hoje qual é o serviço carro-chefe que vocês mais querem vender?"
+            f"O Insta é top pra quem já conhece vocês! Mas quem tá precisando com urgência hoje pesquisa no Google em {city} e fecha com quem aparece com botão direto pro WhatsApp. "
+            f"Qual serviço de vocês dá o melhor retorno quando o cliente chega pelo particular?"
+        )
+
+    if re.search(r"\b(link|modelo|exemplo|manda|envia|envie|quero\s+ver)\b", client_text or "", re.IGNORECASE):
+        return (
+            f"Opa, prazer, aqui é o Léo! A gente não trabalha com link pronto genérico não — a gente cria a estrutura personalizada da {title} focada em fazer quem busca em {city} já chamar no seu Whats pra agendar particular. "
+            f"Antes de publicar, a gente monta a prévia visual pra vocês aprovarem. Qual procedimento ou serviço vocês mais querem lotar a agenda hoje?"
         )
 
     return (
-        f"A ideia pro caso da {title} em {city} é colocar no ar uma {sol['nome']} pensada pra {sol['resultado']}. "
-        f"Qual é o principal serviço ou diferencial de vocês hoje pra destacarmos logo no topo da página?"
+        f"Show! A ideia pra {title} em {city} é bem direta: fazer quem pesquisa pelo trabalho de vocês no Google parar de ir pro concorrente e já cair chamando no seu Whats pra fechar no particular. "
+        f"Hoje vocês sentem que falta mais gente nova chamando no Whats ou o foco é filtrar cliente mais qualificado?"
     )
 
 
@@ -898,22 +904,30 @@ def generate_agent_reply(
         }
 
     # 4. Conversa consultiva via LLM (chave.env) + fallback especialista
-    history_rows = list_agent_messages(conv["id"], limit=20, db_path=db_path)
+    history_rows = list_agent_messages(conv["id"], limit=8, db_path=db_path)
     llm_messages: List[Dict[str, str]] = []
     for h in history_rows:
         if h["role"] in ("user", "model"):
-            llm_messages.append({"role": h["role"], "content": h["content"]})
+            content = (h["content"] or "").strip()
+            if not content:
+                continue
+            if llm_messages and llm_messages[-1]["role"] == h["role"] and llm_messages[-1]["content"] == content:
+                continue
+            llm_messages.append({"role": h["role"], "content": content})
     if not llm_messages or llm_messages[-1]["content"] != client_text:
         llm_messages.append({"role": "user", "content": client_text})
 
     sys_prompt = build_agent_system_prompt(lead, conv, settings)
-    llm_reply, provider = call_llm_chat(sys_prompt, llm_messages, temperature=0.4, max_tokens=220)
+    llm_reply, provider = call_llm_chat(sys_prompt, llm_messages, temperature=0.5, max_tokens=260, timeout_sec=15.0)
 
     if llm_reply:
         cleaned = limpar_texto_whatsapp(llm_reply)
         # Guardrail mecânico pós-LLM: se o modelo mencionar nota fiscal sem negar, substitui pelo especialista
         if detect_fiscal_request(cleaned) and "não fazemos" not in cleaned.lower() and "nao fazemos" not in cleaned.lower():
             cleaned = _specialist_commercial_reply(lead, conv, client_text, scope_type, True, None)
+        # Guardrail anti-link genérico pós-LLM: nunca oferecer ou mandar placeholder de link
+        elif re.search(r"(\[link[^\]]*\]|aqui\s+(est[aá]|vai)\s+o\s+link|posso\s+(te\s+)?mandar\s+o\s+link)", cleaned, re.IGNORECASE):
+            cleaned = _specialist_commercial_reply(lead, conv, client_text, scope_type, False, None)
         return {
             "reply": cleaned,
             "action": "negotiation_turn",
@@ -1045,13 +1059,33 @@ def _flush_buffer(chatid_clean: str, db_path: Optional[str] = None) -> Optional[
     if timer:
         timer.cancel()
     combined_text = "\n".join(buf["parts"])
-    return process_conversation_turn(
-        chatid=chatid_clean,
-        text=combined_text,
-        message_ids=buf["ids"],
-        sender_name=buf.get("sender_name"),
-        db_path=db_path,
-    )
+    try:
+        return process_conversation_turn(
+            chatid=chatid_clean,
+            text=combined_text,
+            message_ids=buf["ids"],
+            sender_name=buf.get("sender_name"),
+            db_path=db_path,
+        )
+    except Exception as e:
+        import traceback
+        print(f"[agent] Erro ao processar turno agrupado para {chatid_clean}: {e}")
+        traceback.print_exc()
+        return {"ok": False, "error": str(e)}
+
+
+_BOT_NOTIFICATION_PREFIXES = ("🔔", "💰", "🚀", "✅", "⏸️", "▶️", "🤖", "⚠️", "[Consulta")
+
+
+def _was_just_sent_by_agent(conversation_id: int, texto: str, db_path: Optional[str] = None) -> bool:
+    norm = (texto or "").strip()
+    if not norm:
+        return False
+    recent = list_agent_messages(conversation_id, limit=8, db_path=db_path)
+    for m in recent:
+        if m.get("direction") == "outbound" and (m.get("content") or "").strip() == norm:
+            return True
+    return False
 
 
 def process_incoming_webhook(
@@ -1061,82 +1095,94 @@ def process_incoming_webhook(
 ) -> Dict[str, Any]:
     """
     Pipeline de entrada do Webhook (UAZAPI / Micro-Bridge QR Code):
-    Segue exatamente a ordem de filtros de `agente-barbearia/src/index.ts`.
+    Segue exatamente a ordem de filtros de `agente-barbearia/src/index.ts`, com proteções
+    extras contra syncs internos vazios, ecos de mensagens da API e self-chat do Chefe.
     """
     msg = payload.get("message") if isinstance(payload.get("message"), dict) else payload
     if not isinstance(msg, dict):
         return {"ok": False, "ignored": True, "reason": "empty_message"}
 
-    # 1. Grupo? Sai.
+    # 1. Grupo / Broadcast / Newsletter? Sai.
     if msg.get("isGroup") is True:
         return {"ok": False, "ignored": True, "reason": "group_message"}
 
-    # 2. Resolução do chatid (trata tanto formato padrão quanto @lid)
     raw_chatid = (msg.get("chatid") or msg.get("rawRemoteJid") or "").strip()
     if not raw_chatid:
         return {"ok": False, "ignored": True, "reason": "empty_chatid"}
+    if "@g.us" in raw_chatid or "@broadcast" in raw_chatid or "@newsletter" in raw_chatid:
+        return {"ok": False, "ignored": True, "reason": "non_direct_chat"}
+
+    # 2. Se foi enviado pela própria API, ignora imediatamente
+    if msg.get("fromMe") is True and msg.get("wasSentByApi") is True:
+        return {"ok": True, "ignored": True, "reason": "from_me_api"}
+
+    texto = (msg.get("text") or "").strip()
+    msg_type = (msg.get("type") or "text").lower()
+
+    # Syncs internos do Baileys (text vazio ou notificações próprias do bot) nunca pausam a conversa
+    if msg.get("fromMe") is True:
+        if not texto:
+            return {"ok": True, "ignored": True, "reason": "empty_from_me_sync"}
+        if texto.startswith(_BOT_NOTIFICATION_PREFIXES):
+            return {"ok": True, "ignored": True, "reason": "from_me_bot_prefix"}
 
     settings = get_agent_settings(db_path)
     chatid_clean = normalize_phone_digits(raw_chatid)
     boss_phone = settings.get("boss_phone") or "551999958516"
 
-    # Se a mensagem NÃO veio do Chefe e precisa de resolução (@lid ou sem conversa direta):
-    if not phones_match_br(chatid_clean, boss_phone):
-        if "@lid" in raw_chatid or not chatid_clean or not get_active_conversation_by_chatid(chatid_clean, db_path=db_path):
-            if bool(settings.get("test_mode", True)):
-                test_phone = normalize_phone_digits(settings.get("test_client_phone") or "5519996109028")
-                if get_active_conversation_by_chatid(test_phone, db_path=db_path):
-                    chatid_clean = test_phone
-            else:
-                recent_convs = list_agent_conversations(limit=5, db_path=db_path)
-                active_conv = next((c for c in recent_convs if c.get("status") == "active"), None)
-                if active_conv:
-                    chatid_clean = normalize_phone_digits(active_conv.get("chatid") or "")
+    # 3. Resolução segura de @lid apenas quando a ponte não souber o telefone e NÃO for fromMe
+    if "@lid" in raw_chatid and msg.get("fromMe") is not True:
+        if bool(settings.get("test_mode", True)):
+            test_phone = normalize_phone_digits(settings.get("test_client_phone") or "5519996109028")
+            if get_active_conversation_by_chatid(test_phone, db_path=db_path):
+                chatid_clean = test_phone
 
     if not chatid_clean:
         return {"ok": False, "ignored": True, "reason": "unresolved_chatid"}
+    if "@lid" in raw_chatid and not phones_match_br(chatid_clean, boss_phone):
+        if not get_active_conversation_by_chatid(chatid_clean, db_path=db_path):
+            return {"ok": False, "ignored": True, "reason": "unresolved_lid_chatid"}
 
-    # 3. Mensagem enviada pelo próprio número do negócio (`fromMe === true`)
-    if msg.get("fromMe") is True:
-        # Se NÃO foi enviada pela API (`wasSentByApi !== true`), o humano digitou pelo celular! (Handoff 90%)
-        if msg.get("wasSentByApi") is not True:
-            conv = get_active_conversation_by_chatid(chatid_clean, db_path=db_path)
-            if conv:
-                with _BUFFER_LOCK:
-                    existing_buf = _BUFFERS.pop(chatid_clean, None)
-                    if existing_buf and existing_buf.get("timer"):
-                        existing_buf["timer"].cancel()
-                pause_min = int(settings.get("pause_minutes_on_human") or 60)
-                pause_conversation(
-                    conv["id"],
-                    minutes=pause_min,
-                    reason="humano_digitou_no_whatsapp",
-                    db_path=db_path,
-                )
-                return {
-                    "ok": True,
-                    "handoff": True,
-                    "conversation_id": conv["id"],
-                    "paused_minutes": pause_min,
-                }
-        return {"ok": True, "ignored": True, "reason": "from_me_api"}
-
-    # 4. Tipo diferente de texto? Sai.
-    msg_type = (msg.get("type") or "text").lower()
-    if msg_type != "text":
-        return {"ok": False, "ignored": True, "reason": f"non_text_type:{msg_type}"}
-
-    texto = (msg.get("text") or "").strip()
-    if not texto:
-        return {"ok": False, "ignored": True, "reason": "empty_text"}
-
-    # 5. A mensagem veio do número do Chefe (+551999958516)?
-    boss_phone = settings.get("boss_phone") or "551999958516"
+    # 4. Mensagem no chat do Chefe (+551999958516)? Verifica ANTES do handoff humano,
+    # pois quando o mesmo aparelho opera bot + Chefe, o Chefe responde em self-chat (`fromMe=True`).
     if phones_match_br(chatid_clean, boss_phone):
+        if msg_type != "text" or not texto:
+            return {"ok": False, "ignored": True, "reason": "empty_or_nontext_boss"}
         boss_res = handle_boss_incoming_message(chatid_clean, texto, db_path=db_path)
         return {"ok": True, "from_boss": True, **boss_res}
 
-    # 6. Conversa pausada porque o humano assumiu?
+    # 5. Mensagem enviada pelo humano diretamente no celular para um lead (`fromMe === true` e `wasSentByApi !== true`)
+    if msg.get("fromMe") is True:
+        conv = get_active_conversation_by_chatid(chatid_clean, db_path=db_path)
+        if conv:
+            if _was_just_sent_by_agent(conv["id"], texto, db_path=db_path):
+                return {"ok": True, "ignored": True, "reason": "from_me_recent_echo"}
+            with _BUFFER_LOCK:
+                existing_buf = _BUFFERS.pop(chatid_clean, None)
+                if existing_buf and existing_buf.get("timer"):
+                    existing_buf["timer"].cancel()
+            pause_min = int(settings.get("pause_minutes_on_human") or 60)
+            pause_conversation(
+                conv["id"],
+                minutes=pause_min,
+                reason="humano_digitou_no_whatsapp",
+                db_path=db_path,
+            )
+            return {
+                "ok": True,
+                "handoff": True,
+                "conversation_id": conv["id"],
+                "paused_minutes": pause_min,
+            }
+        return {"ok": True, "ignored": True, "reason": "from_me_non_lead_chat"}
+
+    # 6. Tipo diferente de texto ou vazio? Sai.
+    if msg_type != "text":
+        return {"ok": False, "ignored": True, "reason": f"non_text_type:{msg_type}"}
+    if not texto:
+        return {"ok": False, "ignored": True, "reason": "empty_text"}
+
+    # 7. Conversa autorizada e ativa? (Se humano pausou manualmente, respeita silêncio)
     conv = get_active_conversation_by_chatid(chatid_clean, db_path=db_path)
     if not conv:
         return {"ok": False, "ignored": True, "reason": "no_authorized_conversation"}

@@ -195,11 +195,10 @@ def call_llm_chat(
         except Exception:
             continue
 
-    # 2. OpenRouter (tenta modelos rápidos gratuitos e pagos)
+    # 2. OpenRouter (roteamento gratuito validado)
     or_models = [
-        "nvidia/nemotron-3.5-super-vl:free",
-        "thinkingmachines/inkling-2-small:free",
-        "google/gemini-2.5-flash",
+        "openrouter/free",
+        "google/gemma-4-26b-a4b-it:free",
     ]
     for or_key in keys["openrouter_keys"][:1]:
         for model in or_models:
@@ -211,17 +210,16 @@ def call_llm_chat(
                     full_messages,
                     temperature,
                     max_tokens,
-                    timeout_sec,
+                    max(timeout_sec, 14.0),
                 )
                 if res:
                     return res, f"openrouter:{model}"
             except Exception:
                 continue
 
-    # 3. NVIDIA NIM API
+    # 3. NVIDIA NIM API (modelos conversacionais validados)
     nv_models = [
         "meta/llama-3.2-90b-vision-instruct",
-        "deepseek-ai/deepseek-coder-6.7b-instruct",
     ]
     for nv_key in keys["nvidia_keys"][:1]:
         for model in nv_models:
@@ -233,7 +231,7 @@ def call_llm_chat(
                     full_messages,
                     temperature,
                     max_tokens,
-                    timeout_sec,
+                    max(timeout_sec, 14.0),
                 )
                 if res:
                     return res, f"nvidia:{model}"
