@@ -50,6 +50,9 @@ async function loadAnalysis(force) {
   renderAnalysisView();
   try {
     const res = await fetch("/api/leads/ranking?per_day=20");
+    if (res.status === 422) {
+      throw new Error("servidor antigo na porta 8090 — reinicie o Painel (iniciar_painel.bat) para carregar a rota /api/leads/ranking");
+    }
     if (!res.ok) throw new Error("HTTP " + res.status);
     AN.data = await res.json();
   } catch (e) {

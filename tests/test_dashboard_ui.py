@@ -132,7 +132,7 @@ def test_dashboard_analysis_view_elements_present(client):
     assert 'href="#analise"' in html
     assert 'id="view-analise"' in html
     assert 'id="view-analise-body"' in html
-    assert "analise.js?v=2.6.1" in html
+    assert "analise.js?v=2.6.2" in html
 
     r_css = client.get("/static/styles.css")
     assert r_css.status_code == 200
