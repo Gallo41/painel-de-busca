@@ -301,3 +301,92 @@ def test_ready_report_ticket_follows_new_pricing():
     lead["outreach_scripts"] = {"ready_report": {"ticket_range": "R$ 3.500 a R$ 8.000", "bullets": []}}
     out = _ensure_ready_report(lead)
     assert out["outreach_scripts"]["ready_report"]["ticket_range"] == suggest_price(lead)["faixa_text"]
+
+
+# ---------------- preparo de fila (lote e semi-automático) ----------------
+
+
+def test_prepare_queue_batch_enqueues_only_ready_and_respects_target(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from app.database import init_db, list_outreach_queue
+    from app.services.outreach_generator import process_and_save_lead
+    from app.services.deal_ranker import prepare_queue_batch
+    from app.services.whatsapp_agent import OUTBOX_LOG
+
+    db_file = str(tmp_path / "prep.db")
+    monkeypatch.setenv("PAINEL_DB_PATH", db_file)
+    init_db(db_path=db_file)
+    OUTBOX_LOG.clear()
+
+    saved_ids = []
+    specs = [
+        ("Dentista Top 1", "(19) 99111-0001", 120, "", None),
+        ("Dentista Top 2", "(19) 99111-0002", 90, "", None),
+        ("Dentista Tel Duplicado", "(19) 99111-0001", 110, "", "dup-phone-extra"),
+        ("Clínica Só Fixo", "(19) 4102-8009", 150, "", None),
+        ("UNIMEP Odonto", "(19) 99111-0003", 150, "http://unimep.edu.br", None),
+        ("Dentista Top 3", "(19) 99111-0004", 30, "", None),
+    ]
+    for title, phone, reviews, site, place_id in specs:
+        payload = {
+            "title": title, "phone": phone, "website": site, "city": "Piracicaba", "state": "SP",
+            "niche_slug": "clinicas-odontologicas", "review_count": reviews, "review_rating": 4.9,
+        }
+        if place_id:
+            payload["place_id"] = place_id
+        row = process_and_save_lead(
+            payload,
+            run_xray=True,
+            skip_live_network=True,
+            db_path=db_file,
+        )
+        saved_ids.append(row["id"])
+
+    # Prepara lote de 2 primeiro
+    res1 = prepare_queue_batch(day=1, per_day=2, only_missing_to_target=True, db_path=db_file)
+    assert res1["enqueued_count"] == 2
+    assert res1["ready_in_queue"] == 2
+    assert len(OUTBOX_LOG) == 0  # nunca envia mensagem ao preparar!
+
+    queue = list_outreach_queue(status="ready", db_path=db_file)
+    assert len(queue) == 2
+    assert {q["lead_id"] for q in queue} == {saved_ids[0], saved_ids[1]}
+    assert queue[0]["diagnostic_context"]["ranking"]["tier"] == "A"
+
+    # Chamar de novo com target=2 não adiciona duplicados
+    res2 = prepare_queue_batch(day=1, per_day=2, only_missing_to_target=True, db_path=db_file)
+    assert res2["enqueued_count"] == 0
+    assert res2["already_full"] is True
+
+    # Pular um item e completar até target=2: puxa o Top 3 (pula o duplicado, o fixo e a UNIMEP)
+    from app.main import create_app
+
+    with TestClient(create_app(db_path=db_file)) as client:
+        skip_id = queue[0]["id"]
+        assert client.patch(f"/api/outreach/{skip_id}/status", json={"status": "skipped"}).status_code == 200
+
+        r_batch = client.post("/api/outreach/prepare-batch", json={"day": 1, "per_day": 2, "only_missing_to_target": True})
+        assert r_batch.status_code == 200
+        bdata = r_batch.json()
+        assert bdata["enqueued_count"] == 1
+        assert saved_ids[5] in bdata["lead_ids"]
+
+        # Setting auto_prepare_queue persiste e import-csv auto-prepara novos leads
+        r_set = client.put("/api/agent/settings", json={"auto_prepare_queue": True, "auto_prepare_batch_size": 5})
+        assert r_set.status_code == 200
+        assert r_set.json()["settings"]["auto_prepare_queue"] is True
+        assert r_set.json()["settings"]["auto_prepare_batch_size"] == 5
+
+        r_csv = client.post(
+            "/api/leads/import-csv",
+            json={
+                "csv_text": "title,phone,review_count\nDra. Nova Silva,(19) 99888-7766,55\n",
+                "city": "Piracicaba",
+                "state": "SP",
+                "niche_slug": "clinicas-odontologicas",
+                "run_xray": False,
+            },
+        )
+        assert r_csv.status_code == 200
+        assert r_csv.json()["auto_prepared_queue_count"] == 1
+        assert len(OUTBOX_LOG) == 0

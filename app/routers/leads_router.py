@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 from app.database import (
     create_search_job,
+    get_agent_settings,
     get_dashboard_stats,
     get_lead,
     get_search_job,
@@ -16,9 +17,10 @@ from app.database import (
 )
 from app.models import LeadManagementUpdate, ManualLeadCreate, SearchJobRequest
 from app.services.deal_ranker import (
+    auto_replenish_queue,
+    build_analytics,
     build_outreach_plan,
     compact_item,
-    build_analytics,
     group_by_segment,
     rank_leads,
     suggest_price,
@@ -305,10 +307,12 @@ def api_create_and_run_job(payload: SearchJobRequest) -> Dict[str, Any]:
         )
 
         update_search_job(job_id, status="completed", total_found=len(processed_leads))
+        prep = auto_replenish_queue()
         return {
             "job": get_search_job(job_id),
             "used_live_docker_engine": use_live_engine,
             "total_leads_processed": len(processed_leads),
+            "auto_prepared_queue_count": prep.get("enqueued_count", 0),
             "executive_summary": build_executive_summary_report(processed_leads, city=payload.city),
             "leads": processed_leads,
             "casadosdados_filters": build_casadosdados_links(
@@ -334,7 +338,12 @@ def api_import_csv(payload: CsvImportRequest) -> Dict[str, Any]:
         process_and_save_lead(item, run_xray=payload.run_xray)
         for item in raw_leads
     ]
-    return {"imported_count": len(saved_list), "leads": saved_list}
+    prep = auto_replenish_queue()
+    return {
+        "imported_count": len(saved_list),
+        "auto_prepared_queue_count": prep.get("enqueued_count", 0),
+        "leads": saved_list,
+    }
 
 
 @router.post("/leads")
@@ -401,12 +410,15 @@ def api_leads_ranking(
     limit: int = Query(1000, ge=1, le=5000),
 ) -> Dict[str, Any]:
     """Ranking de chance de fechar + preço sugerido, agrupado por nicho real. Somente leitura."""
+    queue_items = list_outreach_queue(limit=100000)
     ranked = rank_leads(
         list_leads(limit=limit),
-        contacted_lead_ids={q["lead_id"] for q in list_outreach_queue(limit=100000)},
+        contacted_lead_ids={q["lead_id"] for q in queue_items},
     )
     groups = group_by_segment(ranked)
     plan = build_outreach_plan(ranked, per_day=per_day)
+    settings = get_agent_settings()
+    queue_ready = sum(1 for q in queue_items if q.get("status") == "ready" and q.get("channel") == "whatsapp")
 
     selected = [
         it for it in ranked
@@ -420,6 +432,9 @@ def api_leads_ranking(
             "total": len(ranked),
             "ready": sum(1 for r in ranked if r["outreach_ready"]),
             "excluded": len(ranked) - len(valid),
+            "queue_ready": queue_ready,
+            "auto_prepare_queue": bool(settings.get("auto_prepare_queue", True)),
+            "auto_prepare_batch_size": int(settings.get("auto_prepare_batch_size") or 20),
             "tiers": {t: sum(1 for r in valid if r["close_chance"]["tier"] == t) for t in "ABCD"},
         },
         "groups": [

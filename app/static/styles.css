@@ -718,6 +718,10 @@ kbd { font: 500 11px/16px var(--font); padding: 0 5px; border: 1px solid var(--b
 .an-mhead { display: flex; justify-content: space-between; margin-bottom: 4px; }
 .an-mtier { display: grid; grid-template-columns: 90px 110px 1fr; gap: 8px; padding: 4px 0; font-size: var(--fs-small); }
 .an-method ul { margin: 0; padding-left: 18px; }
+.an-prep-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--rule); }
+.an-auto-check { margin-top: 6px; font-size: var(--fs-small); }
+.an-prep-msg { margin-top: 8px; padding: 8px 10px; border-radius: var(--radius-control); background: var(--pill-positive-bg); color: var(--pill-positive-ink); font-size: var(--fs-small); }
+.an-prep-msg a { color: inherit; font-weight: 600; text-decoration: underline; margin-left: 6px; }
 
 @media (max-width: 960px) {
   .an-cols, .an-d-grid, .an-method { grid-template-columns: 1fr; }

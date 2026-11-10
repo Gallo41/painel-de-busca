@@ -12,9 +12,9 @@
     "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
   },
   "app/database.py": {
-    "mtime": 1794270007.040533,
-    "seen": 1794271572.9716594,
-    "ast_hash": "d77518b38255de093d02b2232632f4b7",
+    "mtime": 1794329365.882373,
+    "seen": 1794329732.465434,
+    "ast_hash": "f1eb992815e77a1d7ec1cab145876cf8",
     "semantic_hash": ""
   },
   "app/main.py": {
@@ -24,9 +24,9 @@
     "semantic_hash": ""
   },
   "app/models.py": {
-    "mtime": 1794269918.034022,
-    "seen": 1794271572.9716635,
-    "ast_hash": "d57c0e1ed8c65738fb71504bb2741de7",
+    "mtime": 1794329244.4161818,
+    "seen": 1794329732.4654408,
+    "ast_hash": "c7647f8c1b06593c6e1675fb344fae83",
     "semantic_hash": ""
   },
   "app/routers/__init__.py": {
@@ -36,15 +36,15 @@
     "semantic_hash": "e7d92cac48bde5c71675b3b2351b79ca"
   },
   "app/routers/leads_router.py": {
-    "mtime": 1794316997.3521893,
-    "seen": 1794318843.6470463,
-    "ast_hash": "a794f1af3343296f29cc88ec97dffdb7",
+    "mtime": 1794329321.7055733,
+    "seen": 1794329732.4654474,
+    "ast_hash": "b4a63cf9b4934c9015331b706d168cf4",
     "semantic_hash": ""
   },
   "app/routers/outreach_router.py": {
-    "mtime": 1794270752.017825,
-    "seen": 1794271572.971671,
-    "ast_hash": "08ec18513654886f88e85d29a5cc8d1c",
+    "mtime": 1794329275.0144713,
+    "seen": 1794329732.4654489,
+    "ast_hash": "bc15a7ba2ec2c1d52534d247046b8557",
     "semantic_hash": ""
   },
   "app/services/__init__.py": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1794317154.4473102,
-    "seen": 1794318843.6470656,
-    "ast_hash": "938499c12d7d53c65e07011d7856c1ab",
+    "mtime": 1794329613.8762798,
+    "seen": 1794329732.465473,
+    "ast_hash": "497e494815435440ed6a0dcc621cd809",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1794328166.5957863,
-    "seen": 1794328233.2660336,
-    "ast_hash": "d0b484008b70e56a402ffa45e89fee9b",
+    "mtime": 1794329624.302542,
+    "seen": 1794329732.465487,
+    "ast_hash": "df0454764db7a072a9900dcae8fc6e05",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1794318865.4139771,
-    "seen": 1794328233.2660697,
-    "ast_hash": "014e75a8aa0c3cced4af14569618e1fc",
+    "mtime": 1794328249.3726923,
+    "seen": 1794329732.4655375,
+    "ast_hash": "8cdffdda944bfad5770c22f6b889fa14",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "app/static/index.html": {
-    "mtime": 1794328164.9131935,
-    "seen": 1794328233.2660708,
-    "ast_hash": "43b9af91f7083c773da42542514f95d1",
+    "mtime": 1794329618.8633616,
+    "seen": 1794329732.4655397,
+    "ast_hash": "377c054589b319633b3c78b7bb55d395",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
@@ -396,9 +396,9 @@
     "semantic_hash": ""
   },
   "app/services/deal_ranker.py": {
-    "mtime": 1794316997.2915037,
-    "seen": 1794318843.6470547,
-    "ast_hash": "b0be2bd2815a109bf9b421daefa62d34",
+    "mtime": 1794329271.0736434,
+    "seen": 1794329732.4654565,
+    "ast_hash": "010bcbea41359be6eeb46211edc2f458",
     "semantic_hash": ""
   },
   "scripts/rank_leads.py": {
@@ -408,15 +408,15 @@
     "semantic_hash": ""
   },
   "tests/test_deal_ranker.py": {
-    "mtime": 1794318721.8760924,
-    "seen": 1794318843.6470804,
-    "ast_hash": "abb28cf3bf920e6fc31849030bd2e794",
+    "mtime": 1794329545.4721324,
+    "seen": 1794329732.4654899,
+    "ast_hash": "8ebcca68505cfb5e78ad76a3324136be",
     "semantic_hash": ""
   },
   "app/static/analise.js": {
-    "mtime": 1794328163.548604,
-    "seen": 1794328233.266021,
-    "ast_hash": "5cf5b08206472e15bdbe7a2bdf947660",
+    "mtime": 1794329606.2965205,
+    "seen": 1794329732.4654715,
+    "ast_hash": "1fd120461804055db720a31e9d16b23b",
     "semantic_hash": ""
   }
 }

@@ -553,6 +553,163 @@ def compact_item(it: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Preparo de Fila em Lote (Semi-automático, nunca envia sem aprovação humana)
+# ---------------------------------------------------------------------------
+
+
+def prepare_queue_batch(
+    day: int = 1,
+    per_day: int = 20,
+    segment: Optional[str] = None,
+    tiers: Optional[Iterable[str]] = None,
+    only_missing_to_target: bool = False,
+    db_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Prepara um lote de leads elegíveis (`outreach_ready`) na fila `outreach_queue` com
+    `status='ready'`. Não dispara mensagens: aguarda confirmação na aba Agente & Fila.
+    """
+    from app.database import (
+        br_phone_variants,
+        enqueue_outreach,
+        list_leads,
+        list_outreach_queue,
+    )
+
+    queue = list_outreach_queue(limit=100000, db_path=db_path)
+    ready_now = sum(1 for q in queue if q.get("status") == "ready" and q.get("channel") == "whatsapp")
+    per_day = max(1, min(100, int(per_day or 20)))
+
+    if only_missing_to_target:
+        needed = max(0, per_day - ready_now)
+        if needed == 0:
+            return {
+                "enqueued_count": 0,
+                "queue_ids": [],
+                "lead_ids": [],
+                "ready_in_queue": ready_now,
+                "already_full": True,
+                "day": day,
+            }
+    else:
+        needed = per_day
+
+    queued_lead_ids: Set[int] = {int(q["lead_id"]) for q in queue if q.get("lead_id")}
+    queued_phones: Set[str] = set()
+    for q in queue:
+        if q.get("recipient"):
+            queued_phones.update(br_phone_variants(str(q["recipient"])))
+
+    leads = list_leads(limit=100000, db_path=db_path)
+    ranked = rank_leads(leads, contacted_lead_ids=queued_lead_ids)
+    pool = [r for r in ranked if not segment or r["segment"]["slug"] == segment]
+    allowed_tiers = [t.upper() for t in (tiers or ("A", "B", "C"))]
+    plan = build_outreach_plan(
+        pool,
+        per_day=per_day,
+        start_date=date.today() + timedelta(days=1),
+        tiers=allowed_tiers,
+    )
+
+    if only_missing_to_target:
+        candidates = [
+            r for r in pool
+            if r["outreach_ready"] and r["close_chance"]["tier"] in set(allowed_tiers)
+        ]
+        scheduled_for = plan[0]["date"] if plan else None
+    elif 1 <= day <= len(plan):
+        candidates = plan[day - 1]["leads"]
+        scheduled_for = plan[day - 1]["date"]
+    else:
+        candidates = []
+        scheduled_for = None
+
+    queue_ids: List[int] = []
+    lead_ids: List[int] = []
+    for it in candidates:
+        if len(queue_ids) >= needed:
+            break
+        lead = it["lead"]
+        phone = normalize_phone(lead)
+        variants = set(br_phone_variants(phone))
+        if not phone or variants.intersection(queued_phones):
+            continue
+
+        scripts = lead.get("outreach_scripts") or {}
+        if not isinstance(scripts, dict):
+            scripts = {}
+        body = (scripts.get("whatsapp") or "").strip()
+        if not body:
+            title = (lead.get("title") or "sua empresa").strip()
+            city = (lead.get("city") or "sua região").strip()
+            body = (
+                f"Oi, tudo bem? É da {title}?\n\n"
+                f"Vi o perfil de vocês aqui no Google em {city} e passei porque quem busca pelo serviço "
+                f"de vocês hoje não encontra um botão rápido pra chamar direto no WhatsApp.\n\n"
+                f"A gente ajuda negócios da região a captarem mais clientes particulares pelo Google todo dia. "
+                f"Faz sentido conversarmos rapidinho sobre isso?"
+            )
+
+        diag_ctx = dict(scripts.get("automation_payload") or {})
+        diag_ctx.setdefault("primary_pain", lead.get("primary_pain"))
+        diag_ctx.setdefault("recommended_service", lead.get("recommended_service"))
+        diag_ctx.setdefault("opportunity_score", lead.get("opportunity_score"))
+        diag_ctx["ranking"] = {
+            "rank": it["rank"],
+            "tier": it["close_chance"]["tier"],
+            "score": it["close_chance"]["score"],
+            "segment": it["segment"]["label"],
+            "price_alvo": it["price"]["alvo_text"],
+            "price_faixa": it["price"]["faixa_text"],
+        }
+
+        qid = enqueue_outreach(
+            lead_id=int(lead["id"]),
+            channel="whatsapp",
+            recipient=phone,
+            subject="",
+            message_body=body,
+            diagnostic_context=diag_ctx,
+            scheduled_for=scheduled_for,
+            db_path=db_path,
+        )
+        queue_ids.append(qid)
+        lead_ids.append(int(lead["id"]))
+        queued_phones.update(variants)
+
+    return {
+        "enqueued_count": len(queue_ids),
+        "queue_ids": queue_ids,
+        "lead_ids": lead_ids,
+        "ready_in_queue": ready_now + len(queue_ids),
+        "already_full": False,
+        "day": day,
+        "scheduled_for": scheduled_for,
+    }
+
+
+def auto_replenish_queue(db_path: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Se `auto_prepare_queue` estiver ativo nas configurações, completa a fila de aprovação
+    até `auto_prepare_batch_size` (padrão 20) com os melhores leads ainda não abordados.
+    """
+    from app.database import get_agent_settings
+
+    settings = get_agent_settings(db_path=db_path)
+    if not settings.get("auto_prepare_queue", True):
+        return {"enabled": False, "enqueued_count": 0}
+    batch_size = int(settings.get("auto_prepare_batch_size") or 20)
+    res = prepare_queue_batch(
+        day=1,
+        per_day=batch_size,
+        only_missing_to_target=True,
+        db_path=db_path,
+    )
+    res["enabled"] = True
+    return res
+
+
+# ---------------------------------------------------------------------------
 # Exportações
 # ---------------------------------------------------------------------------
 

@@ -18,7 +18,7 @@ def test_dashboard_html_and_assets_served(client):
     assert r_index.status_code == 200
     assert "no-cache" in r_index.headers.get("Cache-Control", "")
     html = r_index.text
-    assert "app.js?v=2.6.1" in html
+    assert "app.js?v=2.6.3" in html
     assert "Selecionar Nichos" in html
     assert "achar o negócio" in html.lower()
     assert "raio x do site atual" in html.lower()
@@ -132,7 +132,7 @@ def test_dashboard_analysis_view_elements_present(client):
     assert 'href="#analise"' in html
     assert 'id="view-analise"' in html
     assert 'id="view-analise-body"' in html
-    assert "analise.js?v=2.6.2" in html
+    assert "analise.js?v=2.6.3" in html
 
     r_css = client.get("/static/styles.css")
     assert r_css.status_code == 200
@@ -146,6 +146,12 @@ def test_dashboard_analysis_view_elements_present(client):
     assert "renderAnalysisView" in r_an.text
     assert "anSimulator" in r_an.text
     assert "anHistogram" in r_an.text
+    assert "/api/outreach/prepare-batch" in r_an.text
+    assert "anPreparePlanDay" in r_an.text
+
+    r_js = client.get("/static/app.js")
+    assert "skipQueueItem" in r_js.text
+    assert "replenishQueueBatch" in r_js.text
 
 
 

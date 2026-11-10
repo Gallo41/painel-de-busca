@@ -17,7 +17,9 @@ from app.models import (
     OutreachEnqueueRequest,
     OutreachStatusUpdate,
     QueueConfirmSendRequest,
+    QueuePrepareBatchRequest,
 )
+from app.services.deal_ranker import prepare_queue_batch
 from app.services.whatsapp_agent import confirm_and_send_queue_item
 
 router = APIRouter(prefix="/api/outreach", tags=["Outreach & Automação Futura"])
@@ -71,6 +73,22 @@ def api_enqueue_outreach(payload: OutreachEnqueueRequest) -> Dict[str, Any]:
             queue_ids.append(qid)
 
     return {"enqueued_count": len(queue_ids), "queue_ids": queue_ids}
+
+
+@router.post("/prepare-batch")
+def api_prepare_outreach_batch(payload: Optional[QueuePrepareBatchRequest] = None) -> Dict[str, Any]:
+    """
+    Prepara automaticamente o próximo lote de leads ranqueados (Dia 1..N) na fila `ready`,
+    respeitando apenas celular válido e sem repetir telefone/lead. Não dispara mensagens.
+    """
+    req = payload or QueuePrepareBatchRequest()
+    return prepare_queue_batch(
+        day=req.day,
+        per_day=req.per_day,
+        segment=req.segment,
+        tiers=req.tiers,
+        only_missing_to_target=req.only_missing_to_target,
+    )
 
 
 @router.get("/queue")

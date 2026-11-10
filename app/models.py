@@ -48,6 +48,17 @@ class OutreachEnqueueRequest(BaseModel):
     scheduled_for: Optional[str] = None
 
 
+class QueuePrepareBatchRequest(BaseModel):
+    day: int = Field(1, ge=1, le=60, description="Dia do plano de disparo (1 = próximos melhores)")
+    per_day: int = Field(20, ge=1, le=100, description="Tamanho do lote")
+    segment: Optional[str] = Field(None, description="Slug do nicho real (ex: odontologia)")
+    tiers: List[str] = Field(default_factory=lambda: ["A", "B", "C"])
+    only_missing_to_target: bool = Field(
+        False,
+        description="Se True, apenas completa a fila até atingir `per_day` itens ready",
+    )
+
+
 class OutreachClaimRequest(BaseModel):
     channel: str = "whatsapp"
     worker_id: str = "default-worker"
@@ -62,6 +73,8 @@ class OutreachStatusUpdate(BaseModel):
 class AgentSettingsUpdate(BaseModel):
     test_mode: Optional[bool] = None
     auto_send_enabled: Optional[bool] = None
+    auto_prepare_queue: Optional[bool] = None
+    auto_prepare_batch_size: Optional[int] = Field(None, ge=1, le=100)
     boss_phone: Optional[str] = None
     test_client_phone: Optional[str] = None
     attendant_name: Optional[str] = None

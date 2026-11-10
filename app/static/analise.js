@@ -11,6 +11,9 @@ const AN = {
   shown: 20,
   openId: null,
   startDate: "",
+  prepDay: 1,
+  prepBusy: false,
+  prepMsg: "",
   conv: (() => {
     try {
       const saved = JSON.parse(localStorage.getItem("painel_an_conv") || "null");
@@ -222,6 +225,60 @@ function anPlan(days) {
   return '<svg class="an-svg" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Plano de disparo por dia">' + g + "</svg>" + anLegend();
 }
 
+function anPlanControls(days, summary) {
+  const autoOn = summary.auto_prepare_queue !== false;
+  const qReady = Number(summary.queue_ready || 0);
+  const opts = days.map((d, i) => '<option value="' + d.day + '"' + (AN.prepDay === d.day ? " selected" : "") + ">Dia " + d.day + " (" + anPlanLabel(i) + " · " + d.count + " leads)</option>").join("");
+  return (
+    '<div class="an-prep-bar">' +
+    (days.length
+      ? '<select class="an-select" id="an-prep-day" onchange="AN.prepDay=Number(this.value)">' + opts + "</select>" +
+        '<button class="btn btn-sm btn-primary" type="button"' + (AN.prepBusy ? " disabled" : "") + ' onclick="anPreparePlanDay()">' +
+        (AN.prepBusy ? "Preparando…" : "🤖 Preparar Dia na Fila") + "</button>"
+      : "") +
+    '<a class="btn btn-sm" href="#agente">Ver e aprovar fila (' + qReady + ") →</a>" +
+    "</div>" +
+    '<label class="check an-auto-check"><input type="checkbox"' + (autoOn ? " checked" : "") + ' onchange="anToggleAutoPrepare(this.checked)"> Auto-preparar próximos leads após novas buscas (até ' + (summary.auto_prepare_batch_size || 20) + " aguardando aprovação, sem enviar)</label>" +
+    (AN.prepMsg ? '<div class="an-prep-msg">' + esc(AN.prepMsg) + ' <a href="#agente">Ir para Fila →</a></div>' : "")
+  );
+}
+
+async function anPreparePlanDay() {
+  if (AN.prepBusy) return;
+  AN.prepBusy = true;
+  AN.prepMsg = "";
+  renderAnalysisView();
+  try {
+    const res = await fetch("/api/outreach/prepare-batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ day: AN.prepDay || 1, per_day: 20 }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || "HTTP " + res.status);
+    AN.prepMsg = data.enqueued_count
+      ? data.enqueued_count + " lead(s) colocados na fila de aprovação (nada enviado ainda)."
+      : "Nenhum lead novo para preparar nesse lote (já estão na fila ou sem elegíveis).";
+    if (typeof loadHealthAndStats === "function") await loadHealthAndStats();
+    AN.prepBusy = false;
+    await loadAnalysis(true);
+    return;
+  } catch (e) {
+    AN.prepMsg = "Erro ao preparar fila: " + e.message;
+  }
+  AN.prepBusy = false;
+  renderAnalysisView();
+}
+
+async function anToggleAutoPrepare(enabled) {
+  await fetch("/api/agent/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ auto_prepare_queue: Boolean(enabled) }),
+  });
+  if (AN.data && AN.data.summary) AN.data.summary.auto_prepare_queue = Boolean(enabled);
+}
+
 function anSimulator() {
   const bt = AN.data.analytics.pipeline.by_tier;
   let totalClose = 0, totalRev = 0;
@@ -416,7 +473,7 @@ function renderAnalysisView() {
     '<section class="panel"><header><h3>Dor principal</h3></header><p class="meta">Por que o lead precisa de nós, e a nota média de cada dor.</p>' +
     anBars(a.by_pain, "count", "label", (r) => " · nota " + r.avg_score) + '<h3 class="an-sub">Canal de contato</h3>' +
     anBars(Object.keys(a.reach).map((k) => ({ label: AN_CHANNEL[k] || k, count: a.reach[k] })), "count", "label") + "</section></div>" +
-    '<div class="an-cols"><section class="panel"><header><h3>Plano de disparo (20 por dia útil)</h3></header><p class="meta">Melhores primeiro. Só entram prontos (celular, sem duplicata).</p>' + anPlan(a.plan_days) + "</section>" +
+    '<div class="an-cols"><section class="panel"><header><h3>Plano de disparo (20 por dia útil)</h3></header><p class="meta">Melhores primeiro. Só entram prontos (celular, sem duplicata).</p>' + anPlan(a.plan_days) + anPlanControls(a.plan_days, s) + "</section>" +
     '<section class="panel"><header><h3>Simulador de receita</h3></header>' + anSimulator() + "</section></div>" +
     '<section class="panel an-block"><header><h3>Ranking completo</h3></header><div id="an-table-box">' + anTable() + "</div></section>" +
     '<details class="panel an-block an-details"><summary><b>Metodologia: como ler estes números</b></summary>' + anMethodology(a.methodology) + "</details>";

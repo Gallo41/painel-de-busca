@@ -1177,12 +1177,16 @@ async function buildAgentFullDashboardHtml() {
 
   const st = settingsBundle.settings || {
     test_mode: true,
+    auto_prepare_queue: true,
+    auto_prepare_batch_size: 20,
     boss_phone: "551999958516",
     test_client_phone: "5519996109028",
   };
   const ai = settingsBundle.ai_status || {};
   const bridge = settingsBundle.bridge || {};
-  const readyCount = (items || []).filter((i) => i.status === "ready").length;
+  const visibleItems = (items || []).filter((i) => i.status !== "skipped");
+  const readyCount = visibleItems.filter((i) => i.status === "ready").length;
+  const batchTarget = Number(st.auto_prepare_batch_size || 20);
 
   const qrBlock = bridge.qr_data_url
     ? `<div class="agent-qr-box">
@@ -1191,7 +1195,7 @@ async function buildAgentFullDashboardHtml() {
        </div>`
     : `<div class="meta">Bridge WhatsApp: <strong>${bridge.connected ? "🟢 Conectado (" + esc(bridge.phone || "Online") + ")" : "⚪ Aguardando conexão QR (`cd whatsapp_bridge && npm start`)"}</strong> · IA (chave.env): <strong>${esc((ai.active_providers || ["Pronto"]).join(", "))}</strong></div>`;
 
-  const queueRowsHtml = (items || []).length
+  const queueRowsHtml = visibleItems.length
     ? `<table class="table-leads">
         <thead>
           <tr>
@@ -1202,27 +1206,38 @@ async function buildAgentFullDashboardHtml() {
             <th>Ação</th>
           </tr>
         </thead>
-        <tbody>${items
+        <tbody>${visibleItems
           .map((it) => {
             const destLabel = st.test_mode
               ? `🧪 Teste: ${esc(st.test_client_phone)} (Lead: ${esc(it.recipient)})`
               : `🚀 Real: ${esc(it.recipient)}`;
             const canSend = it.status === "ready" || it.status === "failed";
+            const rk = ((it.diagnostic_context || {}).ranking) || null;
+            const rkBadge = rk
+              ? `<div class="meta" style="margin-top:2px"><span class="pain-tag">Tier ${esc(rk.tier)} · Nota ${esc(rk.score)}</span> ${esc(rk.price_alvo || "")}</div>`
+              : "";
             return `<tr>
-              <td><strong>${esc(it.lead_title || "Empresa #" + it.lead_id)}</strong><br/><span class="meta">${esc(it.lead_city || "")}</span></td>
+              <td><strong>${esc(it.lead_title || "Empresa #" + it.lead_id)}</strong><br/><span class="meta">${esc(it.lead_city || "")}</span>${rkBadge}</td>
               <td>${esc(it.channel)}<br/><span class="meta">${destLabel}</span></td>
               <td><span class="pain-tag">${esc(it.status)}</span></td>
               <td style="white-space:pre-wrap;max-width:340px;font-size:12px">${esc(it.message_body)}</td>
               <td>
-                <button class="btn btn-sm ${canSend ? "btn-primary" : ""}" type="button" onclick="confirmAndSendQueueItem(${it.id})">
-                  ${it.status === "sent" ? "Reenviar 1ª Msg" : "✅ Confirmar e Iniciar"}
-                </button>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn btn-sm ${canSend ? "btn-primary" : ""}" type="button" onclick="confirmAndSendQueueItem(${it.id})">
+                    ${it.status === "sent" ? "Reenviar 1ª Msg" : "✅ Confirmar e Iniciar"}
+                  </button>
+                  ${
+                    it.status === "ready"
+                      ? `<button class="btn btn-sm" type="button" onclick="skipQueueItem(${it.id})" title="Remover da fila sem disparar">Pular</button>`
+                      : ""
+                  }
+                </div>
               </td>
             </tr>`;
           })
           .join("")}</tbody>
       </table>`
-    : `<div class="empty"><strong>A fila está vazia.</strong>Use o botão “🤖 Enviar p/ Fila do Agente” no detalhe de uma empresa para colocá-la na fila.</div>`;
+    : `<div class="empty"><strong>A fila está vazia.</strong>Clique em “🔄 Puxar lote (até ${batchTarget})” acima ou use a aba <a href="#analise">Análise de Leads</a>.</div>`;
 
   const convRowsHtml = (convs || []).length
     ? `<div class="agent-conv-list">
@@ -1310,15 +1325,26 @@ async function buildAgentFullDashboardHtml() {
         <button class="btn btn-sm" type="button" onclick="saveAgentPhonesConfig()">Salvar Números</button>
       </div>
       ${qrBlock}
+      <label class="check" style="margin-top:8px;">
+        <input type="checkbox" ${st.auto_prepare_queue !== false ? "checked" : ""} onchange="toggleAutoPrepareQueue(this.checked)" />
+        Auto-preparar novos leads na fila de aprovação (lote de até ${batchTarget}, sem enviar sozinho)
+      </label>
     </div>
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <div class="d-label" style="margin:0">1. Fila de Aprovação (${items.length} na fila · ${readyCount} prontos)</div>
-      ${
-        readyCount > 0
-          ? `<button class="btn btn-sm btn-primary" type="button" onclick="confirmAndSendAllReady()">🚀 Confirmar e Disparar Todos Prontos (${readyCount})</button>`
-          : ""
-      }
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+      <div class="d-label" style="margin:0">1. Fila de Aprovação (${visibleItems.length} na fila · ${readyCount} aguardando sua aprovação)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${
+          readyCount < batchTarget
+            ? `<button class="btn btn-sm" type="button" onclick="replenishQueueBatch(${batchTarget})">🔄 Puxar lote (até ${batchTarget})</button>`
+            : ""
+        }
+        ${
+          readyCount > 0
+            ? `<button class="btn btn-sm btn-primary" type="button" onclick="confirmAndSendAllReady(${readyCount})">🚀 Confirmar e Disparar Todos (${readyCount})</button>`
+            : ""
+        }
+      </div>
     </div>
     ${queueRowsHtml}
 
@@ -1364,8 +1390,36 @@ async function confirmAndSendQueueItem(queueId) {
   await refreshAgentViews();
 }
 
-async function confirmAndSendAllReady() {
+async function confirmAndSendAllReady(readyCount) {
+  if (!confirm(`Confirmar e disparar a 1ª mensagem para ${readyCount || "todos os"} leads prontos agora?`)) return;
   await fetch("/api/outreach/confirm-send-all", { method: "POST" });
+  await refreshAgentViews();
+}
+
+async function skipQueueItem(queueId) {
+  await fetch(`/api/outreach/${queueId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: "skipped" }),
+  });
+  await refreshAgentViews();
+}
+
+async function replenishQueueBatch(batchSize) {
+  await fetch("/api/outreach/prepare-batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ day: 1, per_day: batchSize || 20, only_missing_to_target: true }),
+  });
+  await refreshAgentViews();
+}
+
+async function toggleAutoPrepareQueue(enabled) {
+  await fetch("/api/agent/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ auto_prepare_queue: Boolean(enabled) }),
+  });
   await refreshAgentViews();
 }
 

@@ -160,17 +160,9 @@ def init_db(db_path: Optional[str] = None) -> None:
                 uazapi_token TEXT NOT NULL DEFAULT '',
                 debounce_seconds REAL NOT NULL DEFAULT 6.0,
                 pause_minutes_on_human INTEGER NOT NULL DEFAULT 60,
+                auto_prepare_queue INTEGER NOT NULL DEFAULT 1,
+                auto_prepare_batch_size INTEGER NOT NULL DEFAULT 20,
                 updated_at TEXT NOT NULL DEFAULT ''
-            );
-
-            INSERT OR IGNORE INTO agent_settings (
-                id, test_mode, auto_send_enabled, boss_phone, test_client_phone,
-                attendant_name, company_name, bridge_url, debounce_seconds,
-                pause_minutes_on_human, updated_at
-            ) VALUES (
-                1, 1, 0, '551999958516', '5519996109028',
-                'Léo', 'Estúdio Digital', 'http://127.0.0.1:3100', 6.0,
-                60, datetime('now')
             );
 
             CREATE TABLE IF NOT EXISTS agent_conversations (
@@ -242,6 +234,25 @@ def init_db(db_path: Optional[str] = None) -> None:
             );
 
             CREATE INDEX IF NOT EXISTS idx_prototypes_lead ON lead_prototypes(lead_id, id DESC);
+            """
+        )
+        # Migração segura de colunas adicionadas após a criação inicial da tabela
+        cols = {r["name"] for r in conn.execute("PRAGMA table_info(agent_settings)").fetchall()}
+        if "auto_prepare_queue" not in cols:
+            conn.execute("ALTER TABLE agent_settings ADD COLUMN auto_prepare_queue INTEGER NOT NULL DEFAULT 1")
+        if "auto_prepare_batch_size" not in cols:
+            conn.execute("ALTER TABLE agent_settings ADD COLUMN auto_prepare_batch_size INTEGER NOT NULL DEFAULT 20")
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO agent_settings (
+                id, test_mode, auto_send_enabled, boss_phone, test_client_phone,
+                attendant_name, company_name, bridge_url, debounce_seconds,
+                pause_minutes_on_human, auto_prepare_queue, auto_prepare_batch_size, updated_at
+            ) VALUES (
+                1, 1, 0, '551999958516', '5519996109028',
+                'Léo', 'Estúdio Digital', 'http://127.0.0.1:3100', 6.0,
+                60, 1, 20, datetime('now')
+            )
             """
         )
 
@@ -1193,6 +1204,8 @@ def get_agent_settings(db_path: Optional[str] = None) -> Dict[str, Any]:
     d = dict(row)
     d["test_mode"] = bool(d.get("test_mode", 1))
     d["auto_send_enabled"] = bool(d.get("auto_send_enabled", 0))
+    d["auto_prepare_queue"] = bool(d.get("auto_prepare_queue", 1))
+    d["auto_prepare_batch_size"] = int(d.get("auto_prepare_batch_size", 20) or 20)
     return d
 
 
@@ -1201,6 +1214,12 @@ def update_agent_settings(updates: Dict[str, Any], db_path: Optional[str] = None
     now = _now_iso()
     test_mode = 1 if updates.get("test_mode", current["test_mode"]) else 0
     auto_send = 1 if updates.get("auto_send_enabled", current["auto_send_enabled"]) else 0
+    auto_prepare = 1 if updates.get("auto_prepare_queue", current.get("auto_prepare_queue", True)) else 0
+    batch_size = max(1, min(100, int(
+        updates["auto_prepare_batch_size"]
+        if updates.get("auto_prepare_batch_size") is not None
+        else current.get("auto_prepare_batch_size", 20)
+    )))
     boss_phone = normalize_phone_digits(updates.get("boss_phone") or current["boss_phone"]) or "551999958516"
     test_client_phone = (
         normalize_phone_digits(updates.get("test_client_phone") or current["test_client_phone"]) or "5519996109028"
@@ -1236,6 +1255,8 @@ def update_agent_settings(updates: Dict[str, Any], db_path: Optional[str] = None
                 uazapi_token = ?,
                 debounce_seconds = ?,
                 pause_minutes_on_human = ?,
+                auto_prepare_queue = ?,
+                auto_prepare_batch_size = ?,
                 updated_at = ?
             WHERE id = 1
             """,
@@ -1251,6 +1272,8 @@ def update_agent_settings(updates: Dict[str, Any], db_path: Optional[str] = None
                 uazapi_token,
                 debounce_seconds,
                 pause_minutes,
+                auto_prepare,
+                batch_size,
                 now,
             ),
         )
