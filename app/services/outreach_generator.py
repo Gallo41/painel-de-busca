@@ -220,61 +220,61 @@ def generate_outreach_scripts(
     if pain == "SITE_FORA_DO_AR":
         wpp_msg = (
             f"Oi, tudo bem? Falo com alguém da {title}?\n\n"
-            f"Passei aqui só pra dar um toque rápido: fui abrir o site de vocês cadastrado no Google Maps e notei que a página não está abrindo (está dando erro fora do ar).\n\n"
-            f"Como muita gente procura por vocês no Google aqui em {city}, achei importante avisar pra vocês não perderem vendas e clientes. Vocês já estão sabendo dessa queda?\n\n"
-            f"Se precisarem de ajuda para restabelecer ou colocar uma página nova no ar rapidinho, me coloco à disposição!"
+            f"Vi a empresa de vocês aqui no Google em {city} e passei pra dar um toque rápido: fui clicar no site de vocês na ficha e a página tá fora do ar dando erro.\n\n"
+            f"Como o pessoal pesquisa muito por vocês na cidade, vocês estão perdendo clientes e vendas todo dia que tentam entrar e não conseguem chamar no WhatsApp.\n\n"
+            f"Eu montei uma estrutura de página rápida que coloca o atendimento de vocês de volta no ar hoje mesmo. Se precisarem de ajuda para restabelecer ou colocar uma página nova no ar rapidinho, me coloco à disposição!"
         )
         email_subject = f"Aviso rápido: Site da {title} no Google Maps está fora do ar"
         ig_dm = (
-            f"Olá pessoal da {title}! Vi a ficha de vocês no Google em {city} e reparei que o link do site lá está fora do ar. "
-            f"Achei legal avisar! Se precisarem de ajuda pra reativar ou subir uma página rápida, estou à disposição."
+            f"Opa pessoal da {title}! Vi a ficha de vocês no Google em {city} e reparei que o site tá dando erro fora do ar. "
+            f"Achei legal avisar pra não perderem cliente! Se precisarem subir uma página rápida, estou por aqui."
         )
     elif pain in ("SEM_SITE", "DOMINIO_LIVRE"):
         dom_line = (
-            f"Inclusive consultei no Registro.br e vi que o endereço oficial *{dom}* ainda está livre hoje para registrar no nome de vocês."
+            f"inclusive vi que até o endereço oficial *{dom}* tá liberado hoje pra registrar no nome de vocês, antes que algum concorrente pegue."
             if dom_free
-            else f"Reparei também que hoje quem clica no Google cai apenas em {cms if xray_data.get('is_social_only_url') else 'redes sociais'}, sem uma página própria oficial."
+            else f"reparei que quem clica no Google cai apenas em {cms if xray_data.get('is_social_only_url') else 'redes sociais'}, sem uma página oficial pra fechar na hora."
         )
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
-            f"{social_proof.capitalize()}, e reparei que vocês ainda não têm um site oficial próprio cadastrado na ficha.\n\n"
-            f"{dom_line}\n\n"
-            f"Eu trabalho com criação de sites e páginas rápidas focadas em atrair clientes direto pro WhatsApp. Montei um modelo de exemplo pensado pro segmento da {title}.\n\n"
+            f"Vi o perfil de vocês aqui no Google em {city}, nota {rating:.1f} inclusive, muito bacana! 👏\n\n"
+            f"Passei aqui porque hoje quem pesquisa pelo serviço de vocês na cidade não acha uma página rápida com botão direto pro WhatsApp. A maioria acaba indo pro concorrente só por causa disso.\n\n"
+            f"E {dom_line} Eu montei um modelo de página no celular focada em fazer o cliente entrar e já chamar direto no seu Whats pra fechar.\n\n"
             f"Posso te mandar o link aqui para você dar uma olhada sem compromisso?"
         )
         email_subject = (
-            f"Domínio {dom} disponível + Presença no Google para {title}"
+            f"Mais clientes no WhatsApp para {title} ({dom})"
             if dom_free
-            else f"Estrutura de Site Profissional para {title} ({city})"
+            else f"Mais clientes do Google no WhatsApp para {title} ({city})"
         )
         ig_dm = (
-            f"Oi pessoal da {title}! Vi o perfil de vocês no Google aqui em {city} e notei que vocês ainda não têm site oficial (e o domínio {dom} tá disponível). "
-            f"Posso te mandar um modelinho de exemplo sem compromisso?"
+            f"Opa pessoal da {title}! Vi o perfil top de vocês no Google em {city}. Notei que vocês não têm página própria levando direto pro Whats ({dom} tá livre). "
+            f"Posso te mandar uma prévia que montei sem compromisso?"
         )
     elif pain == "OPORTUNIDADE_SISTEMA" or service == "SISTEMA_COMPLEXO":
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
-            f"{social_proof.capitalize()}, e acompanho o destaque e o trabalho bacana de vocês aqui na região!\n\n"
-            f"Trabalho com desenvolvimento de sistemas e automações sob medida (como agendamento online, triagem e pedidos integrados direto no WhatsApp).\n\n"
-            f"Pelo porte e movimento da {title}, vi que daria pra economizar bastante tempo da equipe no atendimento do dia a dia.\n\n"
+            f"Acompanhei o destaque e as avaliações da empresa de vocês aqui em {city}, parabéns pelo movimento! 🔥\n\n"
+            f"Pelo volume que vocês têm, imagino que a equipe perca horas todo dia respondendo as mesmas dúvidas e agendando clientes na mão no WhatsApp.\n\n"
+            f"Eu crio sistemas e automações sob medida (como agendamento online e pedidos direto no Whats) focados em desafogar o atendimento e fazer o cliente fechar sozinho em 1 minuto.\n\n"
             f"Com quem eu conseguiria bater um papo rápido de 5 minutos sobre isso?"
         )
-        email_subject = f"Ideia de Automação & Sistema Sob Medida para {title}"
+        email_subject = f"Mais agilidade e agendamento automático para {title}"
         ig_dm = (
-            f"Oi pessoal da {title}! Acompanhei o destaque de vocês em {city} ({reviews} avaliações no Maps). Desenvolvemos sistemas e automações sob medida — "
-            f"com quem consigo falar sobre tecnologia e processos?"
+            f"Opa pessoal da {title}! Acompanhei o movimento de vocês em {city}. Desenvolvo sistemas e automações no WhatsApp pra desafogar atendimento e fechar agendamentos na hora — "
+            f"com quem consigo trocar uma ideia rápida?"
         )
     else:
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
-            f"{social_proof.capitalize()}, e dei uma olhadinha no site de vocês ({dom}).\n\n"
-            f"Notei 2 ou 3 detalhezinhos na navegação pelo celular que podem estar dificultando clientes de chamarem vocês no WhatsApp ({score_data.get('pain_summary', 'layout e velocidade')}).\n\n"
-            f"Separei umas dicas práticas e bem simples que vocês mesmos podem ajustar. Posso te mandar por aqui?"
+            f"Vi o perfil de vocês aqui no Google em {city} e dei uma olhadinha no site de vocês ({dom}) pelo celular.\n\n"
+            f"Notei 2 detalhezinhos na navegação mobile que estão fazendo clientes desistirem antes de chamar no WhatsApp ({score_data.get('pain_summary', 'layout e demora pra carregar')}). Ajustando isso, a conversão de novos clientes aumenta na hora.\n\n"
+            f"Separei umas dicas práticas e um exemplo rápido de como resolver. Posso te mandar por aqui?"
         )
-        email_subject = f"Dicas práticas para o site {dom} ({title})"
+        email_subject = f"Ideia prática para dobrar contatos no site {dom} ({title})"
         ig_dm = (
-            f"Oi pessoal da {title}! Dei uma olhada rápida no site {dom} e encontrei 2 ou 3 melhorias importantes de conversão mobile e botão de contato. "
-            f"Posso mandar as dicas rápidas por aqui?"
+            f"Opa pessoal da {title}! Dei uma olhada rápida no site {dom} pelo celular e notei 2 ajustes simples pra aumentar os contatos no WhatsApp. "
+            f"Posso mandar por aqui?"
         )
 
     email_body = (
