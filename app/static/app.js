@@ -114,9 +114,15 @@ async function initDashboard() {
 }
 
 function routeFromHash() {
-  const view = location.hash === "#ferramentas" ? "ferramentas" : "clientes";
-  $("view-clientes").hidden = view !== "clientes";
-  $("view-ferramentas").hidden = view !== "ferramentas";
+  const hash = location.hash;
+  let view = "clientes";
+  if (hash === "#ferramentas") view = "ferramentas";
+  else if (hash === "#agente" || hash === "#fila") view = "agente";
+
+  if ($("view-clientes")) $("view-clientes").hidden = view !== "clientes";
+  if ($("view-ferramentas")) $("view-ferramentas").hidden = view !== "ferramentas";
+  if ($("view-agente")) $("view-agente").hidden = view !== "agente";
+
   document.querySelectorAll("[data-nav]").forEach((a) => {
     if (a.dataset.nav === view) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
@@ -126,6 +132,8 @@ function routeFromHash() {
     const lead = ALL_LEADS.find((x) => x.id === state.selectedId) || CURRENT_LEADS[0];
     runEmbeddedMapsEngineCheck();
     if (lead) populateEmbeddedToolsFromLead(lead);
+  } else if (view === "agente") {
+    renderAgentDashboardView();
   }
 }
 
@@ -210,7 +218,30 @@ async function loadHealthAndStats() {
     const leadsEl = $("sidebar-total-leads");
     if (leadsEl) leadsEl.textContent = `${fmtInt(totalLeads)} empresas`;
 
-    $("btn-queue-count").textContent = fmtInt((data.stats || {}).outreach_queue_ready ?? 0);
+    const qReady = (data.stats || {}).outreach_queue_ready ?? 0;
+    if ($("btn-queue-count")) $("btn-queue-count").textContent = fmtInt(qReady);
+    if ($("agent-banner-queue-count")) $("agent-banner-queue-count").textContent = fmtInt(qReady);
+
+    fetch("/api/agent/settings")
+      .then((r) => r.json())
+      .then((bundle) => {
+        const st = bundle.settings || {};
+        const modeEl = $("agent-banner-mode");
+        if (modeEl) {
+          if (st.test_mode) {
+            modeEl.textContent = `Modo Teste: +${st.test_client_phone || "5519996109028"}`;
+            modeEl.className = "agent-test-pill";
+          } else {
+            modeEl.textContent = "Modo Produção: Disparos Reais";
+            modeEl.className = "agent-test-pill mode-prod";
+          }
+        }
+        const bossEl = $("agent-banner-boss");
+        if (bossEl) {
+          bossEl.textContent = `Chefe: +${st.boss_phone || "551999958516"}`;
+        }
+      })
+      .catch(() => {});
   } catch (err) {
     if ($("engine-badge")) {
       $("engine-badge").textContent = "Servidor offline";
@@ -861,6 +892,14 @@ function renderDecisionButtonsHtml(l) {
         ✅ Fechado
       </button>
     </div>
+    <div class="d-agent-action-bar">
+      <button type="button" class="btn btn-agent-enqueue" onclick="enqueueSingleLead(${l.id}, 'whatsapp')">
+        🤖 Enviar p/ Fila do Agente &amp; Negociar
+      </button>
+      <a href="#agente" class="btn btn-sm btn-agent-goto" title="Ver Central do Agente">
+        Ver Agente →
+      </a>
+    </div>
   </div>`;
 }
 
@@ -1100,14 +1139,31 @@ async function enqueueSelectedLeads(channel) {
 
 async function openQueueModal() {
   const body = $("queue-modal-body");
-  body.innerHTML = `<div class="empty">Carregando fila, configurações do Agente e conversas…</div>`;
+  if (body) body.innerHTML = `<div class="empty">Carregando fila, configurações do Agente e conversas…</div>`;
   $("queue-modal").classList.add("open");
-  await renderQueueModalContent();
+  await refreshAgentViews();
+}
+
+async function renderAgentDashboardView() {
+  const container = $("view-agente-body");
+  if (!container) return;
+  container.innerHTML = `<div class="empty">Carregando Central do Agente WhatsApp, Fila e Protótipos IA…</div>`;
+  const html = await buildAgentFullDashboardHtml();
+  container.innerHTML = html;
 }
 
 async function renderQueueModalContent() {
-  const body = $("queue-modal-body");
-  if (!body) return;
+  await refreshAgentViews();
+}
+
+async function refreshAgentViews() {
+  const html = await buildAgentFullDashboardHtml();
+  if ($("view-agente-body")) $("view-agente-body").innerHTML = html;
+  if ($("queue-modal-body")) $("queue-modal-body").innerHTML = html;
+  await loadHealthAndStats();
+}
+
+async function buildAgentFullDashboardHtml() {
   const [settingsBundle, items, convs, consultations] = await Promise.all([
     fetch("/api/agent/settings").then((r) => r.json()).catch(() => ({})),
     fetch("/api/outreach/queue").then((r) => r.json()).catch(() => []),
@@ -1162,7 +1218,7 @@ async function renderQueueModalContent() {
           })
           .join("")}</tbody>
       </table>`
-    : `<div class="empty"><strong>A fila está vazia.</strong>Use “Guardar na fila do robô” na Central de Contato de uma empresa para preparar o disparo.</div>`;
+    : `<div class="empty"><strong>A fila está vazia.</strong>Use o botão “🤖 Enviar p/ Fila do Agente” no detalhe de uma empresa para colocá-la na fila.</div>`;
 
   const convRowsHtml = (convs || []).length
     ? `<div class="agent-conv-list">
@@ -1227,7 +1283,7 @@ async function renderQueueModalContent() {
       </div>`
     : "";
 
-  body.innerHTML = `
+  return `
     <div class="agent-control-box" style="padding:12px;border:1px solid var(--border);border-radius:10px;margin-bottom:14px;">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
         <div>
@@ -1276,7 +1332,7 @@ async function toggleAgentTestMode(newTestMode) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ test_mode: Boolean(newTestMode) }),
   });
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function saveAgentPhonesConfig() {
@@ -1287,7 +1343,7 @@ async function saveAgentPhonesConfig() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ boss_phone: bossPhone, test_client_phone: testPhone }),
   });
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function confirmAndSendQueueItem(queueId) {
@@ -1301,14 +1357,12 @@ async function confirmAndSendQueueItem(queueId) {
     alert(data.detail || "Erro ao confirmar disparo.");
     return;
   }
-  await loadHealthAndStats();
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function confirmAndSendAllReady() {
   await fetch("/api/outreach/confirm-send-all", { method: "POST" });
-  await loadHealthAndStats();
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function toggleConversationPause(convId, shouldPause) {
@@ -1318,7 +1372,7 @@ async function toggleConversationPause(convId, shouldPause) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reason: "intervencao_manual_painel" }),
   });
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function simulateWebhookMessage(chatid, inputId) {
@@ -1340,7 +1394,7 @@ async function simulateWebhookMessage(chatid, inputId) {
     }),
   });
   if (el) el.value = "";
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function approvePriceFromModal(consultationId) {
@@ -1351,7 +1405,7 @@ async function approvePriceFromModal(consultationId) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ reply_text: replyText }),
   });
-  await renderQueueModalContent();
+  await refreshAgentViews();
 }
 
 async function generatePrototypeFromCard(leadId) {
@@ -1367,9 +1421,7 @@ async function generatePrototypeFromCard(leadId) {
   if (data && data.prototype && data.prototype.preview_url) {
     window.open(data.prototype.preview_url, "_blank", "noopener,noreferrer");
   }
-  if ($("queue-modal") && $("queue-modal").classList.contains("open")) {
-    await renderQueueModalContent();
-  }
+  await refreshAgentViews();
 }
 
 function closeQueueModal() {
@@ -1683,5 +1735,7 @@ window.toggleConversationPause = toggleConversationPause;
 window.simulateWebhookMessage = simulateWebhookMessage;
 window.approvePriceFromModal = approvePriceFromModal;
 window.generatePrototypeFromCard = generatePrototypeFromCard;
+window.renderAgentDashboardView = renderAgentDashboardView;
+window.refreshAgentViews = refreshAgentViews;
 
 window.addEventListener("DOMContentLoaded", initDashboard);

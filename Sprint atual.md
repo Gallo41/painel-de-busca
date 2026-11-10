@@ -44,6 +44,7 @@ Implementar o ecossistema completo de negociação ativa via WhatsApp baseado na
 | **80%** | 09/11/2026 21:38 | Micro-Bridge Node.js WhatsApp QR Code (`whatsapp_bridge/`) compatível com contrato UAZAPI e Central do Agente na UI (`index.html`, `app.js`, `styles.css`). | `whatsapp_bridge/package.json`, `whatsapp_bridge/server.js`, `app/static/index.html`, `app/static/app.js`, `app/static/styles.css`, `Sprint atual.md` |
 | **90%** | 09/11/2026 21:44 | Criação e aprovação da suíte de testes `tests/test_whatsapp_agent.py` (49/49 testes aprovados em 4.9s no `pytest`). | `tests/test_whatsapp_agent.py`, `app/services/whatsapp_agent.py`, `Sprint atual.md` |
 | **100%** | 09/11/2026 21:47 | Grafo AST atualizado via `graphify update .` (730 nós, 1754 arestas), validação final de testes e fechamento da Sprint em 100%. | `graphify-out/`, `Sprint atual.md`, `task.md` |
+| **Ajuste UX** | 09/11/2026 21:58 | Visualização em 1 clique: aba direta no menu lateral (`#agente`), faixa informativa de status no topo de Clientes e botão de envio rápido p/ fila do agente no card do lead. | `app/static/index.html`, `app/static/app.js`, `app/static/styles.css` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

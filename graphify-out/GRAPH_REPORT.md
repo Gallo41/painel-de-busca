@@ -1,24 +1,24 @@
 # Graph Report - Painel de Busca  (2026-11-09)
 
 ## Corpus Check
-- 62 files · ~54,958 words
+- 62 files · ~55,287 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 7 file(s) not represented in the graph (top: .bat 4, (none) 1, .ico 1)
 
 ## Summary
-- 730 nodes · 1754 edges · 46 communities (36 shown, 10 thin omitted)
+- 733 nodes · 1760 edges · 53 communities (43 shown, 10 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 47 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0b17dc99`
+- Built from commit: `1c84f01e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - Site X-Ray & Tech Stack
 - Google Maps Scraper Engine
-- Business Discovery & RDAP
+- app.js
 - Site X-Ray & Tech Stack
 - leads_router.py
 - 🚀 Guia de Instalação e Uso Rápido — Painel de Busca
@@ -32,7 +32,7 @@
 - Cluster 13: git-auto-sync.ps1
 - README Painel de Busca
 - Sprint Atual
-- test_installer_integrity.py
+- esc
 - Empresa de agentes do Painel de Busca
 - analista
 - atendente
@@ -56,6 +56,13 @@
 - api_create_and_run_job
 - check_scraper_engine_health
 - api_tool_delete_maps_job
+- renderRows
+- renderDetail
+- api_tool_discover_companies_by_cnae
+- bindShortcuts
+- loadHealthAndStats
+- loadLeads
+- initDashboard
 
 ## God Nodes (most connected - your core abstractions)
 1. `get_connection()` - 44 edges
@@ -72,39 +79,39 @@
 ## Surprising Connections (you probably didn't know these)
 - `2.3. Motor do Agente WhatsApp (`app/services/whatsapp_agent.py`)` --references--> `moeda_br()`  [INFERRED]
   docs/superpowers/specs/2026-11-09-whatsapp-agent-prototype-design.md → app/services/whatsapp_agent.py
-- `test_build_casadosdados_links()` --calls--> `build_casadosdados_links()`  [INFERRED]
-  tests/test_business_discovery.py → app/services/business_discovery.py
 - `test_is_social_or_directory_url()` --calls--> `is_social_or_directory_url()`  [INFERRED]
   tests/test_business_discovery.py → app/services/business_discovery.py
 - `test_suggest_domain_br_strips_accents_and_stopwords()` --calls--> `suggest_domain_br()`  [INFERRED]
   tests/test_business_discovery.py → app/services/business_discovery.py
 - `test_check_site_availability_and_ssl_offline_domain()` --calls--> `check_site_availability_and_ssl()`  [INFERRED]
   tests/test_business_discovery.py → app/services/business_discovery.py
+- `test_build_casadosdados_links()` --calls--> `build_casadosdados_links()`  [INFERRED]
+  tests/test_business_discovery.py → app/services/business_discovery.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (46 total, 10 thin omitted)
+## Communities (53 total, 10 thin omitted)
 
 ### Community 0 - "Site X-Ray & Tech Stack"
 Cohesion: 0.07
-Nodes (30): check_registro_br_availability(), check_site_availability_and_ssl(), _default_http_get(), discover_companies_by_cnae_and_city(), extract_hostname(), format_cnpj(), is_social_or_directory_url(), lookup_cnpj_embedded() (+22 more)
+Nodes (30): api_check_registro_br(), check_registro_br_availability(), check_site_availability_and_ssl(), _default_http_get(), discover_companies_by_cnae_and_city(), extract_hostname(), format_cnpj(), is_social_or_directory_url() (+22 more)
 
 ### Community 1 - "Google Maps Scraper Engine"
-Cohesion: 0.08
-Nodes (19): main(), open_browser(), collect_keywords(), contact_links(), enrich_emails(), work(), enrich_socials(), work() (+11 more)
+Cohesion: 0.07
+Nodes (24): main(), open_browser(), collect_keywords(), contact_links(), dedupe(), enrich_emails(), work(), enrich_socials() (+16 more)
 
-### Community 2 - "Business Discovery & RDAP"
-Cohesion: 0.05
-Nodes (88): ALL_LEADS, ALL_NICHES, applyFilters(), applyQuickTab(), approvePriceFromModal(), bindShortcuts(), buildPaginationButtons(), checkQuickDomain() (+80 more)
+### Community 2 - "app.js"
+Cohesion: 0.09
+Nodes (27): ALL_LEADS, ALL_NICHES, applyQuickTab(), approvePriceFromModal(), clearAllFilters(), confirmAndSendAllReady(), confirmAndSendQueueItem(), CURRENT_LEADS (+19 more)
 
 ### Community 3 - "Site X-Ray & Tech Stack"
 Cohesion: 0.11
 Nodes (48): claim_next_outreach(), create_or_activate_agent_conversation(), create_price_consultation(), create_search_job(), deduplicate_existing_leads_db(), delete_agent_messages_after(), _deserialize_conversation(), _deserialize_job() (+40 more)
 
 ### Community 4 - "leads_router.py"
-Cohesion: 0.13
-Nodes (19): api_check_registro_br(), api_create_manual_lead(), api_get_lead(), api_import_csv(), api_list_jobs(), api_list_leads(), api_list_niches(), api_reanalyze_lead() (+11 more)
+Cohesion: 0.17
+Nodes (15): api_casadosdados_links(), api_get_executive_summary(), api_get_lead(), api_health(), api_list_jobs(), api_list_leads(), api_list_niches(), api_tool_lookup_cnpj() (+7 more)
 
 ### Community 5 - "🚀 Guia de Instalação e Uso Rápido — Painel de Busca"
 Cohesion: 0.22
@@ -115,8 +122,8 @@ Cohesion: 0.06
 Nodes (17): score_and_classify_lead(), client(), client(), test_score_lead_for_complex_system_expansion(), test_score_lead_with_offline_website(), test_score_lead_without_website_and_free_domain(), client(), test_live_maps_scrape_piracicaba_utf8_safe() (+9 more)
 
 ### Community 7 - "maps_scraper.py"
-Cohesion: 0.13
-Nodes (17): build_keywords_for_job(), _clean_maps_address(), generate_sample_leads_for_niches(), geocode_city_embedded(), harvest_completed_docker_jobs_for_city(), infer_niche_slug_from_row(), normalize_whatsapp_br(), parse_csv_content_to_leads() (+9 more)
+Cohesion: 0.17
+Nodes (15): build_keywords_for_job(), _clean_maps_address(), generate_sample_leads_for_niches(), geocode_city_embedded(), harvest_completed_docker_jobs_for_city(), infer_niche_slug_from_row(), normalize_whatsapp_br(), parse_csv_content_to_leads() (+7 more)
 
 ### Community 8 - "Regra Mandatória: Commit e Sincronização Automática com GitHub"
 Cohesion: 0.50
@@ -142,9 +149,9 @@ Nodes (5): 1. Registro Obrigatório no Início da Tarefa / Sprint, 2. Checkpoint
 Cohesion: 0.33
 Nodes (5): 📋 Checklist de Progresso Obrigatório (Regra dos 10%), 📝 Diário de Bordo & Checkpoints Salvos (10% em 10%), 🎯 Objetivo da Sprint, Próximo passo, Sprint Atual: Embutir as 8 Ferramentas Nativamente no Painel (Zero Links Externos) & Motor Docker Ativo
 
-### Community 22 - "test_installer_integrity.py"
-Cohesion: 0.70
-Nodes (3): test_gitignore_protects_binaries_and_builds(), test_installer_assets_exist(), test_installer_scripts_contain_key_routines()
+### Community 22 - "esc"
+Cohesion: 0.25
+Nodes (14): buildAgentFullDashboardHtml(), checkQuickDomain(), esc(), openManualLeadModal(), populateEmbeddedToolsFromLead(), renderAgentDashboardView(), renderAll4RightColumnScanners(), renderRegistroBrBox() (+6 more)
 
 ### Community 23 - "Empresa de agentes do Painel de Busca"
 Cohesion: 0.22
@@ -203,7 +210,7 @@ Cohesion: 0.40
 Nodes (4): Aplicação observada, Camada de agentes, Contexto, Git e Graphify, Mapa do projeto
 
 ### Community 38 - "whatsapp_agent.py"
-Cohesion: 0.07
+Cohesion: 0.08
 Nodes (44): append_agent_message(), br_phone_variants(), get_active_conversation_by_chatid(), get_agent_conversation(), get_agent_settings(), list_agent_messages(), normalize_phone_digits(), phones_match_br() (+36 more)
 
 ### Community 39 - "agent_router.py"
@@ -215,8 +222,8 @@ Cohesion: 0.07
 Nodes (32): express, pino, qrcode, qrcode-terminal, @whiskeysockets/baileys, dependencies, express, pino (+24 more)
 
 ### Community 41 - "outreach_generator.py"
-Cohesion: 0.22
-Nodes (9): api_get_executive_summary(), build_executive_summary_report(), build_ready_report_for_lead(), generate_outreach_scripts(), process_and_save_lead(), test_generate_outreach_scripts_for_complex_system(), test_generate_outreach_scripts_for_missing_site_and_free_domain(), test_generate_outreach_scripts_humanized_tone_all_scenarios() (+1 more)
+Cohesion: 0.24
+Nodes (8): build_executive_summary_report(), build_ready_report_for_lead(), generate_outreach_scripts(), process_and_save_lead(), test_generate_outreach_scripts_for_complex_system(), test_generate_outreach_scripts_for_missing_site_and_free_domain(), test_generate_outreach_scripts_humanized_tone_all_scenarios(), test_process_and_save_lead_pipeline()
 
 ### Community 42 - "2. Arquitetura Técnica e Componentes"
 Cohesion: 0.18
@@ -224,11 +231,39 @@ Nodes (10): 1. Visão Geral e Objetivos, 2.1. Persistência SQLite (`app/databas
 
 ### Community 43 - "api_create_and_run_job"
 Cohesion: 0.22
-Nodes (6): api_casadosdados_links(), api_create_and_run_job(), build_casadosdados_links(), process_leads_batch(), _one(), db_path()
+Nodes (6): api_create_and_run_job(), build_casadosdados_links(), process_leads_batch(), _one(), test_build_casadosdados_links(), db_path()
 
 ### Community 44 - "check_scraper_engine_health"
-Cohesion: 0.22
-Nodes (5): api_health(), api_start_engine(), check_scraper_engine_health(), list_engine_jobs(), start_scraper_engine_docker()
+Cohesion: 0.25
+Nodes (4): api_start_engine(), check_scraper_engine_health(), list_engine_jobs(), start_scraper_engine_docker()
+
+### Community 46 - "renderRows"
+Cohesion: 0.36
+Nodes (12): applyFilters(), hasNoSite(), isContacted(), labelStatus(), normStatus(), quickUpdateLeadStatus(), renderDecisionButtons(), renderDecisionButtonsHtml() (+4 more)
+
+### Community 47 - "renderDetail"
+Cohesion: 0.25
+Nodes (11): cleanWhatsAppNumber(), enqueueSelectedLeads(), fmtRating(), markLeadContacted(), offerOf(), openLeadModal(), openWhatsApp(), readyReportOf() (+3 more)
+
+### Community 48 - "api_tool_discover_companies_by_cnae"
+Cohesion: 0.25
+Nodes (6): api_create_manual_lead(), api_import_csv(), api_reanalyze_lead(), api_tool_discover_companies_by_cnae(), CnpjDiscoverRequest, CsvImportRequest
+
+### Community 49 - "bindShortcuts"
+Cohesion: 0.25
+Nodes (9): bindShortcuts(), closeDetailOverlay(), closeLeadModal(), closeQueueModal(), goToPage(), moveSelection(), onPageSizeChange(), selectLead() (+1 more)
+
+### Community 50 - "loadHealthAndStats"
+Cohesion: 0.40
+Nodes (6): buildPaginationButtons(), enqueueSingleLead(), fmtInt(), loadHealthAndStats(), renderPagination(), runSearchJob()
+
+### Community 51 - "loadLeads"
+Cohesion: 0.40
+Nodes (6): closeManualModal(), loadLeads(), renderError(), runEmbeddedCnpjLookup(), submitCsvImport(), submitManualLead()
+
+### Community 52 - "initDashboard"
+Cohesion: 0.33
+Nodes (6): initDashboard(), initTheme(), loadNiches(), renderNichesGrid(), renderSkeleton(), selectAllNiches()
 
 ## Knowledge Gaps
 - **2 isolated node(s):** `README Painel de Busca`, `Sprint Atual`
@@ -243,12 +278,12 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `README Painel de Busca`, `Sprint Atual` to the rest of the system?**
   _2 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Site X-Ray & Tech Stack` be split into smaller, more focused modules?**
-  _Cohesion score 0.07402597402597402 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07138535995160314 - nodes in this community are weakly interconnected._
 - **Why does `moeda_br()` connect `whatsapp_agent.py` to `2. Arquitetura Técnica e Componentes`?**
   _High betweenness centrality (0.020) - this node is a cross-community bridge._
 - **Should `Google Maps Scraper Engine` be split into smaller, more focused modules?**
-  _Cohesion score 0.07897793263646923 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0660377358490566 - nodes in this community are weakly interconnected._
 - **Why does `2.3. Motor do Agente WhatsApp (`app/services/whatsapp_agent.py`)` connect `2. Arquitetura Técnica e Componentes` to `whatsapp_agent.py`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Should `Business Discovery & RDAP` be split into smaller, more focused modules?**
-  _Cohesion score 0.05128779395296752 - nodes in this community are weakly interconnected._
+- **Should `app.js` be split into smaller, more focused modules?**
+  _Cohesion score 0.0873440285204991 - nodes in this community are weakly interconnected._

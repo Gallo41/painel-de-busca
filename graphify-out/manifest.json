@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1794271103.6230764,
-    "seen": 1794271572.9716895,
-    "ast_hash": "0ad915e9380038ab67ce8ef70e179a24",
+    "mtime": 1794272237.387985,
+    "seen": 1794272268.6888766,
+    "ast_hash": "e779872816e59a2ada68dccc2c28be5f",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1794271502.2531662,
-    "seen": 1794271572.9717417,
-    "ast_hash": "19b5e462b125e960bb4c2c2fba172add",
+    "mtime": 1794271650.1668274,
+    "seen": 1794272268.68893,
+    "ast_hash": "d338b3b122eaba041b096143e4ec4d15",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "app/static/index.html": {
-    "mtime": 1794271015.8467088,
-    "seen": 1794271572.9717429,
-    "ast_hash": "b1acb228abeafe9a2a29077293e11ea2",
+    "mtime": 1794272105.866652,
+    "seen": 1794272268.6889312,
+    "ast_hash": "f01307f5e60043183b90045cb213a670",
     "semantic_hash": ""
   },
   "docker-compose.yml": {

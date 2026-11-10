@@ -32,15 +32,15 @@
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 7a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM1.5 13.5c0-2.2 1.8-4 4-4s4 1.8 4 4M11 6.5a1.9 1.9 0 100-3.8M11.5 9.6c1.7.3 3 1.8 3 3.9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           Clientes
         </a>
+        <a class="nav-item" href="#agente" data-nav="agente">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9l2-5.5h8L14 9v4H2V9zm0 0h3.5l.7 1.5h3.6L10.5 9H14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+          🤖 Agente &amp; Fila
+          <span class="nav-count num" id="btn-queue-count">0</span>
+        </a>
         <a class="nav-item" href="#ferramentas" data-nav="ferramentas">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5a3 3 0 00-2.8 4L2.5 11.7a1.2 1.2 0 001.8 1.8L9.5 8.3a3 3 0 004-2.8l-1.8 1.8-1.7-.4-.4-1.7 1.8-1.7z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
           Ferramentas
         </a>
-        <button class="nav-item" type="button" onclick="openQueueModal()">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9l2-5.5h8L14 9v4H2V9zm0 0h3.5l.7 1.5h3.6L10.5 9H14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
-          Fila do robô
-          <span class="nav-count num" id="btn-queue-count">0</span>
-        </button>
       </nav>
 
       <!-- Nova busca -->
@@ -130,6 +130,18 @@
               <span class="stamp" id="stamp"></span>
               <button class="btn btn-sm" type="button" onclick="window.print()">Imprimir relatório</button>
               <a class="btn btn-sm" href="/api/outreach/export?format=csv" download>Baixar planilha</a>
+            </div>
+          </div>
+
+          <!-- Faixa Agente WhatsApp & Fila -->
+          <div class="agent-banner-strip" id="agent-banner-strip">
+            <div class="agent-banner-info">
+              <span class="agent-badge">🤖 Agente WhatsApp</span>
+              <span class="agent-test-pill" id="agent-banner-mode">Modo Teste: +55 19 99610-9028</span>
+              <span class="agent-boss-label" id="agent-banner-boss">Chefe: +551999958516</span>
+            </div>
+            <div class="agent-banner-actions">
+              <a href="#agente" class="btn btn-sm btn-primary">Abrir Central do Agente &amp; Fila (<span id="agent-banner-queue-count">0</span>)</a>
             </div>
           </div>
 
@@ -353,6 +365,20 @@
               </div>
             </div>
           </div>
+        </section>
+
+        <!-- ============ VISÃO: AGENTE WHATSAPP & FILA ============ -->
+        <section id="view-agente" class="view" hidden>
+          <div class="title-row">
+            <div>
+              <h1>🤖 Agente WhatsApp, Fila &amp; Protótipos IA</h1>
+              <p class="sub">Automação de negociação inspirada na skill Barbeiro, aprovação de preços no seu WhatsApp (+551999958516) e fábrica de protótipos.</p>
+            </div>
+            <div class="title-actions">
+              <a href="#clientes" class="btn btn-sm">← Voltar para Clientes</a>
+            </div>
+          </div>
+          <div id="view-agente-body"></div>
         </section>
       </main>
     </div>
