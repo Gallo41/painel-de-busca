@@ -220,51 +220,46 @@ def generate_outreach_scripts(
     if pain == "SITE_FORA_DO_AR":
         wpp_msg = (
             f"Oi, tudo bem? Falo com alguém da {title}?\n\n"
-            f"Vi a empresa de vocês aqui no Google em {city} e passei pra dar um toque rápido: fui clicar no site de vocês na ficha e a página tá fora do ar dando erro.\n\n"
-            f"Como o pessoal pesquisa muito por vocês na cidade, vocês estão perdendo clientes e vendas todo dia que tentam entrar e não conseguem chamar no WhatsApp.\n\n"
-            f"Eu montei uma estrutura de página rápida que coloca o atendimento de vocês de volta no ar hoje mesmo. Se precisarem de ajuda para restabelecer ou colocar uma página nova no ar rapidinho, me coloco à disposição!"
+            f"Fui abrir o site de vocês aqui pelo Google em {city} e ele tá fora do ar dando erro, aí quem pesquisa acaba indo pro lado.\n\n"
+            f"Se quiserem ajuda pra subir uma página rápida pro WhatsApp pra não perder esses contatos, me avisa por aqui."
         )
         email_subject = f"Aviso rápido: Site da {title} no Google Maps está fora do ar"
         ig_dm = (
-            f"Opa pessoal da {title}! Vi a ficha de vocês no Google em {city} e reparei que o site tá dando erro fora do ar. "
-            f"Achei legal avisar pra não perderem cliente! Se precisarem subir uma página rápida, estou por aqui."
+            f"Oi pessoal da {title}, tudo bem? Fui abrir o site de vocês pelo Google em {city} e vi que tá fora do ar. "
+            f"Avisei pra não perderem cliente por isso — se quiserem ajuda pra subir uma página rápida pro Whats, só chamar."
         )
     elif pain in ("SEM_SITE", "DOMINIO_LIVRE"):
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
-            f"Vi o perfil de vocês aqui no Google em {city}, nota {rating:.1f} inclusive, muito bacana! 👏\n\n"
-            f"Passei aqui porque hoje quem pesquisa pelo serviço de vocês na cidade não acha uma forma rápida de agendar ou tirar dúvidas direto no WhatsApp. A maioria acaba indo pro concorrente que aparece com botão direto.\n\n"
-            f"A gente ajuda empresas e consultórios da região a lotarem o WhatsApp de clientes particulares que pesquisam no Google todo dia.\n\n"
-            f"Vocês teriam interesse em receber mais clientes particulares chamando no Whats todo dia, ou a agenda já tá 100% cheia?"
+            f"Vi vocês aqui no Google em {city} e reparei que hoje quem pesquisa pelo serviço não acha um botão rápido pra chamar direto no WhatsApp. "
+            f"A gente ajuda empresas da região a puxar mais clientes particulares pro Whats sem perder procura pro concorrente.\n\n"
+            f"Vocês têm interesse em aumentar esses contatos ou a agenda já tá cheia?"
         )
         email_subject = f"Mais clientes do Google no WhatsApp para {title} ({city})"
         ig_dm = (
-            f"Opa pessoal da {title}! Vi o perfil top de vocês no Google em {city}. "
-            f"Vocês teriam interesse em receber mais clientes particulares chamando no Whats todo dia, ou a agenda já tá cheia?"
+            f"Oi pessoal da {title}, tudo bem? Vi vocês no Google em {city}. "
+            f"Vocês têm interesse em puxar mais clientes particulares do Google direto pro WhatsApp ou a agenda já tá cheia?"
         )
     elif pain == "OPORTUNIDADE_SISTEMA" or service == "SISTEMA_COMPLEXO":
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
-            f"Acompanhei o destaque e as avaliações da empresa de vocês aqui em {city}, parabéns pelo movimento! 🔥\n\n"
-            f"Pelo volume que vocês têm, imagino que a equipe perca horas todo dia respondendo as mesmas dúvidas e agendando clientes na mão no WhatsApp.\n\n"
-            f"Eu crio sistemas e automações sob medida (como agendamento online e pedidos direto no Whats) focados em desafogar o atendimento e fazer o cliente fechar sozinho em 1 minuto.\n\n"
-            f"Com quem eu conseguiria bater um papo rápido de 5 minutos sobre isso?"
+            f"Vi o movimento de vocês aqui no Google em {city}. Pelo volume de atendimentos, eu monto sistemas e automações no WhatsApp pra agilizar agenda e orçamento sem a equipe perder tempo respondendo tudo na mão.\n\n"
+            f"Com quem eu consigo trocar uma ideia rápida de 5 min sobre isso?"
         )
         email_subject = f"Mais agilidade e agendamento automático para {title}"
         ig_dm = (
-            f"Opa pessoal da {title}! Acompanhei o movimento de vocês em {city}. Desenvolvo sistemas e automações no WhatsApp pra desafogar atendimento e fechar agendamentos na hora — "
+            f"Oi pessoal da {title}, tudo bem? Vi o movimento de vocês em {city}. Monto sistemas e automações no WhatsApp pra agilizar atendimento e agendamento — "
             f"com quem consigo trocar uma ideia rápida?"
         )
     else:
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
-            f"Vi o perfil de vocês aqui no Google em {city} e dei uma olhadinha no site de vocês ({dom}) pelo celular.\n\n"
-            f"Notei 2 detalhezinhos na navegação mobile que estão fazendo clientes desistirem antes de chamar no WhatsApp ({score_data.get('pain_summary', 'layout e demora pra carregar')}). Ajustando isso, a conversão de novos clientes aumenta na hora.\n\n"
-            f"Separei umas dicas práticas e um exemplo rápido de como resolver. Posso te mandar por aqui?"
+            f"Dei uma olhada no site de vocês ({dom}) pelo celular aqui em {city} e vi uns pontos simples que fazem gente desistir antes de chamar no WhatsApp. "
+            f"Separei umas dicas rápidas de como melhorar isso. Posso te mandar por aqui?"
         )
-        email_subject = f"Ideia prática para dobrar contatos no site {dom} ({title})"
+        email_subject = f"Ideia prática para aumentar contatos no site {dom} ({title})"
         ig_dm = (
-            f"Opa pessoal da {title}! Dei uma olhada rápida no site {dom} pelo celular e notei 2 ajustes simples pra aumentar os contatos no WhatsApp. "
+            f"Oi pessoal da {title}! Dei uma olhada no site {dom} pelo celular e vi uns ajustes simples pra aumentar os contatos no WhatsApp. "
             f"Posso mandar por aqui?"
         )
 

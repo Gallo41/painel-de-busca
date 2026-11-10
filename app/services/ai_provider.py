@@ -207,13 +207,14 @@ def call_llm_chat(
     for or_key in keys["openrouter_keys"][:1]:
         for model, extra in or_candidates:
             try:
+                effective_tokens = max_tokens if extra else max(max_tokens, 450)
                 res = _call_openai_compatible(
                     "https://openrouter.ai/api/v1/chat/completions",
                     or_key,
                     model,
                     full_messages,
                     temperature,
-                    max(max_tokens, 600),
+                    effective_tokens,
                     min(max(timeout_sec, 8.0), 10.0),
                     extra_fields=extra,
                 )

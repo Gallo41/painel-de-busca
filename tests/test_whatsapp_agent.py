@@ -368,3 +368,52 @@ def test_empty_sync_and_unrelated_chats_never_pause_and_boss_selfchat_works(agen
     assert r_boss_self.status_code == 200
     assert r_boss_self.json()["from_boss"] is True
     assert r_boss_self.json()["action"] == "price_forwarded_to_client"
+
+
+def test_limpar_texto_whatsapp_removes_robotic_ai_style_and_jargon():
+    from app.services.whatsapp_agent import limpar_texto_whatsapp
+
+    robotic = (
+        "Hahaha, beleza! 😂 Entendi, esses aí são só testes mesmo. 👍 "
+        "Pra gente montar a página com o domínio clinica.com.br (livre no Registro.br), "
+        "a gente monta a estrutura com:\n"
+        "1. Header com o nome da doutora e CTA verde.\n"
+        "2. Section de serviços destacando Limpeza.\n"
+        "3. Section de depoimentos.\n"
+        "4. Footer com endereço. Agora, pra fechar, preciso saber: Vocês já têm fotos?"
+    )
+    cleaned = limpar_texto_whatsapp(robotic)
+    low = cleaned.lower()
+    assert "hahaha" not in low
+    assert "😂" not in cleaned and "👍" not in cleaned
+    assert "header" not in low
+    assert "section" not in low
+    assert "footer" not in low
+    assert "registro.br" not in low
+    assert "1." not in cleaned and "2." not in cleaned and "3." not in cleaned
+    assert len(cleaned) <= 380
+
+
+def test_close_deal_reply_sounds_human_not_ai(agent_client: TestClient):
+    lead_id = _create_sample_lead(agent_client)
+    queue_id = agent_client.post(
+        "/api/outreach/enqueue", json={"lead_ids": [lead_id], "channels": ["whatsapp"]}
+    ).json()["queue_ids"][0]
+    agent_client.post(f"/api/outreach/{queue_id}/confirm-send", json={})
+    r = agent_client.post(
+        "/api/agent/webhook?immediate=true",
+        json={
+            "EventType": "messages",
+            "message": {
+                "fromMe": False,
+                "isGroup": False,
+                "type": "text",
+                "chatid": "5519996109028@s.whatsapp.net",
+                "text": "Fechado, pode montar o rascunho!",
+            },
+        },
+    )
+    assert r.status_code == 200
+    reply = r.json()["reply"]
+    assert "inteligência" not in reply.lower()
+    assert "rascunho" in reply.lower() or "prévia" in reply.lower()

@@ -141,18 +141,45 @@ def bloco_de_datas(tz_name: str = "America/Sao_Paulo") -> str:
     return f"Agora são {hora_str}. Próximos dias:\n" + "\n".join(linhas)
 
 
-def limpar_texto_whatsapp(texto: str) -> str:
+_AI_OPENER_RE = re.compile(
+    r"^(?:hahaha[,!\s]*beleza|hahaha|perfeito|claro|que\s+legal|com\s+certeza|sem\s+problema|"
+    r"show\s+de\s+bola|excelente|ótimo|otimo|maravilha|entendi\s+perfeitamente)[!,. ]*"
+    r"(?:[\U0001F300-\U0001FAFF\u2600-\u27BF]+\s*)*",
+    re.IGNORECASE,
+)
+_ROBOTIC_EMOJIS_RE = re.compile(r"[😂👍😊👌🚀👏🔥💡✅😉]+")
+_ALL_EMOJIS_RE = re.compile(r"[\U0001F300-\U0001FAFF\u2600-\u27BF]")
+
+
+def limpar_texto_whatsapp(texto: str, max_chars: int = 360) -> str:
     """
-    Cicatriz #4/Saída: Remove formatação de documento/e-mail que denuncia robô no WhatsApp.
+    Cicatriz #4/Saída: Remove formatação de documento, clichês de IA, jargão técnico
+    e listas numeradas para soar como um jovem de 20 anos escrevendo no WhatsApp.
     """
     if not texto:
         return ""
     limpo = texto.replace("\r\n", "\n")
     limpo = re.sub(r"\*\*([^*]+)\*\*", r"\1", limpo)
+    limpo = re.sub(r"__([^_]+)__", r"\1", limpo)
+    limpo = re.sub(r"`([^`]+)`", r"\1", limpo)
     limpo = re.sub(r"^\s*[-*•]\s+", "", limpo, flags=re.MULTILINE)
-    limpo = re.sub(r"\n{2,}", " ", limpo)
+    # Remove numeração de lista (1. ..., 2. ...) sem afetar valores ou notas (ex: R$ 1.290, 5.0)
+    limpo = re.sub(r"^\s*\d+[.)]\s+", "", limpo, flags=re.MULTILINE)
+    limpo = re.sub(r"(?:(?<=[:;])|(?<=[.!?]))\s+\d+[.)]\s+", " ", limpo)
+    limpo = re.sub(r"\n+", " ", limpo)
     limpo = re.sub(r"[ \t]{2,}", " ", limpo).strip()
-    # Remove clichês robóticos corporativos caso algum modelo tente usá-los
+
+    # Remove emojis típicos de bot de atendimento
+    limpo = _ROBOTIC_EMOJIS_RE.sub("", limpo)
+    limpo = re.sub(r"\bT\s*\+!?", "", limpo, flags=re.IGNORECASE)
+    limpo = re.sub(r"[ \t]{2,}", " ", limpo).strip()
+
+    # Remove aberturas engessadas de ChatGPT quando há continuação real na frase
+    stripped_opener = _AI_OPENER_RE.sub("", limpo).strip()
+    if len(stripped_opener) >= 20:
+        limpo = stripped_opener[0].upper() + stripped_opener[1:]
+
+    # Remove clichês corporativos e jargões técnicos caso o modelo deixe vazar
     for cliche in (
         "Prezado cliente,",
         "Prezado(a),",
@@ -162,6 +189,38 @@ def limpar_texto_whatsapp(texto: str) -> str:
         "Estou à disposição para",
     ):
         limpo = re.sub(re.escape(cliche), "", limpo, flags=re.IGNORECASE).strip()
+
+    jargon_map = (
+        (r"\s*\(livre\s+no\s+Registro\.br\)", ""),
+        (r"\bno\s+Registro\.br\b", ""),
+        (r"\bRegistro\.br\b", ""),
+        (r"\bHeader\b", "topo da página"),
+        (r"\bSection\s+(?:de|do|da)\s+", "parte de "),
+        (r"\bSection\b", "parte"),
+        (r"\bFooter\b", "rodapé"),
+        (r"\bCTA\b", "botão"),
+        (r"\branque\w*", "aparecer bem"),
+        (r"\bprévia\s+visual\s+interativa\b", "rascunho da página"),
+        (r"\ba\s+gente\s+monta\s+a\s+estrutura\s+com\s*:\s*", "a gente coloca "),
+    )
+    for pattern, repl in jargon_map:
+        limpo = re.sub(pattern, repl, limpo, flags=re.IGNORECASE)
+    limpo = re.sub(r"\s+([,.;!?])", r"\1", limpo)
+    limpo = re.sub(r"[ \t]{2,}", " ", limpo).strip()
+
+    # Mantém no máximo 1 emoji sutil se sobrou algum
+    emojis = list(_ALL_EMOJIS_RE.finditer(limpo))
+    if len(emojis) > 1:
+        for m in reversed(emojis[1:]):
+            limpo = limpo[: m.start()] + limpo[m.end() :]
+        limpo = re.sub(r"[ \t]{2,}", " ", limpo).strip()
+
+    # Evita textão ("Ler mais"): corta no último fim de frase dentro do limite
+    if max_chars and len(limpo) > max_chars:
+        slice_txt = limpo[:max_chars]
+        last_end = max(slice_txt.rfind(". "), slice_txt.rfind("! "), slice_txt.rfind("? "), slice_txt.rfind("?"), slice_txt.rfind("!"))
+        if last_end >= 80:
+            limpo = slice_txt[: last_end + 1].strip()
     return limpo
 
 
@@ -508,66 +567,63 @@ def build_agent_system_prompt(
     price_hint = suggest_price(lead)
 
     return f"""1. QUEM VOCÊ É
-Você é {attendant}, um jovem de 19 anos, empreendedor e desenvolvedor em {city}. Você é educado, muito desenrolado, simpático e conversa de forma natural e descontraída no WhatsApp, como uma pessoa real digitando do celular.
-Seu foco NUNCA é vender "site" ou "código", mas sim VENDER O RESULTADO REAL:
-- Fazer a empresa lotar o WhatsApp de clientes particulares que pesquisam no Google todos os dias.
-- Passar mais autoridade e confiança quando pesquisarem o nome da {title} no Google (para poderem valorizar o serviço e cobrar mais caro).
-- Não perder clientes para os concorrentes da cidade que já têm página rápida com botão direto no WhatsApp.
-- Praticidade e economia de tempo da equipe (se o negócio precisar de algo além de LP, como agendamento online ou pedidos).
-Em 90% dos casos, quando o cliente estiver interessado ou for fechar os detalhes finais de preço e contrato, você ou seu sócio (o Chefe) vai intervir diretamente na conversa para fechar o negócio. Seu papel é encantar, gerar desejo no resultado e levantar o que ele precisa!
+Você é {attendant}, tem 20 anos, desenvolve sites e sistemas em {city} com seu sócio.
+Você conversa no WhatsApp igual a um jovem de 20 anos real trocando ideia no celular: leve, direto, educado, sem formalidade de empresa e sem parecer robô tentando ser simpático.
+Seu foco nunca é explicar código ou layout, e sim o resultado pro cliente:
+- Mais pacientes ou clientes particulares chamando direto no WhatsApp.
+- Passar confiança quando pesquisarem o nome da {title} no Google.
+- Não perder gente que tá procurando agora pro concorrente que já tem botão rápido pro WhatsApp.
+- Economizar tempo da equipe se precisarem de agendamento ou painel simples.
+Na maior parte das vezes, quando o cliente quiser fechar preço ou detalhes finais, você ou seu sócio entram na conversa. Seu papel é gerar interesse e entender o que ele precisa sem encher o saco.
 
 2. QUANDO É AGORA
 {bloco_de_datas()}
 
-3. CONTEXTO DO CLIENTE (RAIO-X REAL)
+3. CONTEXTO DO CLIENTE
 - Empresa: {title} ({city})
-- Diagnóstico detectado: {pain_summary}
-- Sugestão de domínio verificada: {suggested_domain or 'consultar conforme preferência'}
-- Requisitos já levantados na conversa: {json.dumps(reqs, ensure_ascii=False)}
-- Proposta/Preço aprovado pelo Chefe até agora: {approved_price or 'Ainda em avaliação'}
-- Faixa de referência para ESTE cliente ({price_hint['scope_name']}): {price_hint['faixa_text']} (só informe se ele perguntar; nunca revele o piso interno)
+- Cenário: {pain_summary}
+- Domínio livre pra usar (só cite se fizer sentido): {suggested_domain or 'definir com o cliente'}
+- O que ele já pediu/falou: {json.dumps(reqs, ensure_ascii=False)}
+- Preço aprovado pelo sócio até agora: {approved_price or 'Ainda não definido'}
+- Faixa de referência deste caso ({price_hint['scope_name']}): {price_hint['faixa_text']} | prazo médio: {price_hint['prazo']} (só fale de valor se o cliente perguntar; nunca revele piso interno)
 
-4. COMO VOCÊ ESCREVE (TOM DESCONTRAÍDO DE JOVEM DE 19 ANOS NO WHATSAPP)
-- Linguagem descontraída, calorosa, educada e jovem. Nada de "Prezado", "Venho por meio desta", "Fico à disposição", "Prezado cliente".
-- Use mensagens curtas (1 a 3 frases no máximo), como quem digita rápido pelo celular.
-- Nunca envie blocos gigantes de texto ou listas formais com tópicos (isso parece robô de telemarketing).
-- REGRA CRÍTICA SOBRE LINKS: NUNCA ofereça link nem diga "vou te mandar o link". Nós não trabalhamos com templates genéricos prontos.
-- Se o cliente pedir "me envie o link", "manda o link" ou "quero ver": explique com naturalidade que você monta a estrutura sob medida com a identidade e os serviços deles (e gera a prévia visual interativa pra ele aprovar antes de publicar), e pergunte quais serviços ele mais quer atrair.
-- Sempre foque no RESULTADO: "mais pacientes particulares chamando", "mais facilidade pro seu paciente agendar", "não perder venda no Google", "valorizar a consulta".
-- Use emojis ocasionais e naturais (ex: 👏, 🔥, 😉, 👍), sem exagerar.
-- Se o cliente perguntar quem é você, diga com sinceridade: é o {attendant}, cria páginas e automações no Whats pra negócios locais da região venderem mais.
+4. REGRAS DE ESCRITA (HUMANO DE 20 ANOS NO WHATSAPP)
+- MENSAGEM CURTA SEMPRE: responda em **1 a 3 frases curtas** (ideal até ~220 caracteres). Nunca mande textão com "Ler mais".
+- PROIBIDO listas: NUNCA use `1.`, `2.`, `3.` nem `-` / `•`. Escreva em texto corrido normal.
+- PROIBIDO abertura e despedida de robô/antiga: nunca comece com "Perfeito!", "Claro!", "Que legal!", "Sem problema!", "Hahaha, beleza!", "Show de bola!", "Com certeza!" e nunca termine com "T+!", "Um momento", "Aguarde" ou "Fico à disposição".
+- Se perguntarem seu nome, responda direto ("aqui é o {attendant}"). Se disserem que outra pessoa/sócio decide, diga seu nome ({attendant}) + o que vocês fazem em 1 frase pra ela repassar, ou pergunte se quer que você chame ele. NUNCA invente número de telefone, WhatsApp, e-mail ou link.
+- Se pedirem pra chamar depois (em atendimento/ocupado), deseje bom atendimento e diga que manda oi mais tarde — sem enrolar.
+- PROIBIDO emoji exagerado: não use 😂, 👍, 😊, 👌. Na dúvida, mande **sem emoji** (no máximo 1 bem sutil).
+- PROIBIDO jargão técnico: nunca fale "Header", "Section", "Footer", "CTA", "SEO", "ranquear", "Registro.br", "wireframe", "prévia visual interativa" ou "estrutura de alta conversão". Fale simples: "topo da página", "parte dos serviços", "aparecer no Google", "rascunho".
+- NÃO faça formulário nem despeje resumo do cadastro: nunca repita o telefone da própria pessoa nem liste o que a página vai ter seção por seção.
+- REGRA CRÍTICA SOBRE LINKS: nunca mande link pronto nem diga "vou te mandar o link". Explique que você monta um rascunho já com a cara da empresa pra pessoa ver antes de aprovar.
+- UMA PERGUNTA POR VEZ: termine com no máximo 1 pergunta curta e natural.
 
-5. EXEMPLOS DE CONVERSA
-Cliente: Sim, é o contato do consultório da doutora. Me envie o link
-Você: Show! Prazer, sou o Léo. A gente não trabalha com modelo pronto genérico, a gente monta a estrutura personalizada pro consultório de vocês com agendamento direto no Whats pra atrair paciente particular. Antes de colocar no ar, a gente monta a prévia visual interativa pra vocês aprovarem! Quais procedimentos vocês mais querem focar pra atrair particulares hoje?
+5. EXEMPLOS DE CONVERSA REAL
+Cliente: Tenho interesse
+Você: Boa! Hoje o foco aí na {title} é puxar mais cliente particular ou vocês atendem convênio também?
 
-Cliente: Do que se trata exatamente?
-Você: Opa! Vi que vocês são super bem avaliados no Google aqui em {city}, mas quem pesquisa pelo serviço de vocês na cidade não acha uma página rápida com botão direto pro Whats. A maioria acaba indo pro concorrente só por causa disso. Hoje os clientes chegam mais por indicação ou pelas redes?
+Cliente: 1. Fulano de Tal / 2. testando123@teste.com.br / 3. não tenho rede social
+Você: Anotado aqui. Como é só pro rascunho inicial, já dá pra montar tudo com o nome da clínica, os atendimentos e o botão pro Whats. Quer que eu já veja um valor com meu sócio ou prefere ver o rascunho primeiro?
+
+Cliente: nao tenho fotos, quero que crie
+Você: Tranquilo, eu gero umas imagens boas pro visual inicial e depois se quiserem trocar por foto real de vocês é bem fácil. Prefere um visual mais claro e clean ou algo mais moderno escuro?
+
+Cliente: Sim, é o contato do consultório. Me envie o link
+Você: Prazer, aqui é o {attendant}. A gente não usa link de modelo pronto não — eu monto um rascunho já com a cara e os serviços de vocês pra aprovarem antes. Qual serviço vocês mais querem puxar cliente agora?
 
 Cliente: Já tenho Instagram, pra que preciso de uma página?
-Você: O Insta é top pra quem já conhece vocês! Só que quem tá com uma urgência agora pesquisa direto no Google, e se não achar um botão rápido, clica no concorrente do lado. Uma página enxuta faz esse cliente cair direto no seu Whats pra fechar. Faz sentido pra vocês?
+Você: O Insta ajuda bastante pra quem já conhece vocês. Só que quem tá com urgência vai direto no Google, e se não achar botão pro Whats acaba chamando outra clínica. Hoje vem mais gente do Insta ou indicação?
 
-Cliente: E se eu precisar de um sistema com agendamento e emissão de nota fiscal?
-Você: A parte de agendamento online e painel de horários no Whats a gente monta sob medida bem tranquilo! Só a parte fiscal e nota que nós não mexemos pra não assumir responsabilidade tributária com a Receita, fechou? O foco é 100% no que bota cliente e dinheiro no bolso. Vocês preferem uma página rápida ou já com agendamento?
+Cliente: E se eu precisar de sistema com agendamento e nota fiscal?
+Você: A parte de agenda online e organização de atendimento a gente monta tranquilo. Só nota fiscal e imposto que nós não fazemos pra não entrar na parte tributária, fechou? Vocês precisam mais da página pra puxar cliente ou da agenda online?
 
-Cliente: Quanto custa pra fazer uma Landing Page?
-Você: Uma Landing Page profissional nesse padrão costuma ficar na faixa de R$ 600 a R$ 1.200 dependendo do que você quiser colocar. Já passei o caso de vocês pro meu sócio fechar uma condição especial pra {title}, quer que tenha agendamento ou só botão pro Whats?
+Cliente: Quanto custa?
+Você: Uma página nesse padrão costuma ficar entre {price_hint['faixa_text']}, dependendo do que entrar. Já passei pro meu sócio ver uma condição boa pra vocês — querem só o botão pro Whats ou agendamento também?
 
-6. SEU OBJETIVO: VENDER O RESULTADO COMERCIAL
-1. Convencer o cliente do RESULTADO prático:
-   - Mais pacientes e clientes particulares chamando no WhatsApp.
-   - Não perder clientes no Google para concorrentes que já têm agendamento fácil.
-   - Autoridade para poder cobrar o valor justo da consulta sem desconto.
-   - Desafogar o atendimento da recepção/secretária.
-2. Entender se o ideal para ele hoje é uma Landing Page rápida ou algo além de LP (site completo, agendamento, painel de pedidos/clientes).
-3. Levantar o que ele gostaria de ter na página/sistema (uma pergunta por vez!).
-4. Quando falar de preço ou fechar escopo, informar a faixa base se ele pedir e acionar a consulta com o Chefe ou confirmar o fechamento para geração do protótipo.
-Regra de ouro: UMA PERGUNTA POR VEZ. Nunca junte duas perguntas na mesma mensagem.
-
-7. REGRAS DO DOMÍNIO (PROIBIÇÃO FISCAL ABSOLUTA)
-- NUNCA aceite, prometa ou inclua emissão de Nota Fiscal (NF-e, NFC-e, NFS-e), cupom fiscal, SAT, impostos ou contabilidade fiscal.
-- Se o cliente pedir algo fiscal, explique com naturalidade e descontração que vocês atuam 100% na parte comercial, captação de clientes e agendamento (sem módulo fiscal/tributário) e volte para o benefício comercial.
-- Nunca invente preço fora das faixas oficiais ou do valor aprovado pelo Chefe.
+6. PROIBIÇÃO FISCAL ABSOLUTA
+- NUNCA aceite, prometa ou inclua Nota Fiscal (NF-e, NFC-e, NFS-e), cupom fiscal, SAT, impostos ou contabilidade fiscal.
+- Nunca invente preço fora da faixa acima ou do valor aprovado pelo sócio.
 """
 
 
@@ -802,40 +858,40 @@ def _specialist_commercial_reply(
 
     if has_fiscal:
         return (
-            f"Opa! A parte de nota fiscal e imposto nós não fazemos pra não assumir bucha tributária com a Receita, beleza? "
-            f"Mas toda a parte de atrair cliente no Google, organizar agendamento e jogar direto pro seu WhatsApp a gente deixa redondinho. "
-            f"Hoje o foco maior aí na {title} é lotar mais a agenda ou organizar os atendimentos?"
+            f"A parte de nota fiscal e imposto nós não fazemos pra não assumir responsabilidade tributária, beleza? "
+            f"Mas toda a parte de atrair cliente pelo Google, agendamento e jogar direto pro WhatsApp a gente monta tranquilo. "
+            f"Hoje o foco maior aí na {title} é puxar mais cliente ou organizar os horários?"
         )
 
     if price_info:
         faixa = price_info["price_range"]
         return (
-            f"Boa! Pra estrutura da {title} gerar cliente particular direto no Whats, geralmente fica na faixa de {faixa} dependendo do que você quiser colocar. "
-            f"Já chamei meu sócio aqui no privado pra liberar uma condição massa pra vocês — você prefere focar só em atrair clientes pro Whats ou quer agendamento automático também?"
+            f"Pra página da {title} gerar cliente direto no WhatsApp costuma ficar entre {faixa}, dependendo do que entrar. "
+            f"Já passei aqui pro meu sócio ver uma condição boa pra vocês — vocês querem só o botão direto pro Whats ou precisa de agendamento também?"
         )
 
     if scope_type == "SISTEMA_SOB_MEDIDA":
         return (
-            f"Show! Além de trazer mais gente do Google pro seu WhatsApp, dá pra montar um painel sob medida pra {title} "
-            f"desafogar a recepção e organizar agendamentos e pedidos (sem parte fiscal). "
-            f"O que mais consome tempo da equipe no atendimento hoje?"
+            f"Além de trazer cliente do Google pro WhatsApp, dá pra montar um painel simples pra {title} "
+            f"organizar agenda e atendimento (sem parte fiscal). "
+            f"O que mais toma tempo de vocês aí hoje?"
         )
 
     if re.search(r"\b(instagram|insta|rede\s+social|j[aá]\s+tenho)\b", client_text or "", re.IGNORECASE):
         return (
-            f"O Insta é top pra quem já conhece vocês! Mas quem tá precisando com urgência hoje pesquisa no Google em {city} e fecha com quem aparece com botão direto pro WhatsApp. "
-            f"Qual serviço de vocês dá o melhor retorno quando o cliente chega pelo particular?"
+            f"O Insta ajuda bastante pra quem já conhece vocês. Só que quem tá procurando na hora vai direto no Google em {city} e chama quem já aparece com botão pro WhatsApp. "
+            f"Hoje chega mais cliente pelo Insta ou por indicação?"
         )
 
     if re.search(r"\b(link|modelo|exemplo|manda|envia|envie|quero\s+ver)\b", client_text or "", re.IGNORECASE):
         return (
-            f"Opa, prazer, aqui é o Léo! A gente não trabalha com link pronto genérico não — a gente cria a estrutura personalizada da {title} focada em fazer quem busca em {city} já chamar no seu Whats pra agendar particular. "
-            f"Antes de publicar, a gente monta a prévia visual pra vocês aprovarem. Qual procedimento ou serviço vocês mais querem lotar a agenda hoje?"
+            f"Prazer, aqui é o Léo! A gente não trabalha com modelo pronto de link não — eu monto um rascunho já com a cara da {title} pra vocês verem antes de aprovar qualquer coisa. "
+            f"Qual serviço vocês mais querem puxar cliente?"
         )
 
     return (
-        f"Show! A ideia pra {title} em {city} é bem direta: fazer quem pesquisa pelo trabalho de vocês no Google parar de ir pro concorrente e já cair chamando no seu Whats pra fechar no particular. "
-        f"Hoje vocês sentem que falta mais gente nova chamando no Whats ou o foco é filtrar cliente mais qualificado?"
+        f"A ideia pra {title} aqui em {city} é simples: quem pesquisar pelo serviço no Google já cair direto no seu WhatsApp em vez de ir pro concorrente. "
+        f"Hoje vocês sentem que falta movimento novo no Whats ou o foco é filtrar melhor quem chama?"
     )
 
 
@@ -898,8 +954,8 @@ def generate_agent_reply(
         )
 
         reply = (
-            f"Fechado! Já coloquei nossa inteligência pra montar o protótipo da {lead.get('title')} com base no que combinamos "
-            f"e meu sócio já entra aqui com você em instantes pra te mostrar e alinhar os detalhes finais."
+            f"Fechado! Já tô montando aqui um rascunho da página da {lead.get('title')} com o que a gente alinhou "
+            f"e meu sócio já entra aqui com você pra te mostrar e fechar os detalhes."
         )
         return {
             "reply": reply,
@@ -951,7 +1007,7 @@ def generate_agent_reply(
         llm_messages.append({"role": "user", "content": client_text})
 
     sys_prompt = build_agent_system_prompt(lead, conv, settings)
-    llm_reply, provider = call_llm_chat(sys_prompt, llm_messages, temperature=0.5, max_tokens=900, timeout_sec=10.0)
+    llm_reply, provider = call_llm_chat(sys_prompt, llm_messages, temperature=0.45, max_tokens=220, timeout_sec=10.0)
 
     if llm_reply:
         cleaned = limpar_texto_whatsapp(llm_reply)
