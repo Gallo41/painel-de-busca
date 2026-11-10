@@ -47,5 +47,9 @@ results-*.csv
 results-*.json
 data/exports/
 
-# Projetos de clientes (fora do escopo deste repositorio)
+# Projetos de clientes e sessões do bridge WhatsApp (fora do escopo deste repositorio)
 Projetos Quecine/
+exports/
+whatsapp_bridge/auth_info/
+whatsapp_bridge/.env
+
