@@ -2,7 +2,7 @@
 
 - **Projeto**: Painel de Busca (`c:\Projetos Quecine\Painel de Busca`)
 - **Data de Início**: 09/11/2026 às 21:16
-- **Status**: Em andamento (80%)
+- **Status**: Em andamento (90%)
 - **Repositório GitHub**: `https://github.com/Gallo41/painel-de-busca.git`
 
 ---
@@ -26,7 +26,7 @@ Implementar o ecossistema completo de negociação ativa via WhatsApp baseado na
 - [x] **60%** - Fábrica Automática de Protótipos via IA (`app/services/prototype_generator.py`) ao fechar negócio + aviso no `+551999958516`
 - [x] **70%** - Rotas de API (`app/routers/agent_router.py` e `app/routers/outreach_router.py`): confirmação na fila, webhook, handoff e preview de protótipo
 - [x] **80%** - Micro-Bridge Node.js WhatsApp QR Code (`whatsapp_bridge/`) + Central do Agente e Fila interativa no Painel (`index.html`, `app.js`, `styles.css`)
-- [ ] **90%** - Suíte de testes automatizados (`tests/test_whatsapp_agent.py`) cobrindo fila, modo teste, consulta de preço, bloqueio fiscal, handoff e protótipo
+- [x] **90%** - Suíte de testes automatizados (`tests/test_whatsapp_agent.py`) cobrindo fila, modo teste, consulta de preço, bloqueio fiscal, handoff e protótipo
 - [ ] **100%** - Execução completa do `pytest`, atualização do grafo Graphify (`graphify update .`) e sincronização final no GitHub
 
 ---
@@ -42,6 +42,7 @@ Implementar o ecossistema completo de negociação ativa via WhatsApp baseado na
 | **60%** | 09/11/2026 21:30 | Fábrica automática de protótipos via IA (`app/services/prototype_generator.py`) com geração de LP/Sistema responsivo, persistência e notificação ao Chefe (`+551999958516`). | `app/services/prototype_generator.py`, `.gitignore`, `Sprint atual.md` |
 | **70%** | 09/11/2026 21:33 | Rotas de API REST em `app/routers/agent_router.py` e `app/routers/outreach_router.py` para confirmação de envio na fila, webhook, handoff, aprovação de preço e preview de protótipo. | `app/routers/agent_router.py`, `app/routers/outreach_router.py`, `app/main.py`, `Sprint atual.md` |
 | **80%** | 09/11/2026 21:38 | Micro-Bridge Node.js WhatsApp QR Code (`whatsapp_bridge/`) compatível com contrato UAZAPI e Central do Agente na UI (`index.html`, `app.js`, `styles.css`). | `whatsapp_bridge/package.json`, `whatsapp_bridge/server.js`, `app/static/index.html`, `app/static/app.js`, `app/static/styles.css`, `Sprint atual.md` |
+| **90%** | 09/11/2026 21:44 | Criação e aprovação da suíte de testes `tests/test_whatsapp_agent.py` (49/49 testes aprovados em 4.9s no `pytest`). | `tests/test_whatsapp_agent.py`, `app/services/whatsapp_agent.py`, `Sprint atual.md` |
 
 ---
 *Gerado e mantido automaticamente pelo protocolo de sincronismo Antigravity <-> Operador <-> Obsidian.*

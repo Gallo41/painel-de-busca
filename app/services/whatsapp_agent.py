@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import threading
 import urllib.error
@@ -193,9 +194,17 @@ def _resolve_transport_endpoint(settings: Dict[str, Any]) -> Tuple[str, Dict[str
 def get_bridge_status(db_path: Optional[str] = None) -> Dict[str, Any]:
     settings = get_agent_settings(db_path)
     base_url, headers, mode = _resolve_transport_endpoint(settings)
+    if os.environ.get("PAINEL_AI_OFFLINE") == "1":
+        return {
+            "connected": False,
+            "status": "test_offline_mode",
+            "transport_mode": mode,
+            "bridge_url": base_url,
+            "qr_data_url": None,
+        }
     try:
         req = urllib.request.Request(f"{base_url}/status", headers=headers, method="GET")
-        with urllib.request.urlopen(req, timeout=2.5) as resp:
+        with urllib.request.urlopen(req, timeout=1.2) as resp:
             data = json.loads(resp.read().decode("utf-8", errors="ignore"))
             data["transport_mode"] = mode
             data["bridge_url"] = base_url
@@ -232,20 +241,21 @@ def send_whatsapp_text(
     external_id = f"local-{int(datetime.now(timezone.utc).timestamp() * 1000)}"
     error_detail = ""
 
-    try:
-        req = urllib.request.Request(
-            f"{base_url}/send/text",
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=6.0) as resp:
-            raw = resp.read().decode("utf-8", errors="ignore")
-            body = json.loads(raw) if raw.strip().startswith("{") else {}
-            delivered_live = True
-            external_id = str(body.get("messageid") or body.get("id") or external_id)
-    except Exception as e:
-        error_detail = str(e)
+    if os.environ.get("PAINEL_AI_OFFLINE") != "1":
+        try:
+            req = urllib.request.Request(
+                f"{base_url}/send/text",
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=2.5) as resp:
+                raw = resp.read().decode("utf-8", errors="ignore")
+                body = json.loads(raw) if raw.strip().startswith("{") else {}
+                delivered_live = True
+                external_id = str(body.get("messageid") or body.get("id") or external_id)
+        except Exception as e:
+            error_detail = str(e)
 
     entry = {
         "number": numero,
@@ -262,7 +272,7 @@ def send_whatsapp_text(
 
 def mark_whatsapp_read(message_ids: List[str], db_path: Optional[str] = None) -> None:
     """Enfeite de humanização: 2 tiques azuis. Falha em silêncio (Cicatriz whatsapp.ts)."""
-    if not message_ids:
+    if not message_ids or os.environ.get("PAINEL_AI_OFFLINE") == "1":
         return
     settings = get_agent_settings(db_path)
     base_url, headers, _ = _resolve_transport_endpoint(settings)
@@ -273,7 +283,7 @@ def mark_whatsapp_read(message_ids: List[str], db_path: Optional[str] = None) ->
             headers=headers,
             method="POST",
         )
-        urllib.request.urlopen(req, timeout=2.0).read()
+        urllib.request.urlopen(req, timeout=1.0).read()
     except Exception:
         pass
 
@@ -284,7 +294,7 @@ def send_whatsapp_presence(chatid: str, presence: str = "composing", db_path: Op
     Falha em silêncio se o bridge estiver desconectado.
     """
     numero = normalize_phone_digits(chatid)
-    if not numero:
+    if not numero or os.environ.get("PAINEL_AI_OFFLINE") == "1":
         return
     settings = get_agent_settings(db_path)
     base_url, headers, _ = _resolve_transport_endpoint(settings)
@@ -295,7 +305,7 @@ def send_whatsapp_presence(chatid: str, presence: str = "composing", db_path: Op
             headers=headers,
             method="POST",
         )
-        urllib.request.urlopen(req, timeout=2.0).read()
+        urllib.request.urlopen(req, timeout=1.0).read()
     except Exception:
         pass
 
