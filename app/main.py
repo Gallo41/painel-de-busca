@@ -20,6 +20,7 @@ from app.database import (
     purge_simulated_leads,
     upsert_niches,
 )
+from app.routers.agent_router import router as agent_router
 from app.routers.leads_router import router as leads_router
 from app.routers.outreach_router import router as outreach_router
 from app.services.niches_catalog import DEFAULT_NICHES
@@ -56,6 +57,7 @@ def create_app(db_path: Optional[str] = None) -> FastAPI:
 
     app.include_router(leads_router)
     app.include_router(outreach_router)
+    app.include_router(agent_router)
 
     static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
     os.makedirs(static_dir, exist_ok=True)

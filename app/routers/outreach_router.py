@@ -16,7 +16,9 @@ from app.models import (
     OutreachClaimRequest,
     OutreachEnqueueRequest,
     OutreachStatusUpdate,
+    QueueConfirmSendRequest,
 )
+from app.services.whatsapp_agent import confirm_and_send_queue_item
 
 router = APIRouter(prefix="/api/outreach", tags=["Outreach & Automação Futura"])
 
@@ -105,6 +107,37 @@ def api_update_outreach_item_status(queue_id: int, payload: OutreachStatusUpdate
     if not updated:
         raise HTTPException(status_code=404, detail="Item da fila de outreach não encontrado")
     return updated
+
+
+@router.post("/{queue_id}/confirm-send")
+def api_confirm_and_send_outreach_item(
+    queue_id: int,
+    payload: Optional[QueueConfirmSendRequest] = None,
+) -> Dict[str, Any]:
+    """
+    Confirma um item da fila, dispara a 1ª mensagem no WhatsApp (respeitando o Modo Teste para +55 19 99610-9028
+    ou enviando ao cliente real se aprovado para Produção) e autoriza o Agente a iniciar a negociação.
+    """
+    try:
+        custom_msg = payload.custom_message if payload else None
+        return confirm_and_send_queue_item(queue_id=queue_id, custom_message=custom_msg)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.post("/confirm-send-all")
+def api_confirm_and_send_all_ready() -> Dict[str, Any]:
+    """Confirma e dispara a 1ª mensagem para todos os itens com status `ready` na fila."""
+    ready_items = list_outreach_queue(status="ready", channel="whatsapp", limit=100)
+    results = []
+    for it in ready_items:
+        try:
+            res = confirm_and_send_queue_item(queue_id=int(it["id"]))
+            results.append(res)
+        except Exception as e:
+            results.append({"ok": False, "queue_id": it["id"], "error": str(e)})
+    return {"processed_count": len(results), "results": results}
+
 
 
 @router.get("/export")
