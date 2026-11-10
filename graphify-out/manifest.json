@@ -12,21 +12,21 @@
     "semantic_hash": "0f7ed5a48b7b8ae81a782ec4053f3acf"
   },
   "app/database.py": {
-    "mtime": 1793752940.176952,
-    "seen": 1793753714.7563653,
-    "ast_hash": "e859099fe526aac0e25db9022aa9e6e5",
+    "mtime": 1794270007.040533,
+    "seen": 1794271572.9716594,
+    "ast_hash": "d77518b38255de093d02b2232632f4b7",
     "semantic_hash": ""
   },
   "app/main.py": {
-    "mtime": 1793753090.4859972,
-    "seen": 1793753714.756368,
-    "ast_hash": "b31ddedc43990397175fd61e07224dcf",
+    "mtime": 1794270755.7106962,
+    "seen": 1794271572.9716618,
+    "ast_hash": "83e37dbcf7ccd8800746651b8bf05c13",
     "semantic_hash": ""
   },
   "app/models.py": {
-    "mtime": 1793579719.2251494,
-    "seen": 1793580028.6984897,
-    "ast_hash": "922074ee4e46dc6136d7f8126d3a41ff",
+    "mtime": 1794269918.034022,
+    "seen": 1794271572.9716635,
+    "ast_hash": "d57c0e1ed8c65738fb71504bb2741de7",
     "semantic_hash": ""
   },
   "app/routers/__init__.py": {
@@ -42,10 +42,10 @@
     "semantic_hash": ""
   },
   "app/routers/outreach_router.py": {
-    "mtime": 1793312613.5838223,
-    "seen": 1793313149.353138,
-    "ast_hash": "527183fe2e389816907e8db659646c25",
-    "semantic_hash": "527183fe2e389816907e8db659646c25"
+    "mtime": 1794270752.017825,
+    "seen": 1794271572.971671,
+    "ast_hash": "08ec18513654886f88e85d29a5cc8d1c",
+    "semantic_hash": ""
   },
   "app/services/__init__.py": {
     "mtime": 1793225854.8329809,
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1793753254.8951354,
-    "seen": 1793753714.7563903,
-    "ast_hash": "97972b58972154f8606c29aa23236955",
+    "mtime": 1794271103.6230764,
+    "seen": 1794271572.9716895,
+    "ast_hash": "0ad915e9380038ab67ce8ef70e179a24",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1793753659.5623474,
-    "seen": 1793753714.7564406,
-    "ast_hash": "0ac61a86d8813768a56cfad7bc846a63",
+    "mtime": 1794271502.2531662,
+    "seen": 1794271572.9717417,
+    "ast_hash": "19b5e462b125e960bb4c2c2fba172add",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "app/static/index.html": {
-    "mtime": 1793753170.252262,
-    "seen": 1793753714.7564418,
-    "ast_hash": "adfaabb21b3b78de73a158aecf28e760",
+    "mtime": 1794271015.8467088,
+    "seen": 1794271572.9717429,
+    "ast_hash": "b1acb228abeafe9a2a29077293e11ea2",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
@@ -345,6 +345,54 @@
     "mtime": 1793753520.9542086,
     "seen": 1793753714.7564464,
     "ast_hash": "2917c7aae48e3aa22206e5c9e9e03a2b",
+    "semantic_hash": ""
+  },
+  "app/routers/agent_router.py": {
+    "mtime": 1794270748.9997756,
+    "seen": 1794271572.9716673,
+    "ast_hash": "a89779a5673fdbbbd68f047f8486f073",
+    "semantic_hash": ""
+  },
+  "app/services/ai_provider.py": {
+    "mtime": 1794270138.4114428,
+    "seen": 1794271572.9716747,
+    "ast_hash": "5fc27cca29f060231207533e02270942",
+    "semantic_hash": ""
+  },
+  "app/services/prototype_generator.py": {
+    "mtime": 1794270595.7704055,
+    "seen": 1794271572.971685,
+    "ast_hash": "19f8d80ba60434d8f1e6a8c2e9025f73",
+    "semantic_hash": ""
+  },
+  "app/services/whatsapp_agent.py": {
+    "mtime": 1794271411.5644183,
+    "seen": 1794271572.9716878,
+    "ast_hash": "cc96073866af8feb7387d25e30719590",
+    "semantic_hash": ""
+  },
+  "tests/test_whatsapp_agent.py": {
+    "mtime": 1794271310.3691833,
+    "seen": 1794271572.971714,
+    "ast_hash": "8dc5b6747f875ba91ac16dac00bfdd41",
+    "semantic_hash": ""
+  },
+  "whatsapp_bridge/package.json": {
+    "mtime": 1794270914.8227623,
+    "seen": 1794271572.971715,
+    "ast_hash": "0ebd98134e36a0ae484aabba0c80108a",
+    "semantic_hash": ""
+  },
+  "whatsapp_bridge/server.js": {
+    "mtime": 1794270916.4680247,
+    "seen": 1794271572.9717162,
+    "ast_hash": "b962a915c69917281ab04ada609190ef",
+    "semantic_hash": ""
+  },
+  "docs/superpowers/specs/2026-11-09-whatsapp-agent-prototype-design.md": {
+    "mtime": 1794269812.5904253,
+    "seen": 1794271572.9717531,
+    "ast_hash": "bb9f6080c7ace9668d9aae30da789b0a",
     "semantic_hash": ""
   }
 }
