@@ -53,12 +53,32 @@ let connectedPhone = null;
 
 // Guarda IDs enviados via API (/send/text) para diferenciar de mensagens digitadas manualmente pelo humano no celular
 const sentByApiIds = new Set();
+const lidToPhoneMap = new Map();
+const phoneToLidMap = new Map();
 
 function digitsOnly(val) {
   return String(val || "")
     .split("@")[0]
     .split(":")[0]
     .replace(/\D/g, "");
+}
+
+function extractMessageText(m) {
+  if (!m || !m.message) return "";
+  const rawMsg = m.message;
+  return (
+    rawMsg.conversation ||
+    rawMsg.extendedTextMessage?.text ||
+    rawMsg.imageMessage?.caption ||
+    rawMsg.videoMessage?.caption ||
+    rawMsg.ephemeralMessage?.message?.conversation ||
+    rawMsg.ephemeralMessage?.message?.extendedTextMessage?.text ||
+    rawMsg.viewOnceMessage?.message?.conversation ||
+    rawMsg.viewOnceMessage?.message?.extendedTextMessage?.text ||
+    rawMsg.viewOnceMessageV2?.message?.conversation ||
+    rawMsg.viewOnceMessageV2?.message?.extendedTextMessage?.text ||
+    ""
+  ).trim();
 }
 
 function toWhatsappJid(number) {
@@ -140,14 +160,11 @@ async function startWhatsApp() {
   });
 
   sock.ev.on("messages.upsert", async ({ messages, type }) => {
-    if (type !== "notify") return;
     for (const m of messages || []) {
       const remoteJid = (m.key && m.key.remoteJid) || "";
       if (!remoteJid || remoteJid.endsWith("@g.us") || remoteJid === "status@broadcast") {
         continue;
       }
-      // Cicatriz #1: Nunca repassar @lid como chatid se houver remoteJid telefonico
-      if (remoteJid.endsWith("@lid")) continue;
 
       const msgId = (m.key && m.key.id) || "";
       const fromMe = Boolean(m.key && m.key.fromMe);
@@ -156,10 +173,28 @@ async function startWhatsApp() {
         sentByApiIds.delete(msgId);
       }
 
-      const text =
-        (m.message && m.message.conversation) ||
-        (m.message && m.message.extendedTextMessage && m.message.extendedTextMessage.text) ||
-        "";
+      const text = extractMessageText(m);
+
+      // Resolve chatid telefônico real caso venha como @lid
+      let effectiveChatid = remoteJid;
+      if (remoteJid.endsWith("@lid")) {
+        const altPhone =
+          (m.key && m.key.remoteJidAlt) ||
+          (m.key && m.key.participantPn) ||
+          (m.key && m.key.participant) ||
+          "";
+        if (altPhone && altPhone.endsWith("@s.whatsapp.net")) {
+          effectiveChatid = altPhone;
+          lidToPhoneMap.set(remoteJid, digitsOnly(altPhone));
+        } else if (lidToPhoneMap.has(remoteJid)) {
+          effectiveChatid = lidToPhoneMap.get(remoteJid);
+        }
+      }
+
+      console.log(
+        `[bridge] Mensagem recebida [fromMe=${fromMe}, wasSentByApi=${wasSentByApi}]: ` +
+        `remoteJid=${remoteJid} -> effectiveChatid=${effectiveChatid} | texto="${text}"`
+      );
 
       if (!text && !fromMe) continue;
 
@@ -168,11 +203,12 @@ async function startWhatsApp() {
         instanceName: "painel-qr-bridge",
         message: {
           fromMe,
-          isGroup: remoteJid.endsWith("@g.us"),
+          isGroup: false,
           wasSentByApi,
           type: text ? "text" : "other",
           text: text || "",
-          chatid: remoteJid,
+          chatid: effectiveChatid,
+          rawRemoteJid: remoteJid,
           senderName: m.pushName || "",
           messageid: msgId,
         },
@@ -196,15 +232,24 @@ app.post("/send/text", async (req, res) => {
       return res.status(503).json({ error: "WhatsApp ainda nao conectado via QR Code" });
     }
     const { number, text } = req.body || {};
+    const d = digitsOnly(number);
     const jid = toWhatsappJid(number);
+    console.log(`[bridge] Enviando mensagem para ${jid} (${d}): "${String(text || "").substring(0, 80)}..."`);
     const sent = await sock.sendMessage(jid, { text: String(text || "") });
     const msgId = (sent && sent.key && sent.key.id) || "";
+    const sentRemoteJid = (sent && sent.key && sent.key.remoteJid) || "";
+    if (sentRemoteJid && sentRemoteJid.endsWith("@lid") && d) {
+      lidToPhoneMap.set(sentRemoteJid, d);
+      phoneToLidMap.set(d, sentRemoteJid);
+      console.log(`[bridge] Mapeado LID ${sentRemoteJid} <-> Telefone ${d}`);
+    }
     if (msgId) {
       sentByApiIds.add(msgId);
       setTimeout(() => sentByApiIds.delete(msgId), 60000);
     }
     return res.json({ ok: true, messageid: msgId });
   } catch (err) {
+    console.error("[bridge] Erro ao enviar mensagem:", err);
     return res.status(500).json({ error: String(err.message || err) });
   }
 });

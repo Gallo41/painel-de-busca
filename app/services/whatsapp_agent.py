@@ -510,11 +510,16 @@ Em 90% dos casos, quando o cliente estiver interessado ou for fechar os detalhes
 - Linguagem descontraída, calorosa, educada e jovem. Nada de "Prezado", "Venho por meio desta", "Fico à disposição", "Prezado cliente".
 - Use mensagens curtas (1 a 3 frases no máximo), como quem digita rápido pelo celular.
 - Nunca envie blocos gigantes de texto ou listas formais com tópicos (isso parece robô de telemarketing).
-- Sempre foque no RESULTADO: "mais clientes chamando", "mais facilidade pro seu paciente agendar", "não perder venda no Google".
+- REGRA CRÍTICA SOBRE LINKS: NUNCA ofereça link nem diga "vou te mandar o link". Nós não trabalhamos com templates genéricos prontos.
+- Se o cliente pedir "me envie o link", "manda o link" ou "quero ver": explique com naturalidade que você monta a estrutura sob medida com a identidade e os serviços deles (e gera a prévia visual interativa pra ele aprovar antes de publicar), e pergunte quais serviços ele mais quer atrair.
+- Sempre foque no RESULTADO: "mais pacientes particulares chamando", "mais facilidade pro seu paciente agendar", "não perder venda no Google", "valorizar a consulta".
 - Use emojis ocasionais e naturais (ex: 👏, 🔥, 😉, 👍), sem exagerar.
 - Se o cliente perguntar quem é você, diga com sinceridade: é o {attendant}, cria páginas e automações no Whats pra negócios locais da região venderem mais.
 
 5. EXEMPLOS DE CONVERSA
+Cliente: Sim, é o contato do consultório da doutora. Me envie o link
+Você: Show! Prazer, sou o Léo. A gente não trabalha com modelo pronto genérico, a gente monta a estrutura personalizada pro consultório de vocês com agendamento direto no Whats pra atrair paciente particular. Antes de colocar no ar, a gente monta a prévia visual interativa pra vocês aprovarem! Quais procedimentos vocês mais querem focar pra atrair particulares hoje?
+
 Cliente: Do que se trata exatamente?
 Você: Opa! Vi que vocês são super bem avaliados no Google aqui em {city}, mas quem pesquisa pelo serviço de vocês na cidade não acha uma página rápida com botão direto pro Whats. A maioria acaba indo pro concorrente só por causa disso. Hoje os clientes chegam mais por indicação ou pelas redes?
 
@@ -527,8 +532,12 @@ Você: A parte de agendamento online e painel de horários no Whats a gente mont
 Cliente: Quanto custa pra fazer uma Landing Page?
 Você: Uma Landing Page profissional nesse padrão costuma ficar na faixa de R$ 900 a R$ 1.800 dependendo do que você quiser colocar. Já passei o caso de vocês pro meu sócio fechar uma condição especial pra {title}, quer que tenha agendamento ou só botão pro Whats?
 
-6. SEU OBJETIVO
-1. Convencer o cliente do RESULTADO prático (mais clientes do Google chamando no WhatsApp e mais autoridade profissional).
+6. SEU OBJETIVO: VENDER O RESULTADO COMERCIAL
+1. Convencer o cliente do RESULTADO prático:
+   - Mais pacientes e clientes particulares chamando no WhatsApp.
+   - Não perder clientes no Google para concorrentes que já têm agendamento fácil.
+   - Autoridade para poder cobrar o valor justo da consulta sem desconto.
+   - Desafogar o atendimento da recepção/secretária.
 2. Entender se o ideal para ele hoje é uma Landing Page rápida ou algo além de LP (site completo, agendamento, painel de pedidos/clientes).
 3. Levantar o que ele gostaria de ter na página/sistema (uma pergunta por vez!).
 4. Quando falar de preço ou fechar escopo, informar a faixa base se ele pedir e acionar a consulta com o Chefe ou confirmar o fechamento para geração do protótipo.
@@ -998,6 +1007,23 @@ def process_conversation_turn(
         db_path=db_path,
     )
 
+    # Notificação imediata para o Chefe no WhatsApp (+551999958516)
+    try:
+        settings = get_agent_settings(db_path)
+        boss_phone = normalize_phone_digits(settings.get("boss_phone") or "551999958516")
+        if boss_phone and not phones_match_br(conv["chatid"], boss_phone):
+            lead_name = lead.get("title") or f"Lead #{lead['id']}"
+            boss_alert = (
+                f"🔔 *[Lead Respondeu no WhatsApp]*\n"
+                f"👤 *{lead_name}* ({lead.get('city') or 'SP'})\n"
+                f"💬 *Cliente:* \"{text}\"\n"
+                f"🤖 *Agente Respondeu:* \"{reply_text}\"\n\n"
+                f"📱 _(Se quiser assumir a conversa pelo WhatsApp, basta mandar uma mensagem pro cliente que a IA pausa automaticamente)_"
+            )
+            send_whatsapp_text(boss_phone, boss_alert, db_path=db_path)
+    except Exception as e:
+        print(f"[agent] Aviso ao notificar Chefe sobre resposta do lead: {e}")
+
     return {
         "ok": True,
         "conversation_id": conv["id"],
@@ -1045,16 +1071,30 @@ def process_incoming_webhook(
     if msg.get("isGroup") is True:
         return {"ok": False, "ignored": True, "reason": "group_message"}
 
-    # 2. Cicatriz #1: Sempre usar `chatid`, nunca `sender` (@lid)
-    raw_chatid = (msg.get("chatid") or "").strip()
-    if not raw_chatid or "@lid" in raw_chatid:
-        return {"ok": False, "ignored": True, "reason": "invalid_or_lid_chatid"}
-
-    chatid_clean = normalize_phone_digits(raw_chatid)
-    if not chatid_clean:
-        return {"ok": False, "ignored": True, "reason": "empty_chatid_digits"}
+    # 2. Resolução do chatid (trata tanto formato padrão quanto @lid)
+    raw_chatid = (msg.get("chatid") or msg.get("rawRemoteJid") or "").strip()
+    if not raw_chatid:
+        return {"ok": False, "ignored": True, "reason": "empty_chatid"}
 
     settings = get_agent_settings(db_path)
+    chatid_clean = normalize_phone_digits(raw_chatid)
+    boss_phone = settings.get("boss_phone") or "551999958516"
+
+    # Se a mensagem NÃO veio do Chefe e precisa de resolução (@lid ou sem conversa direta):
+    if not phones_match_br(chatid_clean, boss_phone):
+        if "@lid" in raw_chatid or not chatid_clean or not get_active_conversation_by_chatid(chatid_clean, db_path=db_path):
+            if bool(settings.get("test_mode", True)):
+                test_phone = normalize_phone_digits(settings.get("test_client_phone") or "5519996109028")
+                if get_active_conversation_by_chatid(test_phone, db_path=db_path):
+                    chatid_clean = test_phone
+            else:
+                recent_convs = list_agent_conversations(limit=5, db_path=db_path)
+                active_conv = next((c for c in recent_convs if c.get("status") == "active"), None)
+                if active_conv:
+                    chatid_clean = normalize_phone_digits(active_conv.get("chatid") or "")
+
+    if not chatid_clean:
+        return {"ok": False, "ignored": True, "reason": "unresolved_chatid"}
 
     # 3. Mensagem enviada pelo próprio número do negócio (`fromMe === true`)
     if msg.get("fromMe") is True:

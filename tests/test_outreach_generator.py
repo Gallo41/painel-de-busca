@@ -30,9 +30,9 @@ def test_generate_outreach_scripts_for_missing_site_and_free_domain():
     }
     scripts = generate_outreach_scripts(lead, xray, score)
     assert "Odonto Prime Campinas" in scripts["whatsapp"]
-    assert "odontoprimecampinas.com.br" in scripts["whatsapp"]
+    assert "link" not in scripts["whatsapp"].lower()
+    assert "clientes" in scripts["whatsapp"].lower()
     assert scripts["whatsapp_url"].startswith("https://wa.me/5519998765432?text=")
-    assert "odontoprimecampinas.com.br" in scripts["email_subject"]
     assert "Odonto Prime Campinas" in scripts["instagram_dm"]
     assert "whatsapp" in scripts["automation_payload"]["channels_available"]
 
@@ -91,8 +91,9 @@ def test_generate_outreach_scripts_humanized_tone_all_scenarios():
     score_nosite = {"primary_pain": "SEM_SITE", "recommended_service": "SITE_NOVO"}
     sc_nosite = generate_outreach_scripts(base_lead, xray_nosite, score_nosite)
     assert "Oi, tudo bem? É da Oficina do João?" in sc_nosite["whatsapp"]
-    assert "oficinadojoao.com.br" in sc_nosite["whatsapp"]
-    assert "Posso te mandar o link aqui para você dar uma olhada sem compromisso?" in sc_nosite["whatsapp"]
+    assert "link" not in sc_nosite["whatsapp"].lower()
+    assert "clientes" in sc_nosite["whatsapp"].lower()
+    assert "agenda" in sc_nosite["whatsapp"].lower()
     assert "Olá, equipe da" not in sc_nosite["whatsapp"]
 
     # 3. Melhoria de site mobile

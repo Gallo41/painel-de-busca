@@ -230,26 +230,17 @@ def generate_outreach_scripts(
             f"Achei legal avisar pra não perderem cliente! Se precisarem subir uma página rápida, estou por aqui."
         )
     elif pain in ("SEM_SITE", "DOMINIO_LIVRE"):
-        dom_line = (
-            f"inclusive vi que até o endereço oficial *{dom}* tá liberado hoje pra registrar no nome de vocês, antes que algum concorrente pegue."
-            if dom_free
-            else f"reparei que quem clica no Google cai apenas em {cms if xray_data.get('is_social_only_url') else 'redes sociais'}, sem uma página oficial pra fechar na hora."
-        )
         wpp_msg = (
             f"Oi, tudo bem? É da {title}?\n\n"
             f"Vi o perfil de vocês aqui no Google em {city}, nota {rating:.1f} inclusive, muito bacana! 👏\n\n"
-            f"Passei aqui porque hoje quem pesquisa pelo serviço de vocês na cidade não acha uma página rápida com botão direto pro WhatsApp. A maioria acaba indo pro concorrente só por causa disso.\n\n"
-            f"E {dom_line} Eu montei um modelo de página no celular focada em fazer o cliente entrar e já chamar direto no seu Whats pra fechar.\n\n"
-            f"Posso te mandar o link aqui para você dar uma olhada sem compromisso?"
+            f"Passei aqui porque hoje quem pesquisa pelo serviço de vocês na cidade não acha uma forma rápida de agendar ou tirar dúvidas direto no WhatsApp. A maioria acaba indo pro concorrente que aparece com botão direto.\n\n"
+            f"A gente ajuda empresas e consultórios da região a lotarem o WhatsApp de clientes particulares que pesquisam no Google todo dia.\n\n"
+            f"Vocês teriam interesse em receber mais clientes particulares chamando no Whats todo dia, ou a agenda já tá 100% cheia?"
         )
-        email_subject = (
-            f"Mais clientes no WhatsApp para {title} ({dom})"
-            if dom_free
-            else f"Mais clientes do Google no WhatsApp para {title} ({city})"
-        )
+        email_subject = f"Mais clientes do Google no WhatsApp para {title} ({city})"
         ig_dm = (
-            f"Opa pessoal da {title}! Vi o perfil top de vocês no Google em {city}. Notei que vocês não têm página própria levando direto pro Whats ({dom} tá livre). "
-            f"Posso te mandar uma prévia que montei sem compromisso?"
+            f"Opa pessoal da {title}! Vi o perfil top de vocês no Google em {city}. "
+            f"Vocês teriam interesse em receber mais clientes particulares chamando no Whats todo dia, ou a agenda já tá cheia?"
         )
     elif pain == "OPORTUNIDADE_SISTEMA" or service == "SISTEMA_COMPLEXO":
         wpp_msg = (

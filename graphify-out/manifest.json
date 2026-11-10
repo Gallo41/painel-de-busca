@@ -78,9 +78,9 @@
     "semantic_hash": "8ad8a21ed16c9cd700825720b1e7fafc"
   },
   "app/services/outreach_generator.py": {
-    "mtime": 1794272810.064971,
-    "seen": 1794272964.3050232,
-    "ast_hash": "ff805f099dd8a7a5cd098c4ad61eb6d9",
+    "mtime": 1794273993.08306,
+    "seen": 1794274283.9267251,
+    "ast_hash": "e644c102cebc02d2f460a7111df061f7",
     "semantic_hash": ""
   },
   "app/services/site_xray.py": {
@@ -144,9 +144,9 @@
     "semantic_hash": "59a6a0749bb675325b667a27ae0f83d5"
   },
   "tests/test_outreach_generator.py": {
-    "mtime": 1793745678.1422544,
-    "seen": 1793745819.6096754,
-    "ast_hash": "1acdd9656227981c20688d914f07d1bc",
+    "mtime": 1794274010.7710724,
+    "seen": 1794274283.9267747,
+    "ast_hash": "eb85d785296f7d6197f64e07150d5f3a",
     "semantic_hash": ""
   },
   "tests/test_site_xray.py": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "app/services/whatsapp_agent.py": {
-    "mtime": 1794272833.3676302,
-    "seen": 1794272964.3050315,
-    "ast_hash": "cd513724dec61097759a9704e36ab5e8",
+    "mtime": 1794274120.4722643,
+    "seen": 1794274283.9267359,
+    "ast_hash": "73786dd9268720eba64be062a4e98fde",
     "semantic_hash": ""
   },
   "tests/test_whatsapp_agent.py": {
@@ -384,9 +384,9 @@
     "semantic_hash": ""
   },
   "whatsapp_bridge/server.js": {
-    "mtime": 1794273094.4373236,
-    "seen": 1794273158.029429,
-    "ast_hash": "2b9e071893f3c93332ce220c0272216d",
+    "mtime": 1794273894.0440662,
+    "seen": 1794274283.9267845,
+    "ast_hash": "9a4972f124e2c5ff537a4169f66a9870",
     "semantic_hash": ""
   },
   "docs/superpowers/specs/2026-11-09-whatsapp-agent-prototype-design.md": {
