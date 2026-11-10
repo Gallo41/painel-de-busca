@@ -11,7 +11,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <link rel="icon" type="image/x-icon" href="/static/icon.ico" />
-  <link rel="stylesheet" href="/static/styles.css?v=2.5.2" />
+  <link rel="stylesheet" href="/static/styles.css?v=2.6.1" />
 </head>
 <body>
   <div class="app">
@@ -32,8 +32,11 @@
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 7a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zM1.5 13.5c0-2.2 1.8-4 4-4s4 1.8 4 4M11 6.5a1.9 1.9 0 100-3.8M11.5 9.6c1.7.3 3 1.8 3 3.9" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
           Clientes
         </a>
-        <a class="nav-item" href="#agente" data-nav="agente">
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9l2-5.5h8L14 9v4H2V9zm0 0h3.5l.7 1.5h3.6L10.5 9H14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        <a class="nav-item" href="#analise" data-nav="analise">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 13.5h11M4.5 11V7.5M8 11V3.5M11.5 11V6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Análise de Leads
+        </a>
+        <a class="nav-item" href="#agente" data-nav="agente">          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 9l2-5.5h8L14 9v4H2V9zm0 0h3.5l.7 1.5h3.6L10.5 9H14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
           🤖 Agente &amp; Fila
           <span class="nav-count num" id="btn-queue-count">0</span>
         </a>
@@ -367,8 +370,22 @@
           </div>
         </section>
 
-        <!-- ============ VISÃO: AGENTE WHATSAPP & FILA ============ -->
-        <section id="view-agente" class="view" hidden>
+        <!-- ============ VISÃO: ANÁLISE DE LEADS ============ -->
+        <section id="view-analise" class="view" hidden>
+          <div class="title-row">
+            <div>
+              <h1>📊 Análise de Leads</h1>
+              <p class="sub">Quem abordar primeiro, quanto cobrar e como distribuir os disparos. Ranking de chance de fechar por nicho, com preços sugeridos.</p>
+            </div>
+            <div class="title-actions">
+              <button class="btn btn-sm" type="button" onclick="loadAnalysis(true)">Atualizar dados</button>
+              <a href="#clientes" class="btn btn-sm">← Clientes</a>
+            </div>
+          </div>
+          <div id="view-analise-body"></div>
+        </section>
+
+        <!-- ============ VISÃO: AGENTE WHATSAPP & FILA ============ -->        <section id="view-agente" class="view" hidden>
           <div class="title-row">
             <div>
               <h1>🤖 Agente WhatsApp, Fila &amp; Protótipos IA</h1>
@@ -423,6 +440,7 @@
     </div>
   </div>
 
-  <script src="/static/app.js?v=2.5.2"></script>
+  <script src="/static/app.js?v=2.6.1"></script>
+  <script src="/static/analise.js?v=2.6.1"></script>
 </body>
 </html>

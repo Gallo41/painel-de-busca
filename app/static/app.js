@@ -72,7 +72,7 @@ function readyReportOf(l) {
   const offer = offerOf(l);
   return {
     what_to_sell: SERVICE_LONG[offer],
-    ticket_range: offer === "SISTEMA_COMPLEXO" ? "R$ 3.500 a R$ 8.000" : offer === "REFORMA_SITE" ? "R$ 1.800 a R$ 3.500" : "R$ 1.200 a R$ 2.500",
+    ticket_range: offer === "SISTEMA_COMPLEXO" ? "R$ 1.800 a R$ 3.800" : offer === "REFORMA_SITE" ? "R$ 1.100 a R$ 2.000" : "R$ 600 a R$ 1.500",
     executive_pitch: l.pain_summary || "",
     bullets: [],
   };
@@ -118,10 +118,12 @@ function routeFromHash() {
   let view = "clientes";
   if (hash === "#ferramentas") view = "ferramentas";
   else if (hash === "#agente" || hash === "#fila") view = "agente";
+  else if (hash === "#analise") view = "analise";
 
   if ($("view-clientes")) $("view-clientes").hidden = view !== "clientes";
   if ($("view-ferramentas")) $("view-ferramentas").hidden = view !== "ferramentas";
   if ($("view-agente")) $("view-agente").hidden = view !== "agente";
+  if ($("view-analise")) $("view-analise").hidden = view !== "analise";
 
   document.querySelectorAll("[data-nav]").forEach((a) => {
     if (a.dataset.nav === view) a.setAttribute("aria-current", "page");
@@ -134,6 +136,8 @@ function routeFromHash() {
     if (lead) populateEmbeddedToolsFromLead(lead);
   } else if (view === "agente") {
     renderAgentDashboardView();
+  } else if (view === "analise" && typeof loadAnalysis === "function") {
+    loadAnalysis();
   }
 }
 
@@ -157,7 +161,7 @@ function bindShortcuts() {
       closeDetailOverlay();
       return;
     }
-    if (typing || location.hash === "#ferramentas") return;
+    if (typing || (location.hash && location.hash !== "#clientes")) return;
     if (e.key === "ArrowDown" || e.key === "j") {
       e.preventDefault();
       moveSelection(1);

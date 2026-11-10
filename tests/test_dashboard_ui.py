@@ -18,7 +18,7 @@ def test_dashboard_html_and_assets_served(client):
     assert r_index.status_code == 200
     assert "no-cache" in r_index.headers.get("Cache-Control", "")
     html = r_index.text
-    assert "app.js?v=2.5.2" in html
+    assert "app.js?v=2.6.1" in html
     assert "Selecionar Nichos" in html
     assert "achar o negócio" in html.lower()
     assert "raio x do site atual" in html.lower()
@@ -123,5 +123,29 @@ def test_dashboard_decision_status_elements_present(client):
     assert "setStatusFilter" in r_js.text
     assert "clearAllFilters" in r_js.text
     assert "onInlineSearch" in r_js.text
+
+
+def test_dashboard_analysis_view_elements_present(client):
+    r_index = client.get("/")
+    assert r_index.status_code == 200
+    html = r_index.text
+    assert 'href="#analise"' in html
+    assert 'id="view-analise"' in html
+    assert 'id="view-analise-body"' in html
+    assert "analise.js?v=2.6.1" in html
+
+    r_css = client.get("/static/styles.css")
+    assert r_css.status_code == 200
+    assert ".an-funnel" in r_css.text
+    assert ".an-seg" in r_css.text
+    assert ".an-rank" in r_css.text
+
+    r_an = client.get("/static/analise.js")
+    assert r_an.status_code == 200
+    assert "/api/leads/ranking" in r_an.text
+    assert "renderAnalysisView" in r_an.text
+    assert "anSimulator" in r_an.text
+    assert "anHistogram" in r_an.text
+
 
 

@@ -209,8 +209,8 @@ def test_agent_price_uses_lead_specific_value_when_lead_given():
 
 def test_agent_price_without_lead_keeps_legacy_behavior():
     cents, faixa, _ = calculate_suggested_price("LANDING_PAGE", "quanto custa?")
-    assert cents == 139000
-    assert faixa == "R$ 900 a R$ 1.800"
+    assert cents == 89000
+    assert faixa == "R$ 600 a R$ 1.200"
 
 
 # ---------------- API ----------------
@@ -243,9 +243,61 @@ def test_ranking_endpoint_groups_by_real_segment_and_filters(tmp_path, monkeypat
         assert data["summary"]["total"] == 3
         assert data["summary"]["ready"] == 2  # o fixo não conta como WhatsApp
         assert len(data["plan"]) == 2
+        assert {"score_histogram", "funnel", "by_pain", "by_segment", "pipeline", "plan_days", "methodology"} <= set(data["analytics"])
         ranks = [x["rank"] for x in data["ranking"]]
         assert ranks == sorted(ranks)
 
         only = client.get("/api/leads/ranking?segment=odontologia&only_ready=true").json()
         assert [x["segment"]["slug"] for x in only["ranking"]] == ["odontologia"]
         assert only["ranking"][0]["price"]["alvo_cents"] > 0
+
+
+# ---------------- preços reduzidos ----------------
+
+
+def test_catalog_prices_were_lowered_and_ranker_follows():
+    assert CATALOGO_SOLUCOES["LANDING_PAGE"]["faixa_preco"] == "R$ 600 a R$ 1.200"
+    assert CATALOGO_SOLUCOES["SITE_INSTITUCIONAL"]["faixa_preco"] == "R$ 1.100 a R$ 2.000"
+    assert CATALOGO_SOLUCOES["SISTEMA_SOB_MEDIDA"]["faixa_preco"] == "R$ 1.800 a R$ 3.800"
+    top = suggest_price(_lead(review_count=900, title="Clínica Odonto Premium"))
+    assert top["alvo_cents"] <= 199000  # nada acima do teto do site completo
+    lp = suggest_price(_lead(review_count=3, title="Psicóloga Ana", niche_slug="psicologia-fisioterapia"))
+    assert lp["scope_type"] == "LANDING_PAGE" and lp["alvo_cents"] <= 79000
+
+
+# ---------------- analytics ----------------
+
+
+def test_build_analytics_has_everything_the_dashboard_needs():
+    from app.services.deal_ranker import build_analytics
+
+    ranked = rank_leads(_batch())
+    plan = build_outreach_plan(ranked, per_day=2)
+    a = build_analytics(ranked, plan)
+
+    assert sum(b["count"] for b in a["score_histogram"]) == len([r for r in ranked if r["close_chance"]["tier"] != "EXCLUIDO"])
+    assert [b["from"] for b in a["score_histogram"]] == list(range(0, 100, 10))
+    f = a["funnel"]
+    assert [s["key"] for s in f] == ["total", "valid", "contact", "whatsapp", "ready", "tier_a"]
+    counts = [s["count"] for s in f]
+    assert counts == sorted(counts, reverse=True)
+    assert f[0]["count"] == len(ranked)
+    assert sum(p["count"] for p in a["by_pain"]) == len(ranked) - 1  # UNIMEP excluído não entra
+    seg = {s["slug"]: s for s in a["by_segment"]}
+    assert seg["odontologia"]["avg_price_cents"] > 0
+    assert seg["odontologia"]["min_price_cents"] <= seg["odontologia"]["avg_price_cents"] <= seg["odontologia"]["max_price_cents"]
+    assert {"ready_value_cents", "tier_a_value_cents"} <= set(a["pipeline"])
+    assert [d["day"] for d in a["plan_days"]] == [p["day"] for p in plan]
+    assert all({"A", "B", "C", "D"} <= set(d["tiers"]) for d in a["plan_days"])
+    m = a["methodology"]
+    assert sum(c["max_points"] for c in m["components"]) == 100
+    assert [t["tier"] for t in m["tiers"]] == ["A", "B", "C", "D"]
+
+
+def test_ready_report_ticket_follows_new_pricing():
+    from app.routers.leads_router import _ensure_ready_report
+
+    lead = _lead(review_count=3, title="Psicóloga Ana", niche_slug="psicologia-fisioterapia")
+    lead["outreach_scripts"] = {"ready_report": {"ticket_range": "R$ 3.500 a R$ 8.000", "bullets": []}}
+    out = _ensure_ready_report(lead)
+    assert out["outreach_scripts"]["ready_report"]["ticket_range"] == suggest_price(lead)["faixa_text"]

@@ -36,9 +36,9 @@
     "semantic_hash": "e7d92cac48bde5c71675b3b2351b79ca"
   },
   "app/routers/leads_router.py": {
-    "mtime": 1794315489.8465948,
-    "seen": 1794315512.2389104,
-    "ast_hash": "df290d5c5cd03bbb50e0f0f8f04a2e42",
+    "mtime": 1794316997.3521893,
+    "seen": 1794318843.6470463,
+    "ast_hash": "a794f1af3343296f29cc88ec97dffdb7",
     "semantic_hash": ""
   },
   "app/routers/outreach_router.py": {
@@ -78,9 +78,9 @@
     "semantic_hash": "8ad8a21ed16c9cd700825720b1e7fafc"
   },
   "app/services/outreach_generator.py": {
-    "mtime": 1794273993.08306,
-    "seen": 1794274283.9267251,
-    "ast_hash": "e644c102cebc02d2f460a7111df061f7",
+    "mtime": 1794316948.6731622,
+    "seen": 1794318843.6470594,
+    "ast_hash": "098b30466016c3d8149e5e550ed8e470",
     "semantic_hash": ""
   },
   "app/services/site_xray.py": {
@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/static/app.js": {
-    "mtime": 1794272237.387985,
-    "seen": 1794272268.6888766,
-    "ast_hash": "e779872816e59a2ada68dccc2c28be5f",
+    "mtime": 1794317154.4473102,
+    "seen": 1794318843.6470656,
+    "ast_hash": "938499c12d7d53c65e07011d7856c1ab",
     "semantic_hash": ""
   },
   "scripts/git-auto-sync.ps1": {
@@ -120,9 +120,9 @@
     "semantic_hash": ""
   },
   "tests/test_dashboard_ui.py": {
-    "mtime": 1793753397.4096832,
-    "seen": 1793753714.7564023,
-    "ast_hash": "40f479130a724c404521754e2e6a3cea",
+    "mtime": 1794318784.3467987,
+    "seen": 1794318843.647077,
+    "ast_hash": "e7aaffcba55f9872613c815416612362",
     "semantic_hash": ""
   },
   "tests/test_database.py": {
@@ -162,9 +162,9 @@
     "semantic_hash": ""
   },
   "Sprint atual.md": {
-    "mtime": 1794307915.571628,
-    "seen": 1794307943.1524103,
-    "ast_hash": "b492f7601cf3ba92489ece0513e6df2a",
+    "mtime": 1794315525.2318585,
+    "seen": 1794318843.6471155,
+    "ast_hash": "5a677c4e06b4560b2275d2cd57721334",
     "semantic_hash": ""
   },
   "docs/superpowers/plans/2026-10-28-painel-de-busca.md": {
@@ -204,9 +204,9 @@
     "semantic_hash": ""
   },
   "app/static/index.html": {
-    "mtime": 1794272105.866652,
-    "seen": 1794272268.6889312,
-    "ast_hash": "f01307f5e60043183b90045cb213a670",
+    "mtime": 1794318780.8217573,
+    "seen": 1794318843.647117,
+    "ast_hash": "1707a6b051674ab4d9a7d554fa6dfe20",
     "semantic_hash": ""
   },
   "docker-compose.yml": {
@@ -366,9 +366,9 @@
     "semantic_hash": ""
   },
   "app/services/whatsapp_agent.py": {
-    "mtime": 1794315369.2043765,
-    "seen": 1794315512.2389278,
-    "ast_hash": "aa8b890a6f415ef4491b883c09f09065",
+    "mtime": 1794316948.6731622,
+    "seen": 1794318843.6470628,
+    "ast_hash": "3aca054642f084bff98852d44a79505a",
     "semantic_hash": ""
   },
   "tests/test_whatsapp_agent.py": {
@@ -396,9 +396,9 @@
     "semantic_hash": ""
   },
   "app/services/deal_ranker.py": {
-    "mtime": 1794315481.3141763,
-    "seen": 1794315512.238918,
-    "ast_hash": "4e9e57452be80e32c6a42e09b9bbf867",
+    "mtime": 1794316997.2915037,
+    "seen": 1794318843.6470547,
+    "ast_hash": "b0be2bd2815a109bf9b421daefa62d34",
     "semantic_hash": ""
   },
   "scripts/rank_leads.py": {
@@ -408,9 +408,15 @@
     "semantic_hash": ""
   },
   "tests/test_deal_ranker.py": {
-    "mtime": 1794315481.284984,
-    "seen": 1794315512.238942,
-    "ast_hash": "f1ed5199c2ce30418777198d70e3a3d2",
+    "mtime": 1794318721.8760924,
+    "seen": 1794318843.6470804,
+    "ast_hash": "abb28cf3bf920e6fc31849030bd2e794",
+    "semantic_hash": ""
+  },
+  "app/static/analise.js": {
+    "mtime": 1794318775.7516592,
+    "seen": 1794318843.6470642,
+    "ast_hash": "d185ef4ed53b1dca0ee5a790072f7ef1",
     "semantic_hash": ""
   }
 }

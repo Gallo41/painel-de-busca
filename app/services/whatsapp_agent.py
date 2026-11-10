@@ -52,8 +52,8 @@ CATALOGO_SOLUCOES: Dict[str, Dict[str, Any]] = {
     "LANDING_PAGE": {
         "codigo": "LANDING_PAGE",
         "nome": "Landing Page de Alta Conversão",
-        "faixa_preco": "R$ 900 a R$ 1.800",
-        "preco_sugerido_cents": 139000,
+        "faixa_preco": "R$ 600 a R$ 1.200",
+        "preco_sugerido_cents": 89000,
         "prazo_medio": "3 a 5 dias úteis",
         "resultado": (
             "transformar quem pesquisa no Google ou visita o Instagram em cliente chamando direto no WhatsApp, "
@@ -63,8 +63,8 @@ CATALOGO_SOLUCOES: Dict[str, Dict[str, Any]] = {
     "SITE_INSTITUCIONAL": {
         "codigo": "SITE_INSTITUCIONAL",
         "nome": "Site Profissional Completo + Posicionamento Google",
-        "faixa_preco": "R$ 1.600 a R$ 2.900",
-        "preco_sugerido_cents": 219000,
+        "faixa_preco": "R$ 1.100 a R$ 2.000",
+        "preco_sugerido_cents": 149000,
         "prazo_medio": "5 a 8 dias úteis",
         "resultado": (
             "posicionar a empresa no Google na cidade para múltiplos serviços, gerando autoridade e captação "
@@ -74,8 +74,8 @@ CATALOGO_SOLUCOES: Dict[str, Dict[str, Any]] = {
     "SISTEMA_SOB_MEDIDA": {
         "codigo": "SISTEMA_SOB_MEDIDA",
         "nome": "Sistema Web / Painel Operacional e Agendamento (Sem Módulo Fiscal)",
-        "faixa_preco": "R$ 2.500 a R$ 5.500",
-        "preco_sugerido_cents": 349000,
+        "faixa_preco": "R$ 1.800 a R$ 3.800",
+        "preco_sugerido_cents": 249000,
         "prazo_medio": "7 a 15 dias úteis",
         "resultado": (
             "automatizar agendamentos, organizar pedidos/clientes e ter um painel comercial sob medida na web, "
@@ -551,7 +551,7 @@ Cliente: E se eu precisar de um sistema com agendamento e emissão de nota fisca
 Você: A parte de agendamento online e painel de horários no Whats a gente monta sob medida bem tranquilo! Só a parte fiscal e nota que nós não mexemos pra não assumir responsabilidade tributária com a Receita, fechou? O foco é 100% no que bota cliente e dinheiro no bolso. Vocês preferem uma página rápida ou já com agendamento?
 
 Cliente: Quanto custa pra fazer uma Landing Page?
-Você: Uma Landing Page profissional nesse padrão costuma ficar na faixa de R$ 900 a R$ 1.800 dependendo do que você quiser colocar. Já passei o caso de vocês pro meu sócio fechar uma condição especial pra {title}, quer que tenha agendamento ou só botão pro Whats?
+Você: Uma Landing Page profissional nesse padrão costuma ficar na faixa de R$ 600 a R$ 1.200 dependendo do que você quiser colocar. Já passei o caso de vocês pro meu sócio fechar uma condição especial pra {title}, quer que tenha agendamento ou só botão pro Whats?
 
 6. SEU OBJETIVO: VENDER O RESULTADO COMERCIAL
 1. Convencer o cliente do RESULTADO prático:
@@ -595,9 +595,9 @@ def calculate_suggested_price(
     # Pequeno ajuste inteligente conforme complexidade pedida
     if re.search(r"\b(agendamento|cat[aá]logo|painel|login|integra[cç][aã]o)\b", client_text or "", re.IGNORECASE):
         if scope_type == "LANDING_PAGE":
-            base_cents = 159000
+            base_cents = 109000
         elif scope_type == "SISTEMA_SOB_MEDIDA":
-            base_cents = 390000
+            base_cents = 279000
     return base_cents, str(sol["faixa_preco"]), sol
 
 

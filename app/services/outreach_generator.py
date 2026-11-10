@@ -45,15 +45,15 @@ def build_ready_report_for_lead(
     # O que vender + Ticket sugerido
     if service == "SISTEMA_COMPLEXO" or pain == "OPORTUNIDADE_SISTEMA":
         what_to_sell = "Sistema Web Sob Medida (Agendamento / Portal / Catálogo) + Reforma"
-        ticket_range = "R$ 3.500 a R$ 8.000"
+        ticket_range = "R$ 1.800 a R$ 3.800"
         category_tab = "sistema"
     elif pain == "SITE_FORA_DO_AR" or service == "REFORMA_SITE":
         what_to_sell = "Reforma Urgente de Site + Hospedagem Segura (HTTPS)"
-        ticket_range = "R$ 1.800 a R$ 3.500"
+        ticket_range = "R$ 1.100 a R$ 2.000"
         category_tab = "reforma"
     else:
         what_to_sell = "Criação de Site Profissional / Landing Page + Domínio .com.br"
-        ticket_range = "R$ 1.200 a R$ 2.500"
+        ticket_range = "R$ 600 a R$ 1.500"
         category_tab = "site_novo"
 
     if lead.get("source") in ("casadosdados", "cnae_recem_abertas", "receita_cnpj_embutido"):

@@ -18,8 +18,10 @@ from app.models import LeadManagementUpdate, ManualLeadCreate, SearchJobRequest
 from app.services.deal_ranker import (
     build_outreach_plan,
     compact_item,
+    build_analytics,
     group_by_segment,
     rank_leads,
+    suggest_price,
 )
 from app.services.business_discovery import (
     build_casadosdados_links,
@@ -349,6 +351,10 @@ def _ensure_ready_report(lead: Dict[str, Any]) -> Dict[str, Any]:
     if "ready_report" not in sc:
         sc["ready_report"] = build_ready_report_for_lead(lead, lead, lead)
         lead["outreach_scripts"] = sc
+    # Ticket coerente com o preço por lead (relatórios gravados antes da revisão de preços ficam defasados)
+    rr = sc.get("ready_report")
+    if isinstance(rr, dict):
+        rr["ticket_range"] = suggest_price(lead)["faixa_text"]
     return lead
 
 
@@ -423,6 +429,7 @@ def api_leads_ranking(
             {"day": d["day"], "date": d["date"], "count": len(d["leads"]), "lead_ids": [x["lead"]["id"] for x in d["leads"]]}
             for d in plan
         ],
+        "analytics": build_analytics(ranked, plan),
         "ranking": [compact_item(it) for it in selected],
     }
 

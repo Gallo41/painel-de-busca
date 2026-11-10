@@ -150,13 +150,13 @@ def _reviews(lead: Dict[str, Any]) -> int:
         return 0
 
 
+_TIER_CUTS = [("A", 82), ("B", 68), ("C", 54), ("D", 0)]
+
+
 def _tier_for(score: int) -> str:
-    if score >= 82:
-        return "A"
-    if score >= 68:
-        return "B"
-    if score >= 54:
-        return "C"
+    for tier, minimum in _TIER_CUTS:
+        if score >= minimum:
+            return tier
     return "D"
 
 
@@ -415,6 +415,118 @@ def build_outreach_plan(
             current += timedelta(days=1)
         plan.append({"day": len(plan) + 1, "date": day_date, "leads": ready[i:i + per_day]})
     return plan
+
+
+_PAIN_LABELS = {
+    "SITE_FORA_DO_AR": "Site fora do ar",
+    "DOMINIO_LIVRE": "Só rede social (domínio livre)",
+    "SEM_SITE": "Sem site",
+    "SITE_AMADOR_ANTIGO": "Site antigo/fraco",
+    "OPORTUNIDADE_SISTEMA": "Já tem site (upgrade/sistema)",
+}
+
+METHODOLOGY: Dict[str, Any] = {
+    "components": [
+        {"key": "alcance", "label": "Alcance", "max_points": 30,
+         "description": "Celular com WhatsApp direto vale 26 pts; telefone fixo só 6 (cai na recepção). +4 se houver Instagram ou e-mail."},
+        {"key": "dor", "label": "Dor / urgência", "max_points": 30,
+         "description": "Site fora do ar 30, só rede social 28, sem site 26 (+2 com domínio livre), site antigo 22, já tem site 12."},
+        {"key": "capacidade", "label": "Capacidade de pagar", "max_points": 20,
+         "description": "Pelas avaliações no Google: 100+ = 20, 40+ = 17, 15+ = 12, 5+ = 7, menos = 3."},
+        {"key": "decisor", "label": "Decisor acessível", "max_points": 12,
+         "description": "Profissional autônomo (Dr./Dra./Psicóloga...) decide sozinho = 12; clínica pequena 7; estrutura grande 2."},
+        {"key": "encaixe", "label": "Encaixe do nicho", "max_points": 8,
+         "description": "Quão bem a oferta 'lotar o WhatsApp de clientes particulares' serve ao nicho (odontologia/estética 8, construtoras 4)."},
+    ],
+    "tiers": [
+        {"tier": t, "min_score": m, "label": _TIER_LABELS[t]} for t, m in _TIER_CUTS
+    ],
+    "exclusions": [
+        "Leads simulados/demonstração", "Instituições públicas e de ensino (.gov.br, .edu.br, UNIMEP)",
+        "Descartados manualmente (Não fazer)",
+    ],
+    "price": (
+        "Âncora do escopo no catálogo do agente × ticket do nicho × porte (avaliações), sempre dentro da faixa "
+        "oficial. Piso interno = 75% do alvo. Faixa para o cliente = 80% a 130% do alvo."
+    ),
+    "disclaimer": "A nota ordena prioridade de abordagem; não é probabilidade calibrada de fechar.",
+}
+
+
+def build_analytics(ranked: List[Dict[str, Any]], plan: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Agregados prontos para gráficos do painel de análise."""
+    valid = [r for r in ranked if r["close_chance"]["tier"] != "EXCLUIDO"]
+    ready = [r for r in ranked if r["outreach_ready"]]
+
+    def alvo(it: Dict[str, Any]) -> int:
+        return int(it["price"]["alvo_cents"])
+
+    histogram = []
+    for start in range(0, 100, 10):
+        end = start + 10
+        in_bin = [r for r in valid if start <= r["close_chance"]["score"] < end or (start == 90 and r["close_chance"]["score"] == 100)]
+        histogram.append({
+            "from": start, "to": end - 1 if start < 90 else 100, "count": len(in_bin),
+            "tiers": {t: sum(1 for r in in_bin if r["close_chance"]["tier"] == t) for t in "ABCD"},
+        })
+
+    funnel = [
+        {"key": "total", "label": "Leads na base", "count": len(ranked)},
+        {"key": "valid", "label": "Abordáveis (sem excluídos)", "count": len(valid)},
+        {"key": "contact", "label": "Com algum canal de contato", "count": sum(1 for r in valid if r["close_chance"]["channel"] != "nenhum")},
+        {"key": "whatsapp", "label": "Com celular/WhatsApp direto", "count": sum(1 for r in valid if r["close_chance"]["channel"] == "whatsapp")},
+        {"key": "ready", "label": "Prontos para disparo", "count": len(ready)},
+        {"key": "tier_a", "label": "Prontos e tier A", "count": sum(1 for r in ready if r["close_chance"]["tier"] == "A")},
+    ]
+
+    by_pain = []
+    for pain in list(_PAIN_LABELS) + [None]:
+        rows = [r for r in valid if (r["lead"].get("primary_pain") or None) == pain] if pain else [
+            r for r in valid if (r["lead"].get("primary_pain") or "") not in _PAIN_LABELS
+        ]
+        if rows:
+            by_pain.append({
+                "pain": pain or "OUTRA", "label": _PAIN_LABELS.get(pain or "", "Não classificada"),
+                "count": len(rows), "avg_score": round(sum(r["close_chance"]["score"] for r in rows) / len(rows), 1),
+            })
+
+    by_segment = []
+    for g in group_by_segment(ranked):
+        rows = [x for x in g["leads"] if x["close_chance"]["tier"] != "EXCLUIDO"]
+        if not rows:
+            continue
+        prices = [alvo(x) for x in rows]
+        rdy = [x for x in rows if x["outreach_ready"]]
+        by_segment.append({
+            "slug": g["slug"], "label": g["label"], "total": len(rows), "ready": len(rdy),
+            "tier_a": g["tier_a"], "avg_score": g["avg_score"],
+            "avg_price_cents": int(sum(prices) / len(prices)), "min_price_cents": min(prices), "max_price_cents": max(prices),
+            "ready_value_cents": sum(alvo(x) for x in rdy),
+        })
+
+    pipeline = {
+        "ready_value_cents": sum(alvo(r) for r in ready),
+        "tier_a_value_cents": sum(alvo(r) for r in ready if r["close_chance"]["tier"] == "A"),
+        "by_tier": {t: {"count": sum(1 for r in ready if r["close_chance"]["tier"] == t),
+                        "value_cents": sum(alvo(r) for r in ready if r["close_chance"]["tier"] == t)} for t in "ABCD"},
+    }
+
+    reach: Dict[str, int] = {}
+    for r in valid:
+        ch = r["close_chance"]["channel"]
+        reach[ch] = reach.get(ch, 0) + 1
+
+    plan_days = [
+        {"day": d["day"], "date": d["date"], "count": len(d["leads"]),
+         "value_cents": sum(alvo(x) for x in d["leads"]),
+         "tiers": {t: sum(1 for x in d["leads"] if x["close_chance"]["tier"] == t) for t in "ABCD"}}
+        for d in plan
+    ]
+
+    return {
+        "score_histogram": histogram, "funnel": funnel, "by_pain": by_pain, "by_segment": by_segment,
+        "pipeline": pipeline, "reach": reach, "plan_days": plan_days, "methodology": METHODOLOGY,
+    }
 
 
 def compact_item(it: Dict[str, Any]) -> Dict[str, Any]:
